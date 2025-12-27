@@ -1,0 +1,235 @@
+// Station popup content generation
+// Based on fishing_bot4.py embed building (lines 620-703)
+
+import { formatLocalTime } from '../utils/datetime.js';
+import { formatFeet, formatDelta, formatTemperature, formatPressure, mphFromKnots } from '../utils/conversions.js';
+import {
+  getConditionsEmoji,
+  getMoonEmoji,
+  getWindDirEmoji,
+  getTrendEmoji,
+  getPressureTrendEmoji,
+  getTideKindEmoji,
+  formatWind
+} from '../utils/formatting.js';
+
+/**
+ * Build complete popup content HTML
+ */
+export function buildPopupContent(station, data) {
+  const {
+    tideNow,
+    nextTide,
+    waterTemp,
+    wind,
+    windForecast,
+    pressure,
+    moon
+  } = data;
+
+  return `
+    <div class="station-popup">
+      <h2>${station.name}</h2>
+
+      <div class="two-column-row">
+        ${buildTideStatusSection(tideNow)}
+        ${buildNextTideSection(nextTide)}
+      </div>
+
+      <div class="section chart-container">
+        <canvas id="tide-chart" width="400" height="200"></canvas>
+      </div>
+
+      ${buildWaterTempSection(waterTemp)}
+
+      <div class="two-column-row">
+        ${buildCurrentWindSection(wind)}
+        ${buildWindForecastSection(windForecast)}
+      </div>
+
+      <div class="two-column-row">
+        ${buildPressureSection(pressure)}
+        ${buildConditionsSection(windForecast)}
+      </div>
+
+      ${buildMoonSection(moon)}
+
+      <div class="section" style="border-left: none; background: none; padding: 0.25rem; margin-top: 1rem;">
+        <p style="font-size: 0.75rem; color: #999; text-align: center;">
+          Station ID: ${station.id} • Data from NOAA & NWS
+        </p>
+      </div>
+    </div>
+  `;
+}
+
+/**
+ * Build tide status section
+ */
+function buildTideStatusSection(tideNow) {
+  if (!tideNow) {
+    return '<div class="section"><p class="unavailable">Tide data unavailable</p></div>';
+  }
+
+  const trendEmoji = getTrendEmoji(tideNow.trend);
+
+  return `
+    <div class="section tide-status">
+      <h3>Tide Status ${trendEmoji}</h3>
+      <div class="tide-levels">
+        <span class="observed">
+          <span>Observed:</span>
+          <strong>${formatFeet(tideNow.observed)}</strong>
+        </span>
+        <span class="predicted">
+          <span>Predicted:</span>
+          <strong>${formatFeet(tideNow.predicted)}</strong>
+        </span>
+        <span class="delta">
+          <span>Difference:</span>
+          <strong>${formatDelta(tideNow.delta)}</strong>
+        </span>
+      </div>
+      ${tideNow.phaseText && tideNow.phaseText !== 'n/a' ? `
+        <div class="phase">${tideNow.phaseText}</div>
+      ` : ''}
+    </div>
+  `;
+}
+
+/**
+ * Build next tide section
+ */
+function buildNextTideSection(nextTide) {
+  if (!nextTide) {
+    return '<div class="section"><p class="unavailable">Next tide data unavailable</p></div>';
+  }
+
+  const kindEmoji = getTideKindEmoji(nextTide.kind);
+
+  return `
+    <div class="section next-tide">
+      <h3>Next Tide ${kindEmoji}</h3>
+      <p><strong>${nextTide.kind}</strong> at ${formatLocalTime(nextTide.time)} • ${formatFeet(nextTide.ft)}</p>
+    </div>
+  `;
+}
+
+/**
+ * Build water temperature section
+ */
+function buildWaterTempSection(waterTemp) {
+  if (waterTemp === null || waterTemp === undefined) {
+    return ''; // Don't show section if no data
+  }
+
+  return `
+    <div class="section water-temp">
+      <h3>Water Temperature 🌡️</h3>
+      <p>${formatTemperature(waterTemp)}</p>
+    </div>
+  `;
+}
+
+/**
+ * Build current wind section
+ */
+function buildCurrentWindSection(wind) {
+  if (!wind) {
+    return '<div class="section wind-current"><h3>Current Wind 💨</h3><p class="unavailable">No data</p></div>';
+  }
+
+  const dirEmoji = getWindDirEmoji(wind.direction);
+
+  // Convert knots to mph
+  const speedMph = wind.speed !== null ? mphFromKnots(wind.speed) : null;
+  const gustMph = wind.gust !== null ? mphFromKnots(wind.gust) : null;
+
+  const windObj = {
+    speed: speedMph,
+    gust: gustMph
+  };
+
+  return `
+    <div class="section wind-current">
+      <h3>Current Wind 💨 ${dirEmoji}</h3>
+      <p>${formatWind(windObj)} • ${wind.direction || 'N/A'}</p>
+    </div>
+  `;
+}
+
+/**
+ * Build wind forecast section
+ */
+function buildWindForecastSection(windForecast) {
+  if (!windForecast) {
+    return '<div class="section wind-forecast"><h3>Wind Next 12h 🧭</h3><p class="unavailable">No data</p></div>';
+  }
+
+  const dirEmoji = getWindDirEmoji(windForecast.direction);
+
+  const avg = windForecast.avgSpeed !== null ? windForecast.avgSpeed.toFixed(1) : 'N/A';
+  const max = windForecast.maxSpeed !== null ? windForecast.maxSpeed.toFixed(1) : 'N/A';
+
+  return `
+    <div class="section wind-forecast">
+      <h3>Wind Next 12h 🧭 ${dirEmoji}</h3>
+      <p>Avg: ${avg} mph • Max: ${max} mph</p>
+      <p>Direction: ${windForecast.direction || 'N/A'}</p>
+    </div>
+  `;
+}
+
+/**
+ * Build pressure section
+ */
+function buildPressureSection(pressure) {
+  if (!pressure) {
+    return '<div class="section pressure"><h3>Barometric Pressure</h3><p class="unavailable">No data</p></div>';
+  }
+
+  const trendEmoji = getPressureTrendEmoji(pressure.trend);
+
+  return `
+    <div class="section pressure">
+      <h3>Barometric Pressure ${trendEmoji}</h3>
+      <p>${formatPressure(pressure.value)} • ${pressure.trend || 'unknown'}</p>
+    </div>
+  `;
+}
+
+/**
+ * Build sky conditions section
+ */
+function buildConditionsSection(windForecast) {
+  if (!windForecast || !windForecast.condition) {
+    return '<div class="section conditions"><h3>Sky Conditions</h3><p class="unavailable">No data</p></div>';
+  }
+
+  const conditionEmoji = getConditionsEmoji(windForecast.condition);
+
+  return `
+    <div class="section conditions">
+      <h3>Sky Conditions ${conditionEmoji}</h3>
+      <p>${windForecast.condition}</p>
+    </div>
+  `;
+}
+
+/**
+ * Build moon phase section
+ */
+function buildMoonSection(moon) {
+  if (!moon) {
+    return '';
+  }
+
+  const moonEmoji = getMoonEmoji(moon.phaseName);
+
+  return `
+    <div class="section moon">
+      <h3>Moon ${moonEmoji}</h3>
+      <p>${moon.phaseName} • ${moon.illumination}% illuminated</p>
+    </div>
+  `;
+}
