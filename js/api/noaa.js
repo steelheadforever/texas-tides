@@ -155,8 +155,9 @@ export async function fetchObservedWaterLevels(stationId, hoursBack = 6) {
  * Predicted: next 24 hours of predictions
  */
 export async function fetch24HourCurve(stationId) {
-  // Fetch predictions for next 24 hours (future only)
-  const range = getDateRange(0, 24);
+  // Fetch predictions from 1 hour ago to 23 hours ahead (ensures overlap with observed data)
+  // NOAA predictions API may round to nearest hour, so starting earlier ensures continuity
+  const range = getDateRange(-1, 23);
 
   // Fetch both observed and predicted data in parallel
   const [predictions, observed] = await Promise.all([
