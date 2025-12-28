@@ -28,28 +28,50 @@ export function renderTideChart(curveData) {
     currentChart.destroy();
   }
 
-  // Combine all times from both datasets for x-axis
-  const allTimes = [];
-  const predictedData = [];
-  const observedData = [];
+  // Build a time-to-index map for proper x-axis positioning
+  const timeMap = new Map();
 
-  // Add observed data points (if available)
+  // Collect observed times (if available)
   if (curveData.observed && curveData.observed.times && curveData.observed.times.length > 0) {
-    curveData.observed.times.forEach((time, idx) => {
-      allTimes.push(time);
-      observedData.push({ x: formatTime(time), y: curveData.observed.heights[idx] });
+    curveData.observed.times.forEach(time => {
+      timeMap.set(time.getTime(), time);
     });
   }
 
-  // Add predicted data points
-  curveData.predicted.times.forEach((time, idx) => {
-    allTimes.push(time);
-    predictedData.push({ x: formatTime(time), y: curveData.predicted.heights[idx] });
+  // Collect predicted times
+  curveData.predicted.times.forEach(time => {
+    timeMap.set(time.getTime(), time);
   });
 
-  // Sort times chronologically and create labels
-  const sortedTimes = [...new Set(allTimes)].sort((a, b) => a - b);
+  // Sort times chronologically
+  const sortedTimes = Array.from(timeMap.values()).sort((a, b) => a - b);
   const labels = sortedTimes.map(time => formatTime(time));
+
+  // Create index lookup map
+  const timeToIndexMap = new Map();
+  sortedTimes.forEach((time, index) => {
+    timeToIndexMap.set(time.getTime(), index);
+  });
+
+  // Build observed data using correct indices
+  const observedData = [];
+  if (curveData.observed && curveData.observed.times && curveData.observed.times.length > 0) {
+    curveData.observed.times.forEach((time, idx) => {
+      const xIndex = timeToIndexMap.get(time.getTime());
+      if (xIndex !== undefined) {
+        observedData.push({ x: labels[xIndex], y: curveData.observed.heights[idx] });
+      }
+    });
+  }
+
+  // Build predicted data using correct indices
+  const predictedData = [];
+  curveData.predicted.times.forEach((time, idx) => {
+    const xIndex = timeToIndexMap.get(time.getTime());
+    if (xIndex !== undefined) {
+      predictedData.push({ x: labels[xIndex], y: curveData.predicted.heights[idx] });
+    }
+  });
 
   // Find "Now" time label
   const now = new Date();
