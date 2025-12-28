@@ -83,7 +83,7 @@ async function handleStationClick(station) {
     className: 'station-popup-container',
     autoPan: true,
     autoPanPaddingTopLeft: [20, 80],  // Keep popup visible from top-left
-    autoPanPaddingBottomRight: [20, 20]  // Keep popup visible from bottom-right
+    autoPanPaddingBottomRight: [20, 80]  // Keep popup visible from bottom (footer + margin)
   })
     .setLatLng([station.lat, station.lon])
     .setContent('<div class="loading">Loading station data</div>')
