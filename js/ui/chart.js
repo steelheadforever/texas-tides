@@ -15,6 +15,19 @@ export function renderTideChart(curveData) {
     return;
   }
 
+  // Debug logging
+  console.log('=== CHART DATA DEBUG ===');
+  console.log('Predicted points:', curveData.predicted.times.length);
+  console.log('First predicted time:', curveData.predicted.times[0]);
+  console.log('Last predicted time:', curveData.predicted.times[curveData.predicted.times.length - 1]);
+  console.log('First predicted height:', curveData.predicted.heights[0]);
+  if (curveData.observed) {
+    console.log('Observed points:', curveData.observed.times.length);
+    console.log('First observed time:', curveData.observed.times[0]);
+    console.log('Last observed time:', curveData.observed.times[curveData.observed.times.length - 1]);
+    console.log('First observed height:', curveData.observed.heights[0]);
+  }
+
   const canvas = document.getElementById('tide-chart');
   if (!canvas) {
     console.warn('Canvas element not found');
@@ -28,62 +41,24 @@ export function renderTideChart(curveData) {
     currentChart.destroy();
   }
 
-  // Build a time-to-index map for proper x-axis positioning
-  const timeMap = new Map();
+  // Build datasets using actual Date objects for x values (time scale)
+  const predictedData = curveData.predicted.times.map((time, idx) => ({
+    x: time,
+    y: curveData.predicted.heights[idx]
+  }));
 
-  // Collect observed times (if available)
-  if (curveData.observed && curveData.observed.times && curveData.observed.times.length > 0) {
-    curveData.observed.times.forEach(time => {
-      timeMap.set(time.getTime(), time);
-    });
-  }
-
-  // Collect predicted times
-  curveData.predicted.times.forEach(time => {
-    timeMap.set(time.getTime(), time);
-  });
-
-  // Sort times chronologically
-  const sortedTimes = Array.from(timeMap.values()).sort((a, b) => a - b);
-  const labels = sortedTimes.map(time => formatTime(time));
-
-  // Create index lookup map
-  const timeToIndexMap = new Map();
-  sortedTimes.forEach((time, index) => {
-    timeToIndexMap.set(time.getTime(), index);
-  });
-
-  // Build observed data using correct indices
   const observedData = [];
   if (curveData.observed && curveData.observed.times && curveData.observed.times.length > 0) {
     curveData.observed.times.forEach((time, idx) => {
-      const xIndex = timeToIndexMap.get(time.getTime());
-      if (xIndex !== undefined) {
-        observedData.push({ x: labels[xIndex], y: curveData.observed.heights[idx] });
-      }
+      observedData.push({
+        x: time,
+        y: curveData.observed.heights[idx]
+      });
     });
   }
 
-  // Build predicted data using correct indices
-  const predictedData = [];
-  curveData.predicted.times.forEach((time, idx) => {
-    const xIndex = timeToIndexMap.get(time.getTime());
-    if (xIndex !== undefined) {
-      predictedData.push({ x: labels[xIndex], y: curveData.predicted.heights[idx] });
-    }
-  });
-
-  // Find "Now" time label
+  // Store current time for "Now" marker
   const now = new Date();
-  let nowLabel = null;
-  let minDiff = Infinity;
-  sortedTimes.forEach(time => {
-    const diff = Math.abs(time - now);
-    if (diff < minDiff) {
-      minDiff = diff;
-      nowLabel = formatTime(time);
-    }
-  });
 
   // Build datasets array
   const datasets = [];
@@ -171,8 +146,14 @@ export function renderTideChart(curveData) {
     },
     scales: {
       x: {
-        type: 'category',
-        labels: labels,
+        type: 'time',
+        time: {
+          unit: 'hour',
+          displayFormats: {
+            hour: 'h:mm a'
+          },
+          tooltipFormat: 'MMM d, h:mm a'
+        },
         grid: {
           color: '#e0e0e0',
           drawBorder: true
@@ -227,7 +208,7 @@ export function renderTideChart(curveData) {
   // Add annotation plugin for "Now" marker
   const annotationPlugin = window.ChartAnnotation || window.chartjsPluginAnnotation;
 
-  if (annotationPlugin && nowLabel) {
+  if (annotationPlugin) {
     try {
       if (!Chart.registry.plugins.get('annotation')) {
         Chart.register(annotationPlugin);
@@ -240,8 +221,8 @@ export function renderTideChart(curveData) {
       annotations: {
         nowLine: {
           type: 'line',
-          xMin: nowLabel,
-          xMax: nowLabel,
+          xMin: now,
+          xMax: now,
           borderColor: '#333',
           borderWidth: 2,
           borderDash: [5, 5],
@@ -260,7 +241,7 @@ export function renderTideChart(curveData) {
         }
       }
     };
-    console.log('Added "Now" marker at label:', nowLabel);
+    console.log('Added "Now" marker at time:', now);
   }
 
   // Create the chart
