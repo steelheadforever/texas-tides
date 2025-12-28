@@ -232,7 +232,7 @@ export async function fetchHiloEvents(stationId, days = 1) {
 }
 
 /**
- * Fetch next high or low tide
+ * Fetch next two tide events (high/low)
  * Based on fishing_bot4.py:351-369
  */
 export async function fetchNextTide(stationId) {
@@ -244,10 +244,18 @@ export async function fetchNextTide(stationId) {
 
   const now = new Date();
 
-  // Find first event after now
-  const nextEvent = events.find(e => e.time > now);
+  // Find all events after now, return first two chronologically
+  const futureEvents = events.filter(e => e.time > now);
 
-  return nextEvent || null;
+  if (futureEvents.length === 0) {
+    return null;
+  }
+
+  // Return up to 2 events
+  return {
+    first: futureEvents[0] || null,
+    second: futureEvents[1] || null
+  };
 }
 
 /**

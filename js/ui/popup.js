@@ -5,13 +5,13 @@ import { formatLocalTime } from '../utils/datetime.js';
 import { formatFeet, formatDelta, formatTemperature, formatPressure, mphFromKnots } from '../utils/conversions.js';
 import {
   getConditionsEmoji,
-  getMoonEmoji,
   getWindDirEmoji,
   getTrendEmoji,
   getPressureTrendEmoji,
   getTideKindEmoji,
   formatWind
 } from '../utils/formatting.js';
+import { getMoonEmoji } from '../api/usno.js';
 
 /**
  * Build complete popup content HTML
@@ -24,7 +24,7 @@ export function buildPopupContent(station, data) {
     wind,
     windForecast,
     pressure,
-    moon
+    sunMoon
   } = data;
 
   return `
@@ -52,7 +52,10 @@ export function buildPopupContent(station, data) {
         ${buildConditionsSection(windForecast)}
       </div>
 
-      ${buildMoonSection(moon)}
+      <div class="two-column-row">
+        ${buildSunSection(sunMoon)}
+        ${buildMoonSection(sunMoon)}
+      </div>
 
       <div class="section" style="border-left: none; background: none; padding: 0.25rem; margin-top: 1rem;">
         <p style="font-size: 0.75rem; color: #999; text-align: center;">
@@ -98,19 +101,23 @@ function buildTideStatusSection(tideNow) {
 }
 
 /**
- * Build next tide section
+ * Build next tide section (shows next two tide events)
  */
 function buildNextTideSection(nextTide) {
-  if (!nextTide) {
+  if (!nextTide || !nextTide.first) {
     return '<div class="section"><p class="unavailable">Next tide data unavailable</p></div>';
   }
 
-  const kindEmoji = getTideKindEmoji(nextTide.kind);
+  const firstEmoji = getTideKindEmoji(nextTide.first.kind);
+  const secondEmoji = nextTide.second ? getTideKindEmoji(nextTide.second.kind) : '';
 
   return `
     <div class="section next-tide">
-      <h3>Next Tide ${kindEmoji}</h3>
-      <p><strong>${nextTide.kind}</strong> at ${formatLocalTime(nextTide.time)} • ${formatFeet(nextTide.ft)}</p>
+      <h3>Next Tides ${firstEmoji}</h3>
+      <p><strong>${nextTide.first.kind}</strong> at ${formatLocalTime(nextTide.first.time)} • ${formatFeet(nextTide.first.ft)}</p>
+      ${nextTide.second ? `
+        <p><strong>${nextTide.second.kind}</strong> at ${formatLocalTime(nextTide.second.time)} • ${formatFeet(nextTide.second.ft)}</p>
+      ` : ''}
     </div>
   `;
 }
@@ -217,19 +224,40 @@ function buildConditionsSection(windForecast) {
 }
 
 /**
- * Build moon phase section
+ * Build sun section (sunrise/sunset)
  */
-function buildMoonSection(moon) {
-  if (!moon) {
-    return '';
+function buildSunSection(sunMoon) {
+  if (!sunMoon || !sunMoon.sun) {
+    return '<div class="section sun"><h3>Sun ☀️</h3><p class="unavailable">No data</p></div>';
   }
 
-  const moonEmoji = getMoonEmoji(moon.phaseName);
+  const { rise, set } = sunMoon.sun;
+
+  return `
+    <div class="section sun">
+      <h3>Sun ☀️</h3>
+      <p>Rise: ${rise} • Set: ${set}</p>
+    </div>
+  `;
+}
+
+/**
+ * Build moon section (phase, rise/set)
+ */
+function buildMoonSection(sunMoon) {
+  if (!sunMoon || !sunMoon.moon) {
+    return '<div class="section moon"><h3>Moon 🌙</h3><p class="unavailable">No data</p></div>';
+  }
+
+  const { rise, set } = sunMoon.moon;
+  const moonPhase = sunMoon.moonPhase || 'Unknown Phase';
+  const moonEmoji = getMoonEmoji(moonPhase);
 
   return `
     <div class="section moon">
       <h3>Moon ${moonEmoji}</h3>
-      <p>${moon.phaseName} • ${moon.illumination}% illuminated</p>
+      <p>${moonPhase}</p>
+      <p>Rise: ${rise} • Set: ${set}</p>
     </div>
   `;
 }

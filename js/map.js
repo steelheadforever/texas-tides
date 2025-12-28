@@ -3,7 +3,7 @@
 import { TEXAS_STATIONS, TEXAS_COAST_BOUNDS } from './data/stations.js';
 import { fetchTideNow, fetchNextTide, fetch24HourCurve, fetchWaterTemp, fetchStationWind } from './api/noaa.js';
 import { fetchForecast12h, fetchPressure } from './api/nws.js';
-import { getMoonPhase } from './api/moon.js';
+import { fetchSunMoonData } from './api/usno.js';
 import { buildPopupContent } from './ui/popup.js';
 import { renderTideChart } from './ui/chart.js';
 
@@ -101,7 +101,7 @@ async function handleStationClick(station) {
       wind,
       windForecast,
       pressure,
-      moon
+      sunMoon
     ] = await Promise.all([
       fetchTideNow(station.id),
       fetchNextTide(station.id),
@@ -110,7 +110,7 @@ async function handleStationClick(station) {
       fetchStationWind(station.id),
       fetchForecast12h(station.lat, station.lon),
       fetchPressure(station.lat, station.lon),
-      getMoonPhase()
+      fetchSunMoonData(station.lat, station.lon)
     ]);
 
     console.log('Data fetched successfully');
@@ -123,7 +123,7 @@ async function handleStationClick(station) {
       wind,
       windForecast,
       pressure,
-      moon
+      sunMoon
     });
 
     // Update popup with content
