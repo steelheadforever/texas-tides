@@ -122,19 +122,52 @@ export async function fetchPredictions(stationId, beginDate, endDate, interval =
 }
 
 /**
- * Fetch 24-hour tide curve predictions (with 2 hours of past data)
- * Based on fishing_bot4.py:314-325
+ * Fetch observed water levels over a time range
+ * Uses water_level product to get actual measured tide heights
+ */
+export async function fetchObservedWaterLevels(stationId, hoursBack = 6) {
+  const range = getDateRange(-hoursBack, 0);
+
+  const params = {
+    station: stationId,
+    product: 'water_level',
+    datum: 'MLLW',
+    begin_date: range.begin,
+    end_date: range.end,
+    interval: '6' // 6-minute intervals to match predictions
+  };
+
+  const data = await noaaGet(params);
+
+  if (!data || !data.data || data.data.length === 0) {
+    return [];
+  }
+
+  return data.data.map(obs => ({
+    time: parseNOAALocalTime(obs.t),
+    ft: safeFloat(obs.v)
+  }));
+}
+
+/**
+ * Fetch 24-hour tide curve with both observed and predicted data
+ * Observed: past 6 hours of actual measurements
+ * Predicted: next 24 hours of predictions
  */
 export async function fetch24HourCurve(stationId) {
-  // Fetch from 2 hours ago to 22 hours ahead (total 24 hours)
-  const range = getDateRange(-2, 22);
+  // Fetch predictions for next 24 hours (future only)
+  const range = getDateRange(0, 24);
 
-  const predictions = await fetchPredictions(
-    stationId,
-    range.begin,
-    range.end,
-    '6' // 6-minute intervals for smooth curve
-  );
+  // Fetch both observed and predicted data in parallel
+  const [predictions, observed] = await Promise.all([
+    fetchPredictions(
+      stationId,
+      range.begin,
+      range.end,
+      '6' // 6-minute intervals for smooth curve
+    ),
+    fetchObservedWaterLevels(stationId, 6) // Past 6 hours of observations
+  ]);
 
   if (!predictions || predictions.length === 0) {
     return null;
@@ -153,9 +186,16 @@ export async function fetch24HourCurve(stationId) {
     }
   });
 
+  // Return both datasets
   return {
-    times: predictions.map(p => p.time),
-    heights: predictions.map(p => p.ft),
+    predicted: {
+      times: predictions.map(p => p.time),
+      heights: predictions.map(p => p.ft)
+    },
+    observed: (observed && observed.length > 0) ? {
+      times: observed.map(o => o.time),
+      heights: observed.map(o => o.ft)
+    } : null,
     nowIndex: nowIndex
   };
 }
