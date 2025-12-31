@@ -1,7 +1,7 @@
 // Leaflet map initialization and marker management
 
 import { TEXAS_STATIONS, TEXAS_COAST_BOUNDS } from './data/stations.js';
-import { fetchTideNow, fetchNextTide, fetch24HourCurve, fetchWaterTemp, fetchStationWind } from './api/noaa.js';
+import { fetchTideNow, fetchNextTide, fetch24HourCurve, fetchWaterTemp, fetchAirTemp, fetchStationWind } from './api/noaa.js';
 import { fetchForecast12h, fetchPressure } from './api/nws.js';
 import { fetchSunMoonData } from './api/usno.js';
 import { buildPopupContent } from './ui/popup.js';
@@ -98,6 +98,7 @@ async function handleStationClick(station) {
       nextTide,
       curve,
       waterTemp,
+      airTemp,
       wind,
       windForecast,
       pressure,
@@ -107,6 +108,7 @@ async function handleStationClick(station) {
       fetchNextTide(station.id),
       fetch24HourCurve(station.id),
       fetchWaterTemp(station.id),
+      fetchAirTemp(station.id, station.lat, station.lon),
       fetchStationWind(station.id),
       fetchForecast12h(station.lat, station.lon),
       fetchPressure(station.lat, station.lon),
@@ -120,6 +122,7 @@ async function handleStationClick(station) {
       tideNow,
       nextTide,
       waterTemp,
+      airTemp,
       wind,
       windForecast,
       pressure,

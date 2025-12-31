@@ -202,3 +202,48 @@ export async function fetchPressure(lat, lon) {
     trend
   };
 }
+
+/**
+ * Fetch air temperature from NWS observation station
+ * Uses nearest observation station to the given coordinates
+ */
+export async function fetchNWSTemperature(lat, lon) {
+  const points = await fetchNWSPoints(lat, lon);
+
+  if (!points || !points.observationStations) {
+    return null;
+  }
+
+  // Get observation stations
+  const stationsData = await nwsGet(points.observationStations);
+
+  if (!stationsData || !stationsData.features || stationsData.features.length === 0) {
+    return null;
+  }
+
+  // Use first station (closest)
+  const stationId = stationsData.features[0]?.properties?.stationIdentifier;
+
+  if (!stationId) {
+    return null;
+  }
+
+  // Fetch latest observation
+  const obsUrl = `https://api.weather.gov/stations/${stationId}/observations/latest`;
+  const obsData = await nwsGet(obsUrl);
+
+  if (!obsData || !obsData.properties) {
+    return null;
+  }
+
+  const props = obsData.properties;
+
+  // Temperature is in Celsius, convert to Fahrenheit
+  if (props.temperature && props.temperature.value !== null) {
+    const tempC = props.temperature.value;
+    const tempF = (tempC * 9/5) + 32;
+    return tempF;
+  }
+
+  return null;
+}
