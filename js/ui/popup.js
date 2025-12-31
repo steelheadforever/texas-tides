@@ -21,6 +21,7 @@ export function buildPopupContent(station, data) {
     tideNow,
     nextTide,
     waterTemp,
+    airTemp,
     wind,
     windForecast,
     pressure,
@@ -40,7 +41,10 @@ export function buildPopupContent(station, data) {
         <canvas id="tide-chart" width="400" height="200"></canvas>
       </div>
 
-      ${buildWaterTempSection(waterTemp)}
+      <div class="two-column-row">
+        ${buildWaterTempSection(waterTemp)}
+        ${buildAirTempSection(airTemp)}
+      </div>
 
       <div class="two-column-row">
         ${buildCurrentWindSection(wind)}
@@ -134,6 +138,22 @@ function buildWaterTempSection(waterTemp) {
     <div class="section water-temp">
       <h3>Water Temperature 🌡️</h3>
       <p>${formatTemperature(waterTemp)}</p>
+    </div>
+  `;
+}
+
+/**
+ * Build air temperature section
+ */
+function buildAirTempSection(airTemp) {
+  if (airTemp === null || airTemp === undefined) {
+    return ''; // Don't show section if no data
+  }
+
+  return `
+    <div class="section air-temp">
+      <h3>Air Temperature 🌤️</h3>
+      <p>${formatTemperature(airTemp)}</p>
     </div>
   `;
 }

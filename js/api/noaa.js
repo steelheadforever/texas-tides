@@ -5,6 +5,7 @@
 import { parseNOAALocalTime, getDateRange } from '../utils/datetime.js';
 import { safeFloat } from '../utils/conversions.js';
 import { determineTrend, getTideDirArrow } from '../utils/formatting.js';
+import { fetchNWSTemperature } from './nws.js';
 
 const NOAA_BASE_URL = 'https://api.tidesandcurrents.noaa.gov/api/prod/datagetter';
 const REQUEST_TIMEOUT = 10000; // 10 seconds
@@ -93,6 +94,23 @@ export async function fetchWaterLevel(stationId) {
  */
 export async function fetchWaterTemp(stationId) {
   return await fetchNOAALatestValue(stationId, 'water_temperature', false);
+}
+
+/**
+ * Fetch air temperature
+ * Tries NOAA station first, falls back to NWS if not available
+ */
+export async function fetchAirTemp(stationId, lat, lon) {
+  // Try NOAA station first
+  const noaaTemp = await fetchNOAALatestValue(stationId, 'air_temperature', false);
+
+  if (noaaTemp !== null) {
+    return noaaTemp;
+  }
+
+  // Fall back to NWS if NOAA doesn't have air temperature
+  console.log(`No air temp from NOAA station ${stationId}, trying NWS for (${lat}, ${lon})`);
+  return await fetchNWSTemperature(lat, lon);
 }
 
 /**
