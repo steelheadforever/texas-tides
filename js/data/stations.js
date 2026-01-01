@@ -1,7 +1,8 @@
 // Texas Coastal Tide Stations
 // Source: NOAA CO-OPS Station Directory
 // Data verified: 2025-01-31
-// Comprehensive list of all Texas NOAA CO-OPS tide stations
+// Complete list of all 34 Texas NOAA CO-OPS tide stations
+// Verified against NOAA Tides & Currents database and web search
 
 export const TEXAS_STATIONS = [
   // Sabine Pass Region (Northeast Texas Coast)
@@ -41,6 +42,13 @@ export const TEXAS_STATIONS = [
     lat: 29.59472,
     lon: -94.39028,
     products: ["water_level", "water_temperature"]
+  },
+  {
+    id: "8770933",
+    name: "Clear Lake",
+    lat: 29.560,
+    lon: -95.030,
+    products: ["water_level", "predictions", "water_temperature"]
   },
   {
     id: "8770971",
@@ -84,6 +92,20 @@ export const TEXAS_STATIONS = [
     lon: -94.89710,
     products: ["water_level", "predictions", "wind", "water_temperature", "air_temperature", "air_pressure"]
   },
+  {
+    id: "8771510",
+    name: "Galveston Pleasure Pier",
+    lat: 29.284,
+    lon: -94.788,
+    products: ["water_level", "predictions", "water_temperature"]
+  },
+  {
+    id: "8771972",
+    name: "San Luis Pass",
+    lat: 29.076,
+    lon: -95.122,
+    products: ["water_level", "predictions", "wind", "water_temperature", "air_temperature", "air_pressure"]
+  },
 
   // Freeport Region
   {
@@ -114,6 +136,13 @@ export const TEXAS_STATIONS = [
     lon: -95.3059,
     products: ["water_level", "predictions"]
   },
+  {
+    id: "8772985",
+    name: "Sargent",
+    lat: 28.771,
+    lon: -95.617,
+    products: ["water_level", "predictions", "water_temperature"]
+  },
 
   // Matagorda Bay Region
   {
@@ -135,6 +164,13 @@ export const TEXAS_STATIONS = [
     name: "Port O'Connor",
     lat: 28.44586,
     lon: -96.39556,
+    products: ["water_level", "predictions", "wind", "water_temperature", "air_temperature", "air_pressure"]
+  },
+  {
+    id: "8773037",
+    name: "Seadrift, San Antonio Bay",
+    lat: 28.407,
+    lon: -96.712,
     products: ["water_level", "predictions", "wind", "water_temperature", "air_temperature", "air_pressure"]
   },
   {
@@ -160,6 +196,13 @@ export const TEXAS_STATIONS = [
     lon: -97.047,
     products: ["water_level", "predictions", "wind", "water_temperature"]
   },
+  {
+    id: "8774230",
+    name: "Aransas Wildlife Refuge",
+    lat: 28.227,
+    lon: -96.796,
+    products: ["water_level", "predictions", "wind", "water_temperature", "air_temperature", "air_pressure"]
+  },
 
   // Corpus Christi & Port Aransas Region
   {
@@ -168,6 +211,13 @@ export const TEXAS_STATIONS = [
     lat: 27.840,
     lon: -97.072,
     products: ["water_level", "predictions", "wind", "water_temperature"]
+  },
+  {
+    id: "8775244",
+    name: "Nueces Bay",
+    lat: 27.832,
+    lon: -97.486,
+    products: ["water_level", "predictions", "wind", "water_temperature", "air_temperature", "air_pressure"]
   },
   {
     id: "8775296",
