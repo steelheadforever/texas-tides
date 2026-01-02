@@ -2,6 +2,7 @@
 // Texas Coastal Tides Web Application
 
 import { initMap } from './map.js';
+import { initDarkMode } from './utils/dark-mode.js';
 
 /**
  * Wait for external libraries (Leaflet, Chart.js) to load
@@ -26,6 +27,9 @@ function waitForLibraries() {
  */
 async function init() {
   console.log('Texas Coastal Tides - Initializing...');
+
+  // Initialize dark mode first (before anything renders)
+  initDarkMode();
 
   // Wait for external libraries to load
   await waitForLibraries();

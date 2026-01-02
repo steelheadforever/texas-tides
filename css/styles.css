@@ -10,6 +10,18 @@
   --red: #cc0000;
 }
 
+/* Dark Mode Color Palette */
+body.dark-mode {
+  --gray-darkest: #e8e8e8;
+  --gray-dark: #c0c0c0;
+  --gray-medium: #999999;
+  --gray-light: #4a4a4a;
+  --gray-lightest: #1e1e1e;
+  --white: #121212;
+  --accent: #aaaaaa;
+  --red: #ff4444;
+}
+
 /* Reset and Base Styles */
 * {
   margin: 0;
@@ -33,6 +45,17 @@ header {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.header-text {
+  flex: 1;
+}
+
 header h1 {
   font-size: 1.5rem;
   font-weight: 600;
@@ -42,6 +65,37 @@ header h1 {
 header .subtitle {
   font-size: 0.85rem;
   color: var(--gray-light);
+}
+
+/* Dark Mode Toggle */
+.dark-mode-toggle {
+  background: none;
+  border: 2px solid var(--gray-light);
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  padding: 0;
+  flex-shrink: 0;
+}
+
+.dark-mode-toggle:hover {
+  background-color: var(--gray-light);
+  transform: scale(1.1);
+}
+
+.dark-mode-toggle .toggle-icon {
+  font-size: 1.25rem;
+  transition: transform 0.3s ease;
+}
+
+/* Smooth transition for dark mode */
+body {
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 /* Main Content */
@@ -251,7 +305,7 @@ footer {
   text-align: center;
   color: var(--red);
   font-size: 1rem;
-  background-color: #ffeeee;
+  background-color: rgba(255, 68, 68, 0.1);
   border: 2px solid var(--red);
   border-radius: 4px;
 }
