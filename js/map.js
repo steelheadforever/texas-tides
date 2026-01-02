@@ -1,11 +1,11 @@
 // Leaflet map initialization and marker management
 
 import { TEXAS_STATIONS, TEXAS_COAST_BOUNDS } from './data/stations.js';
-import { fetchTideNow, fetchNextTide, fetch24HourCurve, fetchWaterTemp, fetchAirTemp, fetchStationWind } from './api/noaa.js';
+import { fetchTideNow, fetchNextTide, fetch24HourCurve, fetchWaterTemp, fetchWaterTempHistory, fetchAirTemp, fetchStationWind } from './api/noaa.js';
 import { fetchForecast12h, fetchPressure } from './api/nws.js';
 import { fetchSunMoonData } from './api/usno.js';
 import { buildPopupContent } from './ui/popup.js';
-import { renderTideChart } from './ui/chart.js';
+import { renderTideChart, renderWaterTempChart } from './ui/chart.js';
 
 let map;
 const markers = new Map(); // stationId -> marker
@@ -98,6 +98,7 @@ async function handleStationClick(station) {
       nextTide,
       curve,
       waterTemp,
+      waterTempHistory,
       airTemp,
       wind,
       windForecast,
@@ -108,6 +109,7 @@ async function handleStationClick(station) {
       fetchNextTide(station.id),
       fetch24HourCurve(station.id),
       fetchWaterTemp(station.id),
+      fetchWaterTempHistory(station.id, 3), // Past 3 hours
       fetchAirTemp(station.id, station.lat, station.lon),
       fetchStationWind(station.id),
       fetchForecast12h(station.lat, station.lon),
@@ -122,6 +124,7 @@ async function handleStationClick(station) {
       tideNow,
       nextTide,
       waterTemp,
+      waterTempHistory,
       airTemp,
       wind,
       windForecast,
@@ -132,12 +135,19 @@ async function handleStationClick(station) {
     // Update popup with content
     popup.setContent(content);
 
-    // Render chart after a short delay to ensure DOM is ready
+    // Render charts after a short delay to ensure DOM is ready
     setTimeout(() => {
       if (curve) {
         renderTideChart(curve);
       } else {
         console.warn('No curve data available for chart');
+      }
+
+      // Render water temperature chart if data is available
+      if (waterTempHistory && waterTempHistory.length > 0) {
+        renderWaterTempChart(waterTempHistory);
+      } else {
+        console.log('No water temperature history data available');
       }
     }, 100);
 

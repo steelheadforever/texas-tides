@@ -114,6 +114,33 @@ export async function fetchAirTemp(stationId, lat, lon) {
 }
 
 /**
+ * Fetch water temperature history over a time range
+ * Returns array of {time, temp} objects for the past N hours
+ */
+export async function fetchWaterTempHistory(stationId, hoursBack = 3) {
+  const range = getDateRange(-hoursBack, 0);
+
+  const params = {
+    station: stationId,
+    product: 'water_temperature',
+    begin_date: range.begin,
+    end_date: range.end,
+    interval: '6' // 6-minute intervals
+  };
+
+  const data = await noaaGet(params);
+
+  if (!data || !data.data || data.data.length === 0) {
+    return [];
+  }
+
+  return data.data.map(obs => ({
+    time: parseNOAALocalTime(obs.t),
+    temp: safeFloat(obs.v)
+  }));
+}
+
+/**
  * Fetch predictions over a time range
  * Based on fishing_bot4.py:291-312
  */

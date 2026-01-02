@@ -4,6 +4,7 @@
 import { formatTime } from '../utils/datetime.js';
 
 let currentChart = null; // Store current chart instance to destroy before creating new one
+let currentWaterTempChart = null; // Store water temp chart instance
 
 /**
  * Render 24-hour tide curve chart with observed and predicted data
@@ -262,4 +263,129 @@ export function destroyChart() {
     currentChart.destroy();
     currentChart = null;
   }
+}
+
+/**
+ * Render water temperature history chart
+ * @param {Array} tempHistory - Array of {time, temp} objects
+ */
+export function renderWaterTempChart(tempHistory) {
+  if (!tempHistory || tempHistory.length === 0) {
+    console.warn('No water temperature history data available');
+    return;
+  }
+
+  const canvas = document.getElementById('water-temp-chart');
+  if (!canvas) {
+    console.warn('Water temp canvas element not found');
+    return;
+  }
+
+  const ctx = canvas.getContext('2d');
+
+  // Destroy previous chart if exists
+  if (currentWaterTempChart) {
+    currentWaterTempChart.destroy();
+  }
+
+  // Build dataset
+  const tempData = tempHistory.map(item => ({
+    x: item.time,
+    y: item.temp
+  }));
+
+  const now = new Date();
+
+  // Create the chart
+  currentWaterTempChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      datasets: [{
+        label: 'Water Temperature',
+        data: tempData,
+        borderColor: '#2E7D32',
+        backgroundColor: 'rgba(46, 125, 50, 0.1)',
+        tension: 0.4,
+        pointRadius: 2,
+        pointBackgroundColor: '#2E7D32',
+        borderWidth: 2,
+        fill: true
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          display: false
+        },
+        tooltip: {
+          enabled: true,
+          mode: 'index',
+          intersect: false,
+          callbacks: {
+            title: (context) => {
+              return context[0].label;
+            },
+            label: (context) => {
+              return `${context.parsed.y.toFixed(1)}°F`;
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          type: 'time',
+          time: {
+            unit: 'hour',
+            displayFormats: {
+              hour: 'h:mm a'
+            },
+            tooltipFormat: 'MMM d, h:mm a'
+          },
+          grid: {
+            color: '#e0e0e0'
+          },
+          ticks: {
+            color: '#666',
+            maxRotation: 45,
+            minRotation: 0,
+            autoSkip: true,
+            maxTicksLimit: 6,
+            font: {
+              size: 10
+            }
+          }
+        },
+        y: {
+          grid: {
+            color: '#e0e0e0'
+          },
+          ticks: {
+            color: '#666',
+            callback: (value) => {
+              return value.toFixed(1) + '°F';
+            }
+          },
+          title: {
+            display: true,
+            text: 'Temperature (°F)',
+            color: '#333',
+            font: {
+              size: 11,
+              weight: 'bold'
+            }
+          },
+          beginAtZero: false,
+          grace: '5%'
+        }
+      },
+      interaction: {
+        mode: 'index',
+        intersect: false
+      }
+    }
+  });
+
+  console.log(`Water temp chart rendered with ${tempData.length} data points`);
 }
