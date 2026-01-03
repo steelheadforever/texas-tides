@@ -1,7 +1,7 @@
 // Texas Coastal Tide Stations
 // Source: NOAA CO-OPS Station Directory
-// Data verified: 2025-01-31
-// Complete list of all 39 Texas NOAA CO-OPS tide stations
+// Data verified: 2026-01-03
+// 45 Texas NOAA CO-OPS tide stations (1 station commented out - no tide predictions)
 // Verified against NOAA Tides & Currents database and web search
 
 export const TEXAS_STATIONS = [
@@ -11,6 +11,13 @@ export const TEXAS_STATIONS = [
     name: "Sabine Pass North",
     lat: 29.72840,
     lon: -93.87010,
+    products: ["water_level", "predictions", "wind", "water_temperature", "air_temperature", "air_pressure"]
+  },
+  {
+    id: "8770475",
+    name: "Port Arthur",
+    lat: 29.86708,
+    lon: -93.93100,
     products: ["water_level", "predictions", "wind", "water_temperature", "air_temperature", "air_pressure"]
   },
   {
@@ -206,11 +213,32 @@ export const TEXAS_STATIONS = [
 
   // Corpus Christi & Port Aransas Region
   {
+    id: "8775132",
+    name: "La Quinta Channel North",
+    lat: 27.881,
+    lon: -97.285,
+    products: ["water_level", "predictions", "wind", "water_temperature", "air_pressure"]
+  },
+  {
+    id: "8775222",
+    name: "Viola Turning Basin",
+    lat: 27.841,
+    lon: -97.520,
+    products: ["water_level", "predictions", "wind", "water_temperature"]
+  },
+  {
     id: "8775237",
     name: "Port Aransas",
     lat: 27.840,
     lon: -97.072,
     products: ["water_level", "predictions", "wind", "water_temperature"]
+  },
+  {
+    id: "8775241",
+    name: "Aransas Pass",
+    lat: 27.83660,
+    lon: -97.03910,
+    products: ["water_level", "predictions", "wind", "water_temperature", "air_pressure"]
   },
   {
     id: "8775244",
@@ -226,13 +254,14 @@ export const TEXAS_STATIONS = [
     lon: -97.39,
     products: ["water_level", "predictions", "wind", "water_temperature", "air_temperature", "air_pressure"]
   },
-  {
-    id: "8775302",
-    name: "Texas State Aquarium",
-    lat: 27.813,
-    lon: -97.389,
-    products: ["water_level", "wind", "water_temperature", "air_temperature", "air_pressure"]
-  },
+  // COMMENTED OUT - No tide predictions available
+  // {
+  //   id: "8775302",
+  //   name: "Texas State Aquarium",
+  //   lat: 27.813,
+  //   lon: -97.389,
+  //   products: ["water_level", "wind", "water_temperature", "air_temperature", "air_pressure"]
+  // },
   {
     id: "8775870",
     name: "Bob Hall Pier, Corpus Christi",
@@ -249,6 +278,13 @@ export const TEXAS_STATIONS = [
   },
 
   // Laguna Madre & Port Mansfield Region
+  {
+    id: "8776139",
+    name: "South Bird Island",
+    lat: 27.480,
+    lon: -97.322,
+    products: ["water_level", "predictions", "wind", "water_temperature"]
+  },
   {
     id: "8776604",
     name: "Baffin Bay",
@@ -280,11 +316,25 @@ export const TEXAS_STATIONS = [
 
   // South Padre Island & Port Isabel Region (South Texas Coast)
   {
+    id: "8779280",
+    name: "Realitos Peninsula",
+    lat: 26.262,
+    lon: -97.285,
+    products: ["water_level", "predictions", "wind", "water_temperature"]
+  },
+  {
     id: "8779748",
     name: "South Padre Island Coast Guard Station",
     lat: 26.072,
     lon: -97.167,
     products: ["water_level", "predictions", "wind"]
+  },
+  {
+    id: "8779749",
+    name: "SPI Brazos Santiago",
+    lat: 26.067,
+    lon: -97.155,
+    products: ["water_level", "predictions", "wind", "water_temperature", "air_temperature", "air_pressure"]
   },
   {
     id: "8779770",
