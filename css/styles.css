@@ -143,6 +143,12 @@ main {
   color: var(--gray-dark);
 }
 
+/* Dark mode status bar */
+body.dark-mode #status-bar {
+  background-color: #1e1e1e;
+  border-bottom: 1px solid #4a4a4a;
+}
+
 /* Footer */
 footer {
   background-color: var(--gray-dark);
@@ -150,6 +156,12 @@ footer {
   text-align: center;
   padding: 0.5rem;
   font-size: 0.85rem;
+}
+
+/* Dark mode footer */
+body.dark-mode footer {
+  background-color: #2a2a2a;
+  color: #999999;
 }
 
 /* Leaflet Popup Customization */

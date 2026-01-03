@@ -121,7 +121,7 @@ async function handleStationClick(station) {
       fetchNextTide(station.id),
       fetch24HourCurve(station.id),
       fetchWaterTemp(station.id),
-      fetchWaterTempHistory(station.id, 2), // Past 2 hours
+      fetchWaterTempHistory(station.id, 1), // Past 1 hour
       fetchAirTemp(station.id, station.lat, station.lon),
       fetchStationWind(station.id),
       fetchForecast12h(station.lat, station.lon),
@@ -147,8 +147,8 @@ async function handleStationClick(station) {
     // Update popup with content
     popup.setContent(content);
 
-    // Render charts after a short delay to ensure DOM is ready
-    setTimeout(() => {
+    // Render charts after browser paint (ensures DOM is fully rendered and measurable)
+    requestAnimationFrame(() => {
       if (curve) {
         renderTideChart(curve);
       } else {
@@ -161,7 +161,7 @@ async function handleStationClick(station) {
       } else {
         console.log('No water temperature history data available');
       }
-    }, 100);
+    });
 
   } catch (err) {
     console.error('Error fetching station data:', err);
