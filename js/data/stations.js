@@ -1,7 +1,7 @@
 // Texas Coastal Tide Stations
 // Source: NOAA CO-OPS Station Directory
 // Data verified: 2025-01-31
-// Complete list of all 34 Texas NOAA CO-OPS tide stations
+// Complete list of all 39 Texas NOAA CO-OPS tide stations
 // Verified against NOAA Tides & Currents database and web search
 
 export const TEXAS_STATIONS = [
@@ -240,6 +240,43 @@ export const TEXAS_STATIONS = [
     lon: -97.217,
     products: ["water_level", "predictions", "wind", "water_temperature", "air_pressure"]
   },
+  {
+    id: "8775792",
+    name: "Packery Channel",
+    lat: 27.633,
+    lon: -97.236,
+    products: ["water_level", "predictions", "wind", "water_temperature"]
+  },
+
+  // Laguna Madre & Port Mansfield Region
+  {
+    id: "8776604",
+    name: "Baffin Bay",
+    lat: 27.295,
+    lon: -97.405,
+    products: ["water_level", "predictions"]
+  },
+  {
+    id: "8777812",
+    name: "Rincon Del San Jose",
+    lat: 26.8017,
+    lon: -97.47,
+    products: ["water_level", "wind", "water_temperature"]
+  },
+  {
+    id: "8778485",
+    name: "Padre Island, Port Mansfield Channel Entrance",
+    lat: 26.565,
+    lon: -97.2767,
+    products: ["water_level", "predictions"]
+  },
+  {
+    id: "8778490",
+    name: "Port Mansfield",
+    lat: 26.5583,
+    lon: -97.425,
+    products: ["water_level", "predictions", "wind", "water_temperature"]
+  },
 
   // South Padre Island & Port Isabel Region (South Texas Coast)
   {
@@ -290,6 +327,7 @@ export function getStationsByRegion() {
     matagorda: TEXAS_STATIONS.filter(s => s.id.startsWith('8773')),
     aransas: TEXAS_STATIONS.filter(s => s.id.startsWith('8774')),
     corpusChristi: TEXAS_STATIONS.filter(s => s.id.startsWith('8775')),
+    lagunaMadre: TEXAS_STATIONS.filter(s => s.id.startsWith('8776') || s.id.startsWith('8777') || s.id.startsWith('8778')),
     southPadre: TEXAS_STATIONS.filter(s => s.id.startsWith('8779'))
   };
 }

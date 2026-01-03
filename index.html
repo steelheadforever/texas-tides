@@ -20,9 +20,6 @@
         <h1>Texas Coastal Tides</h1>
         <p class="subtitle">Live tide and weather data for Texas coastal stations</p>
       </div>
-      <button id="dark-mode-toggle" class="dark-mode-toggle" aria-label="Toggle dark mode">
-        <span class="toggle-icon">🌙</span>
-      </button>
     </div>
   </header>
 
@@ -30,7 +27,12 @@
     <div id="map"></div>
     <div id="status-bar">
       <span id="last-update">Last updated: <span class="time">--</span></span>
-      <span id="next-update">Next update in: <span class="time">--</span></span>
+      <div class="status-bar-right">
+        <span id="next-update">Next update in: <span class="time">--</span></span>
+        <button id="dark-mode-toggle" class="dark-mode-toggle" aria-label="Toggle dark mode">
+          <span class="toggle-icon">🌙</span>
+        </button>
+      </div>
     </div>
   </main>
 
