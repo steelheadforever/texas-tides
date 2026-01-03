@@ -143,6 +143,12 @@ main {
   color: var(--gray-dark);
 }
 
+.status-bar-right {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
 /* Dark mode status bar */
 body.dark-mode #status-bar {
   background-color: #1e1e1e;
