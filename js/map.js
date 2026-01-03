@@ -9,10 +9,19 @@ import { renderTideChart, renderWaterTempChart } from './ui/chart.js';
 
 let map;
 const markers = new Map(); // stationId -> marker
+let currentTileLayer = null; // Store current tile layer for switching
 
-// CartoDB Positron grayscale tiles
-const TILE_URL = 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png';
-const ATTRIBUTION = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>';
+// CartoDB tile layers
+const TILE_LAYERS = {
+  light: {
+    url: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+  },
+  dark: {
+    url: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+  }
+};
 
 /**
  * Initialize the map and add station markers
@@ -25,9 +34,12 @@ export function initMap() {
     zoomControl: true
   });
 
-  // Add grayscale tile layer
-  L.tileLayer(TILE_URL, {
-    attribution: ATTRIBUTION,
+  // Add initial tile layer based on dark mode
+  const isDarkMode = document.body.classList.contains('dark-mode');
+  const tileConfig = isDarkMode ? TILE_LAYERS.dark : TILE_LAYERS.light;
+
+  currentTileLayer = L.tileLayer(tileConfig.url, {
+    attribution: tileConfig.attribution,
     maxZoom: 19,
     minZoom: 5
   }).addTo(map);
@@ -109,7 +121,7 @@ async function handleStationClick(station) {
       fetchNextTide(station.id),
       fetch24HourCurve(station.id),
       fetchWaterTemp(station.id),
-      fetchWaterTempHistory(station.id, 3), // Past 3 hours
+      fetchWaterTempHistory(station.id, 2), // Past 2 hours
       fetchAirTemp(station.id, station.lat, station.lon),
       fetchStationWind(station.id),
       fetchForecast12h(station.lat, station.lon),
@@ -175,4 +187,22 @@ export function getMap() {
  */
 export function getMarkers() {
   return markers;
+}
+
+/**
+ * Switch map tiles between light and dark mode
+ */
+export function switchMapTiles(isDarkMode) {
+  if (!map || !currentTileLayer) return;
+
+  // Remove current tile layer
+  map.removeLayer(currentTileLayer);
+
+  // Add new tile layer
+  const tileConfig = isDarkMode ? TILE_LAYERS.dark : TILE_LAYERS.light;
+  currentTileLayer = L.tileLayer(tileConfig.url, {
+    attribution: tileConfig.attribution,
+    maxZoom: 19,
+    minZoom: 5
+  }).addTo(map);
 }

@@ -280,6 +280,11 @@ footer {
   height: 220px !important;
 }
 
+#water-temp-chart {
+  width: 100% !important;
+  height: 220px !important;
+}
+
 /* Loading State */
 .loading {
   padding: 2rem;
@@ -356,6 +361,10 @@ footer {
   #tide-chart {
     height: 170px !important;
   }
+
+  #water-temp-chart {
+    height: 170px !important;
+  }
 }
 
 @media (max-width: 480px) {
@@ -377,6 +386,10 @@ footer {
   }
 
   #tide-chart {
+    height: 140px !important;
+  }
+
+  #water-temp-chart {
     height: 140px !important;
   }
 }
