@@ -1,5 +1,7 @@
 // Dark mode toggle functionality
 
+import { switchMapTiles } from '../map.js';
+
 const STORAGE_KEY = 'texas-tides-dark-mode';
 
 /**
@@ -42,6 +44,7 @@ function enableDarkMode() {
   document.body.classList.add('dark-mode');
   localStorage.setItem(STORAGE_KEY, 'dark');
   updateToggleIcon();
+  switchMapTiles(true);
 }
 
 /**
@@ -51,6 +54,7 @@ function disableDarkMode() {
   document.body.classList.remove('dark-mode');
   localStorage.setItem(STORAGE_KEY, 'light');
   updateToggleIcon();
+  switchMapTiles(false);
 }
 
 /**

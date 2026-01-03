@@ -115,9 +115,9 @@ export async function fetchAirTemp(stationId, lat, lon) {
 
 /**
  * Fetch water temperature history over a time range
- * Returns array of {time, temp} objects for the past N hours
+ * Returns array of {time, temp} objects for the past 2 hours
  */
-export async function fetchWaterTempHistory(stationId, hoursBack = 3) {
+export async function fetchWaterTempHistory(stationId, hoursBack = 2) {
   const range = getDateRange(-hoursBack, 0);
 
   const params = {

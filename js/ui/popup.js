@@ -49,8 +49,8 @@ export function buildPopupContent(station, data) {
 
       ${waterTempHistory && waterTempHistory.length > 0 ? `
       <div class="section chart-container">
-        <h3 style="margin-bottom: 0.5rem;">Water Temperature Trend (Past 3 Hours)</h3>
-        <canvas id="water-temp-chart" width="400" height="150"></canvas>
+        <h3 style="margin-bottom: 0.5rem;">Water Temperature Trend (Past 2 Hours)</h3>
+        <canvas id="water-temp-chart" width="400" height="200"></canvas>
       </div>
       ` : ''}
 
