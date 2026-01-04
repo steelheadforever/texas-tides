@@ -16,19 +16,6 @@ export function renderTideChart(curveData) {
     return;
   }
 
-  // Debug logging
-  console.log('=== CHART DATA DEBUG ===');
-  console.log('Predicted points:', curveData.predicted.times.length);
-  console.log('First predicted time:', curveData.predicted.times[0]);
-  console.log('Last predicted time:', curveData.predicted.times[curveData.predicted.times.length - 1]);
-  console.log('First predicted height:', curveData.predicted.heights[0]);
-  if (curveData.observed) {
-    console.log('Observed points:', curveData.observed.times.length);
-    console.log('First observed time:', curveData.observed.times[0]);
-    console.log('Last observed time:', curveData.observed.times[curveData.observed.times.length - 1]);
-    console.log('First observed height:', curveData.observed.heights[0]);
-  }
-
   const canvas = document.getElementById('tide-chart');
   if (!canvas) {
     console.warn('Canvas element not found');
@@ -242,7 +229,6 @@ export function renderTideChart(curveData) {
         }
       }
     };
-    console.log('Added "Now" marker at time:', now);
   }
 
   // Create the chart
@@ -253,16 +239,6 @@ export function renderTideChart(curveData) {
     },
     options: chartOptions
   });
-}
-
-/**
- * Destroy current chart instance
- */
-export function destroyChart() {
-  if (currentChart) {
-    currentChart.destroy();
-    currentChart = null;
-  }
 }
 
 /**

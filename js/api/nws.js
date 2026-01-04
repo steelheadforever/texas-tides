@@ -46,7 +46,7 @@ async function nwsGet(url) {
  * Returns forecast URLs
  * Based on fishing_bot4.py:505-518
  */
-export async function fetchNWSPoints(lat, lon) {
+async function fetchNWSPoints(lat, lon) {
   const url = `https://api.weather.gov/points/${lat.toFixed(4)},${lon.toFixed(4)}`;
   const data = await nwsGet(url);
 

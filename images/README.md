@@ -2,12 +2,12 @@
 
 ## Required Files
 
-Please place your camouflage pattern images in this directory:
+Camouflage pattern images for the header and status bar:
 
-1. **camo-light.png** - Light mode camouflage pattern for header and status bar
-2. **camo-dark.png** - Dark mode camouflage pattern for header and status bar
+1. **coastal camo light.png** - Light mode camouflage pattern
+2. **coastal camo dark.png** - Dark mode camouflage pattern
 
-The images will be used as repeating background patterns.
+The images are used as repeating background patterns.
 
 ### Current Configuration
 
