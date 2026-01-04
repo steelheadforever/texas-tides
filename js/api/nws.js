@@ -2,7 +2,7 @@
 // Based on fishing_bot4.py:488-590
 // API Documentation: https://www.weather.gov/documentation/services-web-api
 
-import { mphFromMetersSec, inHgFromPascals, safeFloat } from '../utils/conversions.js';
+import { inHgFromPascals, safeFloat } from '../utils/conversions.js';
 import { calculatePressureTrend } from '../utils/formatting.js';
 
 const REQUEST_TIMEOUT = 10000; // 10 seconds
