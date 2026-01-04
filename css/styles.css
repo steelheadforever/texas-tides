@@ -39,7 +39,7 @@ body {
 /* Header */
 header {
   background-color: #d4c4a8;
-  background-image: url('../images/camo-light.jpg');
+  background-image: url('../images/camo-light.png');
   background-repeat: repeat;
   background-size: 400px auto;
   color: #ffffff;
@@ -52,7 +52,7 @@ header {
 /* Dark mode header - slightly lighter */
 body.dark-mode header {
   background-color: #2a2a2a;
-  background-image: url('../images/camo-dark.jpg');
+  background-image: url('../images/camo-dark.png');
   background-repeat: repeat;
   background-size: 400px auto;
   color: #e8e8e8;
@@ -154,7 +154,7 @@ main {
 /* Status Bar */
 #status-bar {
   background-color: #d4c4a8;
-  background-image: url('../images/camo-light.jpg');
+  background-image: url('../images/camo-light.png');
   background-repeat: repeat;
   background-size: 400px auto;
   padding: 0.75rem 2rem;
@@ -193,7 +193,7 @@ main {
 /* Dark mode status bar */
 body.dark-mode #status-bar {
   background-color: #2a2a2a;
-  background-image: url('../images/camo-dark.jpg');
+  background-image: url('../images/camo-dark.png');
   background-repeat: repeat;
   background-size: 400px auto;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
