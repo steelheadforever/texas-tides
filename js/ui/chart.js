@@ -1,8 +1,6 @@
 // Tide curve chart using Chart.js
 // Based on fishing_bot4.py sparkline concept but using Chart.js for better visualization
 
-import { formatTime } from '../utils/datetime.js';
-
 let currentChart = null; // Store current chart instance to destroy before creating new one
 let currentWaterTempChart = null; // Store water temp chart instance
 
