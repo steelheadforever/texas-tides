@@ -70,8 +70,9 @@ body.dark-mode header {
 }
 
 header h1 {
+  font-family: 'Yellowtail', cursive;
   font-size: 1.5rem;
-  font-weight: 700;
+  font-weight: 400;
   margin-bottom: 0.15rem;
   text-shadow:
     2px 2px 4px rgba(0, 0, 0, 0.8),
@@ -81,7 +82,7 @@ header h1 {
 }
 
 header .subtitle {
-  font-size: 0.85rem;
+  font-size: 0.75rem;
   color: #ffffff;
   text-shadow:
     1px 1px 3px rgba(0, 0, 0, 0.8),
@@ -163,9 +164,13 @@ main {
   align-items: center;
   border-bottom: 1px solid rgba(0, 0, 0, 0.2);
   border-top: 1px solid rgba(0, 0, 0, 0.2);
-  font-size: 0.9rem;
-  color: #2a2a2a;
+  font-size: 0.8rem;
+  color: #ffffff;
   font-weight: 600;
+  text-shadow:
+    1px 1px 3px rgba(0, 0, 0, 0.8),
+    -1px -1px 2px rgba(0, 0, 0, 0.6),
+    0 0 6px rgba(0, 0, 0, 0.5);
 }
 
 #status-bar span {
@@ -176,12 +181,7 @@ main {
 
 #status-bar .time {
   font-weight: 700;
-  color: #1a1a1a;
-  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.5);
-}
-
-#status-bar span {
-  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.3);
+  color: #ffffff;
 }
 
 .status-bar-right {
