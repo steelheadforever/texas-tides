@@ -38,16 +38,23 @@ body {
 
 /* Header */
 header {
-  background-color: #1a1a1a;
+  background-color: #d4c4a8;
+  background-image: url('../images/camo-light.jpg');
+  background-repeat: repeat;
+  background-size: 400px auto;
   color: #ffffff;
   padding: 0.5rem 1.5rem;
   text-align: left;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  position: relative;
 }
 
 /* Dark mode header - slightly lighter */
 body.dark-mode header {
   background-color: #2a2a2a;
+  background-image: url('../images/camo-dark.jpg');
+  background-repeat: repeat;
+  background-size: 400px auto;
   color: #e8e8e8;
 }
 
@@ -64,23 +71,34 @@ body.dark-mode header {
 
 header h1 {
   font-size: 1.5rem;
-  font-weight: 600;
+  font-weight: 700;
   margin-bottom: 0.15rem;
+  text-shadow:
+    2px 2px 4px rgba(0, 0, 0, 0.8),
+    -1px -1px 2px rgba(0, 0, 0, 0.6),
+    0 0 8px rgba(0, 0, 0, 0.5);
+  letter-spacing: 0.5px;
 }
 
 header .subtitle {
   font-size: 0.85rem;
-  color: #cccccc;
+  color: #ffffff;
+  text-shadow:
+    1px 1px 3px rgba(0, 0, 0, 0.8),
+    -1px -1px 2px rgba(0, 0, 0, 0.6),
+    0 0 6px rgba(0, 0, 0, 0.5);
+  font-weight: 500;
 }
 
 body.dark-mode header .subtitle {
-  color: #999999;
+  color: #e8e8e8;
 }
 
 /* Dark Mode Toggle */
 .dark-mode-toggle {
-  background: none;
-  border: 2px solid var(--gray-light);
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(4px);
+  border: 2px solid rgba(255, 255, 255, 0.4);
   border-radius: 50%;
   width: 40px;
   height: 40px;
@@ -91,16 +109,29 @@ body.dark-mode header .subtitle {
   transition: all 0.3s ease;
   padding: 0;
   flex-shrink: 0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 .dark-mode-toggle:hover {
-  background-color: var(--gray-light);
+  background: rgba(255, 255, 255, 0.3);
+  backdrop-filter: blur(6px);
   transform: scale(1.1);
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.4);
+}
+
+body.dark-mode .dark-mode-toggle {
+  background: rgba(0, 0, 0, 0.3);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+body.dark-mode .dark-mode-toggle:hover {
+  background: rgba(0, 0, 0, 0.5);
 }
 
 .dark-mode-toggle .toggle-icon {
   font-size: 1.25rem;
   transition: transform 0.3s ease;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.5));
 }
 
 /* Smooth transition for dark mode */
@@ -122,14 +153,19 @@ main {
 
 /* Status Bar */
 #status-bar {
-  background-color: var(--white);
+  background-color: #d4c4a8;
+  background-image: url('../images/camo-light.jpg');
+  background-repeat: repeat;
+  background-size: 400px auto;
   padding: 0.75rem 2rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 1px solid var(--gray-light);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.2);
+  border-top: 1px solid rgba(0, 0, 0, 0.2);
   font-size: 0.9rem;
-  color: var(--gray-medium);
+  color: #2a2a2a;
+  font-weight: 600;
 }
 
 #status-bar span {
@@ -139,8 +175,13 @@ main {
 }
 
 #status-bar .time {
-  font-weight: 600;
-  color: var(--gray-dark);
+  font-weight: 700;
+  color: #1a1a1a;
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.5);
+}
+
+#status-bar span {
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.3);
 }
 
 .status-bar-right {
@@ -151,8 +192,22 @@ main {
 
 /* Dark mode status bar */
 body.dark-mode #status-bar {
-  background-color: #1e1e1e;
-  border-bottom: 1px solid #4a4a4a;
+  background-color: #2a2a2a;
+  background-image: url('../images/camo-dark.jpg');
+  background-repeat: repeat;
+  background-size: 400px auto;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  color: #e8e8e8;
+}
+
+body.dark-mode #status-bar .time {
+  color: #ffffff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+body.dark-mode #status-bar span {
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
 }
 
 /* Footer */
