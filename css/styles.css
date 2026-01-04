@@ -30,7 +30,7 @@ body.dark-mode {
 }
 
 body {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   color: var(--gray-dark);
   background-color: var(--gray-lightest);
   line-height: 1.6;
@@ -166,7 +166,6 @@ main {
   border-top: 1px solid rgba(0, 0, 0, 0.2);
   font-size: 0.8rem;
   color: #ffffff;
-  font-weight: 600;
   text-shadow:
     1px 1px 3px rgba(0, 0, 0, 0.8),
     -1px -1px 2px rgba(0, 0, 0, 0.6),
@@ -180,7 +179,6 @@ main {
 }
 
 #status-bar .time {
-  font-weight: 700;
   color: #ffffff;
 }
 
@@ -456,7 +454,7 @@ body.dark-mode footer {
   }
 
   header h1 {
-    font-size: 1.25rem;
+    font-size: 1.75rem;
   }
 
   .leaflet-popup-content {
