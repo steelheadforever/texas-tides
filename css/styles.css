@@ -43,7 +43,7 @@ header {
   background-repeat: repeat;
   background-size: 400px auto;
   color: #ffffff;
-  padding: 0.5rem 1.5rem;
+  padding: 0.75rem 1.5rem;
   text-align: left;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
   position: relative;
@@ -73,7 +73,8 @@ header h1 {
   font-family: 'Yellowtail', cursive;
   font-size: clamp(2rem, 6vw, 5rem);
   font-weight: 400;
-  margin-bottom: 0.15rem;
+  margin-bottom: 0;
+  line-height: 1;
   text-shadow:
     2px 2px 4px rgba(0, 0, 0, 0.8),
     -1px -1px 2px rgba(0, 0, 0, 0.6),
@@ -84,6 +85,8 @@ header h1 {
 header .subtitle {
   font-size: clamp(0.7rem, 1.8vw, 1.1rem);
   color: #ffffff;
+  margin-top: 0.25rem;
+  line-height: 1.2;
   text-shadow:
     1px 1px 3px rgba(0, 0, 0, 0.8),
     -1px -1px 2px rgba(0, 0, 0, 0.6),
@@ -146,7 +149,7 @@ main {
 }
 
 #map {
-  height: 80vh;
+  height: 75vh;
   width: 100%;
   border-top: 3px solid var(--gray-medium);
   border-bottom: 3px solid var(--gray-medium);
