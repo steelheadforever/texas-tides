@@ -59,7 +59,7 @@ async function noaaGet(params) {
  * Fetch latest value for a product
  * Based on fishing_bot4.py:268-279
  */
-export async function fetchNOAALatestValue(stationId, product, useDatum = false) {
+async function fetchNOAALatestValue(stationId, product, useDatum = false) {
   const params = {
     station: stationId,
     product: product,
@@ -84,7 +84,7 @@ export async function fetchNOAALatestValue(stationId, product, useDatum = false)
  * Fetch water level (observed tide)
  * Based on fishing_bot4.py:281-289
  */
-export async function fetchWaterLevel(stationId) {
+async function fetchWaterLevel(stationId) {
   return await fetchNOAALatestValue(stationId, 'water_level', true);
 }
 
@@ -144,7 +144,7 @@ export async function fetchWaterTempHistory(stationId, hoursBack = 2) {
  * Fetch predictions over a time range
  * Based on fishing_bot4.py:291-312
  */
-export async function fetchPredictions(stationId, beginDate, endDate, interval = '6') {
+async function fetchPredictions(stationId, beginDate, endDate, interval = '6') {
   const params = {
     station: stationId,
     product: 'predictions',
@@ -170,7 +170,7 @@ export async function fetchPredictions(stationId, beginDate, endDate, interval =
  * Fetch observed water levels over a time range
  * Uses water_level product to get actual measured tide heights
  */
-export async function fetchObservedWaterLevels(stationId, hoursBack = 6) {
+async function fetchObservedWaterLevels(stationId, hoursBack = 6) {
   const range = getDateRange(-hoursBack, 0);
 
   const params = {
@@ -251,7 +251,7 @@ export async function fetch24HourCurve(stationId) {
  * Fetch high/low tide events
  * Based on fishing_bot4.py:327-349
  */
-export async function fetchHiloEvents(stationId, days = 1) {
+async function fetchHiloEvents(stationId, days = 1) {
   const range = getDateRange(0, days * 24);
 
   const params = {
@@ -307,7 +307,7 @@ export async function fetchNextTide(stationId) {
  * Compute tide phase (% through current cycle)
  * Based on fishing_bot4.py:411-441
  */
-export function computePhaseFromHilo(events, now = new Date()) {
+function computePhaseFromHilo(events, now = new Date()) {
   if (!events || events.length < 2) {
     return { text: 'n/a', prevEvent: null, nextEvent: null };
   }
@@ -424,9 +424,3 @@ export async function fetchStationWind(stationId) {
   };
 }
 
-/**
- * Fetch air pressure from station
- */
-export async function fetchAirPressure(stationId) {
-  return await fetchNOAALatestValue(stationId, 'air_pressure', false);
-}

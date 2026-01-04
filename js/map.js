@@ -176,20 +176,6 @@ async function handleStationClick(station) {
 }
 
 /**
- * Get map instance (for external use)
- */
-export function getMap() {
-  return map;
-}
-
-/**
- * Get all markers
- */
-export function getMarkers() {
-  return markers;
-}
-
-/**
  * Switch map tiles between light and dark mode
  */
 export function switchMapTiles(isDarkMode) {

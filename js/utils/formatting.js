@@ -22,26 +22,6 @@ export function getConditionsEmoji(text) {
   return '❓';
 }
 
-/**
- * Get emoji for moon phase
- * Based on fishing_bot4.py:90-102
- */
-export function getMoonEmoji(phaseName) {
-  if (!phaseName) return '🌙';
-
-  const lower = phaseName.toLowerCase();
-
-  if (lower.includes('new')) return '🌑';
-  if (lower.includes('waxing crescent')) return '🌒';
-  if (lower.includes('first quarter')) return '🌓';
-  if (lower.includes('waxing gibbous')) return '🌔';
-  if (lower.includes('full')) return '🌕';
-  if (lower.includes('waning gibbous')) return '🌖';
-  if (lower.includes('last quarter') || lower.includes('third quarter')) return '🌗';
-  if (lower.includes('waning crescent')) return '🌘';
-
-  return '🌙';
-}
 
 /**
  * Get emoji for wind direction
@@ -179,16 +159,6 @@ export function calculatePressureTrend(observations, threshold = 0.03) {
   return 'steady';
 }
 
-/**
- * Chunk array into smaller batches
- */
-export function chunkArray(array, size) {
-  const chunks = [];
-  for (let i = 0; i < array.length; i += size) {
-    chunks.push(array.slice(i, i + size));
-  }
-  return chunks;
-}
 
 /**
  * Format wind description

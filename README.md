@@ -20,7 +20,7 @@ A web application that displays real-time tide and weather data for Texas coasta
 
 - **NOAA CO-OPS API**: Tide predictions, water levels, station weather
 - **National Weather Service (NWS) API**: Weather forecasts and observations
-- **Client-side calculation**: Moon phase
+- **USNO API**: Moon phase data
 
 ## Getting Started
 
@@ -33,7 +33,7 @@ A web application that displays real-time tide and weather data for Texas coasta
 
 1. Open a terminal and navigate to the project directory:
    ```bash
-   cd "/Users/andrewpope/Claude Projects/texas-tides"
+   cd /path/to/texas-tides
    ```
 
 2. Start a local HTTP server:
@@ -65,7 +65,7 @@ texas-tides/
 │   ├── api/
 │   │   ├── noaa.js       # NOAA CO-OPS API functions
 │   │   ├── nws.js        # NWS weather API functions
-│   │   └── moon.js       # Moon phase calculation
+│   │   └── usno.js       # USNO moon phase API
 │   ├── data/
 │   │   └── stations.js   # Texas station definitions
 │   ├── ui/
@@ -85,20 +85,20 @@ texas-tides/
 - **CartoDB Positron**: Grayscale map tiles
 - **Vanilla JavaScript**: No frameworks, pure ES6 modules
 
-## Current Stations (10 for testing)
+## Current Stations
 
-1. Galveston Pier 21
-2. Galveston Bay Entrance
-3. Texas Point, Sabine Pass
-4. Rockport
-5. Copano Bay
-6. Port Aransas
-7. Bob Hall Pier, Corpus Christi
-8. South Padre Island Coast Guard Station
-9. Port Isabel
-10. Seadrift
+The application includes **45 verified NOAA CO-OPS tide stations** along the Texas coast, covering:
 
-*Full list of ~50 stations to be added*
+- Sabine Pass Region (Northeast Texas Coast)
+- Galveston Bay & Houston Ship Channel Region
+- Freeport Region
+- Matagorda Bay Region
+- Aransas & Rockport Region
+- Corpus Christi & Port Aransas Region
+- Laguna Madre & Port Mansfield Region
+- South Padre Island & Port Isabel Region (South Texas Coast)
+
+*All station data verified against NOAA database as of 2026-01-03*
 
 ## Development Notes
 
@@ -115,12 +115,12 @@ texas-tides/
 
 ## Future Enhancements
 
-- [ ] Add all ~50 Texas coastal stations
-- [ ] Implement 3-hour background data refresh
+- [ ] Implement server-side caching for API requests
 - [ ] Add station search/filter functionality
-- [ ] Save favorite stations
+- [ ] Save favorite stations (localStorage)
 - [ ] Historical tide data view
-- [ ] Mobile app version
+- [ ] Progressive Web App (PWA) support
+- [ ] Push notifications for tide alerts
 
 ## License
 

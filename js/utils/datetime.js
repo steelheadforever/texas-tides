@@ -39,24 +39,9 @@ export function formatLocalTime(date) {
 }
 
 /**
- * Format time only (no date)
- */
-export function formatTime(date) {
-  if (!date || !(date instanceof Date)) {
-    return 'N/A';
-  }
-
-  return date.toLocaleTimeString('en-US', {
-    hour: 'numeric',
-    minute: '2-digit',
-    hour12: true
-  });
-}
-
-/**
  * Format date for NOAA API (YYYYMMDD HH:MM)
  */
-export function formatNOAADate(date) {
+function formatNOAADate(date) {
   if (!date || !(date instanceof Date)) {
     return null;
   }
@@ -86,32 +71,4 @@ export function getDateRange(hoursFromNowStart = 0, hoursFromNowEnd = 24) {
     beginDate: begin,
     endDate: end
   };
-}
-
-/**
- * Calculate relative time from now
- */
-export function getRelativeTime(date) {
-  if (!date || !(date instanceof Date)) {
-    return 'N/A';
-  }
-
-  const now = new Date();
-  const diffMs = date - now;
-  const diffMins = Math.round(diffMs / 60000);
-
-  if (diffMins < 0) {
-    const mins = Math.abs(diffMins);
-    if (mins < 60) return `${mins}m ago`;
-    const hours = Math.floor(mins / 60);
-    if (hours < 24) return `${hours}h ago`;
-    const days = Math.floor(hours / 24);
-    return `${days}d ago`;
-  } else {
-    if (diffMins < 60) return `in ${diffMins}m`;
-    const hours = Math.floor(diffMins / 60);
-    if (hours < 24) return `in ${hours}h`;
-    const days = Math.floor(hours / 24);
-    return `in ${days}d`;
-  }
 }

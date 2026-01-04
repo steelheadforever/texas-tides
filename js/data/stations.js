@@ -254,14 +254,6 @@ export const TEXAS_STATIONS = [
     lon: -97.39,
     products: ["water_level", "predictions", "wind", "water_temperature", "air_temperature", "air_pressure"]
   },
-  // COMMENTED OUT - No tide predictions available
-  // {
-  //   id: "8775302",
-  //   name: "Texas State Aquarium",
-  //   lat: 27.813,
-  //   lon: -97.389,
-  //   products: ["water_level", "wind", "water_temperature", "air_temperature", "air_pressure"]
-  // },
   {
     id: "8775870",
     name: "Bob Hall Pier, Corpus Christi",
@@ -352,32 +344,3 @@ export const TEXAS_COAST_BOUNDS = {
   east: -93.8,
   west: -97.5
 };
-
-// Helper function to check if station supports a product
-export function stationHasProduct(station, product) {
-  return station.products && station.products.includes(product);
-}
-
-// Get station by ID
-export function getStationById(stationId) {
-  return TEXAS_STATIONS.find(s => s.id === stationId);
-}
-
-// Get all station IDs
-export function getAllStationIds() {
-  return TEXAS_STATIONS.map(s => s.id);
-}
-
-// Get stations by region
-export function getStationsByRegion() {
-  return {
-    sabine: TEXAS_STATIONS.filter(s => s.id.startsWith('87708') || s.id === '8770570'),
-    galveston: TEXAS_STATIONS.filter(s => s.id.startsWith('8770') && s.id >= '8770600' && s.id < '8772000' || s.id.startsWith('8771')),
-    freeport: TEXAS_STATIONS.filter(s => s.id.startsWith('87724') || s.id.startsWith('87725') || s.id.startsWith('87726') || s.id.startsWith('87727')),
-    matagorda: TEXAS_STATIONS.filter(s => s.id.startsWith('8773')),
-    aransas: TEXAS_STATIONS.filter(s => s.id.startsWith('8774')),
-    corpusChristi: TEXAS_STATIONS.filter(s => s.id.startsWith('8775')),
-    lagunaMadre: TEXAS_STATIONS.filter(s => s.id.startsWith('8776') || s.id.startsWith('8777') || s.id.startsWith('8778')),
-    southPadre: TEXAS_STATIONS.filter(s => s.id.startsWith('8779'))
-  };
-}

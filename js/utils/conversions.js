@@ -12,16 +12,6 @@ export function mphFromKnots(knots) {
 }
 
 /**
- * Convert meters per second to miles per hour
- */
-export function mphFromMetersSec(ms) {
-  if (ms === null || ms === undefined || isNaN(ms)) {
-    return null;
-  }
-  return ms * 2.2369362920544;
-}
-
-/**
  * Convert pascals to inches of mercury
  */
 export function inHgFromPascals(pa) {
@@ -40,27 +30,6 @@ export function safeFloat(value) {
   }
   const num = parseFloat(value);
   return isNaN(num) ? null : num;
-}
-
-/**
- * Safe integer parsing with null fallback
- */
-export function safeInt(value) {
-  if (value === null || value === undefined || value === '') {
-    return null;
-  }
-  const num = parseInt(value, 10);
-  return isNaN(num) ? null : num;
-}
-
-/**
- * Format wind speed with units
- */
-export function formatWindSpeed(speedMph) {
-  if (speedMph === null || speedMph === undefined) {
-    return 'N/A';
-  }
-  return `${speedMph.toFixed(1)} mph`;
 }
 
 /**
