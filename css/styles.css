@@ -390,6 +390,10 @@ body.dark-mode #status-bar span {
   gap: 0.5rem;
 }
 
+.section.compact .data-row span {
+  white-space: nowrap;
+}
+
 .section.compact .data-value {
   font-weight: 600;
   color: var(--gray-darkest);
