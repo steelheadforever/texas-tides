@@ -391,10 +391,10 @@ export function renderWaterTempChart(tempHistory) {
         borderColor: '#1976D2',
         backgroundColor: 'transparent',
         tension: 0,
-        pointRadius: 0,
+        pointRadius: 2,
+        pointBackgroundColor: '#1976D2',
         borderWidth: 2,
-        fill: false,
-        stepped: 'before'
+        fill: false
       }]
     },
     options: chartOptions
