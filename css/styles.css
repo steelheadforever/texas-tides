@@ -576,11 +576,11 @@ body.dark-mode #status-bar span {
   }
 
   #tide-chart {
-    height: 170px !important;
+    height: 200px !important;
   }
 
   #water-temp-chart {
-    height: 170px !important;
+    height: 200px !important;
   }
 
   .chart-container {
@@ -636,10 +636,10 @@ body.dark-mode #status-bar span {
   }
 
   #tide-chart {
-    height: 140px !important;
+    height: 180px !important;
   }
 
   #water-temp-chart {
-    height: 140px !important;
+    height: 180px !important;
   }
 }

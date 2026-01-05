@@ -240,7 +240,7 @@ export function renderTideChart(curveData) {
 }
 
 /**
- * Render water temperature history chart
+ * Render water temperature history chart (NOAA-style)
  * @param {Array} tempHistory - Array of {time, temp} objects
  */
 export function renderWaterTempChart(tempHistory) {
@@ -268,7 +268,118 @@ export function renderWaterTempChart(tempHistory) {
     y: item.temp
   }));
 
+  // Calculate min/max for Y-axis (round to whole degrees)
+  const temps = tempHistory.map(item => item.temp);
+  const minTemp = Math.floor(Math.min(...temps)) - 1;
+  const maxTemp = Math.ceil(Math.max(...temps)) + 1;
+
   const now = new Date();
+
+  // Build chart options
+  const chartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        display: false
+      },
+      tooltip: {
+        enabled: true,
+        mode: 'index',
+        intersect: false,
+        callbacks: {
+          title: (context) => {
+            return context[0].label;
+          },
+          label: (context) => {
+            return `${context.parsed.y.toFixed(1)}°F`;
+          }
+        }
+      }
+    },
+    scales: {
+      x: {
+        type: 'time',
+        time: {
+          unit: 'hour',
+          displayFormats: {
+            hour: 'HH:mm'
+          },
+          tooltipFormat: 'MMM d, h:mm a'
+        },
+        grid: {
+          color: '#e0e0e0'
+        },
+        ticks: {
+          color: '#666',
+          maxRotation: 0,
+          minRotation: 0,
+          autoSkip: true,
+          maxTicksLimit: 6,
+          font: {
+            size: 10
+          }
+        }
+      },
+      y: {
+        min: minTemp,
+        max: maxTemp,
+        grid: {
+          color: '#e0e0e0'
+        },
+        ticks: {
+          color: '#666',
+          stepSize: 1,
+          callback: (value) => {
+            return Math.round(value);
+          }
+        },
+        title: {
+          display: true,
+          text: 'Degrees (F)',
+          color: '#333',
+          font: {
+            size: 11,
+            weight: 'bold'
+          }
+        }
+      }
+    },
+    interaction: {
+      mode: 'index',
+      intersect: false
+    }
+  };
+
+  // Add annotation plugin for "Now" marker
+  const annotationPlugin = window.ChartAnnotation || window.chartjsPluginAnnotation;
+
+  if (annotationPlugin) {
+    try {
+      if (!Chart.registry.plugins.get('annotation')) {
+        Chart.register(annotationPlugin);
+      }
+    } catch (e) {
+      // Plugin already registered
+    }
+
+    chartOptions.plugins.annotation = {
+      annotations: {
+        nowLine: {
+          type: 'line',
+          xMin: now,
+          xMax: now,
+          borderColor: '#000000',
+          borderWidth: 2,
+          borderDash: [],
+          label: {
+            content: 'Now',
+            display: false
+          }
+        }
+      }
+    };
+  }
 
   // Create the chart
   currentWaterTempChart = new Chart(ctx, {
@@ -277,88 +388,16 @@ export function renderWaterTempChart(tempHistory) {
       datasets: [{
         label: 'Water Temperature',
         data: tempData,
-        borderColor: '#2E7D32',
-        backgroundColor: 'rgba(46, 125, 50, 0.1)',
-        tension: 0.4,
-        pointRadius: 2,
-        pointBackgroundColor: '#2E7D32',
+        borderColor: '#1976D2',
+        backgroundColor: 'transparent',
+        tension: 0,
+        pointRadius: 0,
         borderWidth: 2,
-        fill: true
+        fill: false,
+        stepped: 'before'
       }]
     },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: {
-          display: false
-        },
-        tooltip: {
-          enabled: true,
-          mode: 'index',
-          intersect: false,
-          callbacks: {
-            title: (context) => {
-              return context[0].label;
-            },
-            label: (context) => {
-              return `${context.parsed.y.toFixed(1)}°F`;
-            }
-          }
-        }
-      },
-      scales: {
-        x: {
-          type: 'time',
-          time: {
-            unit: 'hour',
-            displayFormats: {
-              hour: 'h:mm a'
-            },
-            tooltipFormat: 'MMM d, h:mm a'
-          },
-          grid: {
-            color: '#e0e0e0'
-          },
-          ticks: {
-            color: '#666',
-            maxRotation: 45,
-            minRotation: 0,
-            autoSkip: true,
-            maxTicksLimit: 6,
-            font: {
-              size: 10
-            }
-          }
-        },
-        y: {
-          grid: {
-            color: '#e0e0e0'
-          },
-          ticks: {
-            color: '#666',
-            callback: (value) => {
-              return value.toFixed(1) + '°F';
-            }
-          },
-          title: {
-            display: true,
-            text: 'Temperature (°F)',
-            color: '#333',
-            font: {
-              size: 11,
-              weight: 'bold'
-            }
-          },
-          beginAtZero: false,
-          grace: '5%'
-        }
-      },
-      interaction: {
-        mode: 'index',
-        intersect: false
-      }
-    }
+    options: chartOptions
   });
 
   console.log(`Water temp chart rendered with ${tempData.length} data points`);
