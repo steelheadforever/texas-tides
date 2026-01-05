@@ -117,7 +117,7 @@ function buildTideStatusSection(tideNow) {
  */
 function buildNextTideSection(nextTide) {
   if (!nextTide || !nextTide.first) {
-    return '<div class="section"><p class="unavailable">Next tide data unavailable</p></div>';
+    return '<div class="section next-tide"><h3>Next Tides</h3><p class="unavailable">No data</p></div>';
   }
 
   const firstEmoji = getTideKindEmoji(nextTide.first.kind);
@@ -125,10 +125,18 @@ function buildNextTideSection(nextTide) {
 
   return `
     <div class="section next-tide">
-      <h3>Next Tides ${firstEmoji}</h3>
-      <p><strong>${nextTide.first.kind}</strong> at ${formatLocalTime(nextTide.first.time)} • ${formatFeet(nextTide.first.ft)}</p>
+      <h3>Next Tides</h3>
+      <div class="tide-event">
+        <span class="tide-kind">${firstEmoji} ${nextTide.first.kind}</span>
+        <span class="tide-time">${formatLocalTime(nextTide.first.time)}</span>
+        <span class="tide-height">${formatFeet(nextTide.first.ft)}</span>
+      </div>
       ${nextTide.second ? `
-        <p><strong>${nextTide.second.kind}</strong> at ${formatLocalTime(nextTide.second.time)} • ${formatFeet(nextTide.second.ft)}</p>
+      <div class="tide-event">
+        <span class="tide-kind">${secondEmoji} ${nextTide.second.kind}</span>
+        <span class="tide-time">${formatLocalTime(nextTide.second.time)}</span>
+        <span class="tide-height">${formatFeet(nextTide.second.ft)}</span>
+      </div>
       ` : ''}
     </div>
   `;
@@ -143,9 +151,11 @@ function buildWaterTempSection(waterTemp) {
   }
 
   return `
-    <div class="section water-temp">
-      <h3>Water Temperature 🌡️</h3>
-      <p>${formatTemperature(waterTemp)}</p>
+    <div class="section compact water-temp">
+      <h3>Water 🌡️</h3>
+      <div class="data-row">
+        <span class="data-value">${formatTemperature(waterTemp)}</span>
+      </div>
     </div>
   `;
 }
@@ -159,9 +169,11 @@ function buildAirTempSection(airTemp) {
   }
 
   return `
-    <div class="section air-temp">
-      <h3>Air Temperature 🌤️</h3>
-      <p>${formatTemperature(airTemp)}</p>
+    <div class="section compact air-temp">
+      <h3>Air 🌤️</h3>
+      <div class="data-row">
+        <span class="data-value">${formatTemperature(airTemp)}</span>
+      </div>
     </div>
   `;
 }
@@ -171,7 +183,7 @@ function buildAirTempSection(airTemp) {
  */
 function buildCurrentWindSection(wind) {
   if (!wind) {
-    return '<div class="section wind-current"><h3>Current Wind 💨</h3><p class="unavailable">No data</p></div>';
+    return '<div class="section compact wind-current"><h3>Wind Now 💨</h3><p class="unavailable">No data</p></div>';
   }
 
   const dirEmoji = getWindDirEmoji(wind.direction);
@@ -186,9 +198,12 @@ function buildCurrentWindSection(wind) {
   };
 
   return `
-    <div class="section wind-current">
-      <h3>Current Wind 💨 ${dirEmoji}</h3>
-      <p>${formatWind(windObj)} • ${wind.direction || 'N/A'}</p>
+    <div class="section compact wind-current">
+      <h3>Wind Now 💨 ${dirEmoji}</h3>
+      <div class="data-row">
+        <span class="data-value">${formatWind(windObj)}</span>
+        <span>${wind.direction || ''}</span>
+      </div>
     </div>
   `;
 }
@@ -198,19 +213,21 @@ function buildCurrentWindSection(wind) {
  */
 function buildWindForecastSection(windForecast) {
   if (!windForecast) {
-    return '<div class="section wind-forecast"><h3>Wind Next 12h 🧭</h3><p class="unavailable">No data</p></div>';
+    return '<div class="section compact wind-forecast"><h3>Wind 12h 🧭</h3><p class="unavailable">No data</p></div>';
   }
 
   const dirEmoji = getWindDirEmoji(windForecast.direction);
 
-  const avg = windForecast.avgSpeed !== null ? windForecast.avgSpeed.toFixed(1) : 'N/A';
-  const max = windForecast.maxSpeed !== null ? windForecast.maxSpeed.toFixed(1) : 'N/A';
+  const avg = windForecast.avgSpeed !== null ? windForecast.avgSpeed.toFixed(0) : 'N/A';
+  const max = windForecast.maxSpeed !== null ? windForecast.maxSpeed.toFixed(0) : 'N/A';
 
   return `
-    <div class="section wind-forecast">
-      <h3>Wind Next 12h 🧭 ${dirEmoji}</h3>
-      <p>Avg: ${avg} mph • Max: ${max} mph</p>
-      <p>Direction: ${windForecast.direction || 'N/A'}</p>
+    <div class="section compact wind-forecast">
+      <h3>Wind 12h 🧭 ${dirEmoji}</h3>
+      <div class="data-row">
+        <span>${avg}/${max} mph</span>
+        <span>${windForecast.direction || ''}</span>
+      </div>
     </div>
   `;
 }
@@ -220,15 +237,18 @@ function buildWindForecastSection(windForecast) {
  */
 function buildPressureSection(pressure) {
   if (!pressure) {
-    return '<div class="section pressure"><h3>Barometric Pressure</h3><p class="unavailable">No data</p></div>';
+    return '<div class="section compact pressure"><h3>Pressure</h3><p class="unavailable">No data</p></div>';
   }
 
   const trendEmoji = getPressureTrendEmoji(pressure.trend);
 
   return `
-    <div class="section pressure">
-      <h3>Barometric Pressure ${trendEmoji}</h3>
-      <p>${formatPressure(pressure.value)} • ${pressure.trend || 'unknown'}</p>
+    <div class="section compact pressure">
+      <h3>Pressure ${trendEmoji}</h3>
+      <div class="data-row">
+        <span class="data-value">${formatPressure(pressure.value)}</span>
+        <span>${pressure.trend || ''}</span>
+      </div>
     </div>
   `;
 }
@@ -238,15 +258,17 @@ function buildPressureSection(pressure) {
  */
 function buildConditionsSection(windForecast) {
   if (!windForecast || !windForecast.condition) {
-    return '<div class="section conditions"><h3>Sky Conditions</h3><p class="unavailable">No data</p></div>';
+    return '<div class="section compact conditions"><h3>Sky</h3><p class="unavailable">No data</p></div>';
   }
 
   const conditionEmoji = getConditionsEmoji(windForecast.condition);
 
   return `
-    <div class="section conditions">
-      <h3>Sky Conditions ${conditionEmoji}</h3>
-      <p>${windForecast.condition}</p>
+    <div class="section compact conditions">
+      <h3>Sky ${conditionEmoji}</h3>
+      <div class="data-row">
+        <span class="data-value">${windForecast.condition}</span>
+      </div>
     </div>
   `;
 }
@@ -256,15 +278,18 @@ function buildConditionsSection(windForecast) {
  */
 function buildSunSection(sunMoon) {
   if (!sunMoon || !sunMoon.sun) {
-    return '<div class="section sun"><h3>Sun ☀️</h3><p class="unavailable">No data</p></div>';
+    return '<div class="section compact sun"><h3>Sun ☀️</h3><p class="unavailable">No data</p></div>';
   }
 
   const { rise, set } = sunMoon.sun;
 
   return `
-    <div class="section sun">
+    <div class="section compact sun">
       <h3>Sun ☀️</h3>
-      <p>Rise: ${rise} • Set: ${set}</p>
+      <div class="data-row">
+        <span>↑ ${rise}</span>
+        <span>↓ ${set}</span>
+      </div>
     </div>
   `;
 }
@@ -274,18 +299,20 @@ function buildSunSection(sunMoon) {
  */
 function buildMoonSection(sunMoon) {
   if (!sunMoon || !sunMoon.moon) {
-    return '<div class="section moon"><h3>Moon 🌙</h3><p class="unavailable">No data</p></div>';
+    return '<div class="section compact moon"><h3>Moon 🌙</h3><p class="unavailable">No data</p></div>';
   }
 
   const { rise, set } = sunMoon.moon;
-  const moonPhase = sunMoon.moonPhase || 'Unknown Phase';
+  const moonPhase = sunMoon.moonPhase || 'Unknown';
   const moonEmoji = getMoonEmoji(moonPhase);
 
   return `
-    <div class="section moon">
-      <h3>Moon ${moonEmoji}</h3>
-      <p>${moonPhase}</p>
-      <p>Rise: ${rise} • Set: ${set}</p>
+    <div class="section compact moon">
+      <h3>${moonPhase} ${moonEmoji}</h3>
+      <div class="data-row">
+        <span>↑ ${rise}</span>
+        <span>↓ ${set}</span>
+      </div>
     </div>
   `;
 }
