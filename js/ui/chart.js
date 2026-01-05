@@ -86,17 +86,17 @@ export function renderTideChart(curveData) {
         display: true,
         position: 'bottom',
         labels: {
-          boxWidth: 20,
+          boxWidth: 16,
           boxHeight: 2,
-          padding: 10,
+          padding: 8,
           font: {
-            size: 11
+            size: 10
           },
           color: '#333',
           generateLabels: (chart) => {
             return [
               {
-                text: 'Predicted Water Level',
+                text: 'Predicted',
                 fillStyle: '#4A90E2',
                 strokeStyle: '#4A90E2',
                 lineWidth: 2,
@@ -104,8 +104,8 @@ export function renderTideChart(curveData) {
               },
               {
                 text: curveData.observed && observedData.length > 0
-                  ? 'Observed Water Level'
-                  : 'Observed Water Level (not available)',
+                  ? 'Observed'
+                  : 'Observed (n/a)',
                 fillStyle: curveData.observed && observedData.length > 0 ? '#E24A4A' : '#999',
                 strokeStyle: curveData.observed && observedData.length > 0 ? '#E24A4A' : '#999',
                 lineWidth: 2,

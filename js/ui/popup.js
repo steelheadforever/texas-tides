@@ -49,7 +49,7 @@ export function buildPopupContent(station, data) {
 
       ${waterTempHistory && waterTempHistory.length > 0 ? `
       <div class="section chart-container">
-        <h3 style="margin-bottom: 0.5rem;">Water Temperature Trend (Past 3 Hours)</h3>
+        <h3 style="margin-bottom: 0.5rem;">Water Temperature Trend (Past 1 Hour)</h3>
         <canvas id="water-temp-chart" width="400" height="200"></canvas>
       </div>
       ` : ''}
@@ -225,7 +225,7 @@ function buildWindForecastSection(windForecast) {
     <div class="section compact wind-forecast">
       <h3>Wind 12h 🧭 ${dirEmoji}</h3>
       <div class="data-row">
-        <span>${avg}/${max} mph</span>
+        <span>${avg}-${max} mph</span>
         <span>${windForecast.direction || ''}</span>
       </div>
     </div>
@@ -287,8 +287,8 @@ function buildSunSection(sunMoon) {
     <div class="section compact sun">
       <h3>Sun ☀️</h3>
       <div class="data-row">
-        <span>↑ ${rise}</span>
-        <span>↓ ${set}</span>
+        <span>Rise: ${rise}</span>
+        <span>Set: ${set}</span>
       </div>
     </div>
   `;
@@ -310,8 +310,8 @@ function buildMoonSection(sunMoon) {
     <div class="section compact moon">
       <h3>${moonPhase} ${moonEmoji}</h3>
       <div class="data-row">
-        <span>↑ ${rise}</span>
-        <span>↓ ${set}</span>
+        <span>Rise: ${rise}</span>
+        <span>Set: ${set}</span>
       </div>
     </div>
   `;
