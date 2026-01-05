@@ -286,10 +286,8 @@ function buildSunSection(sunMoon) {
   return `
     <div class="section compact sun">
       <h3>Sun ☀️</h3>
-      <div class="data-row">
-        <span>Rise: ${rise}</span>
-        <span>Set: ${set}</span>
-      </div>
+      <p>Rise: ${rise}</p>
+      <p>Set: ${set}</p>
     </div>
   `;
 }
@@ -309,10 +307,8 @@ function buildMoonSection(sunMoon) {
   return `
     <div class="section compact moon">
       <h3>${moonPhase} ${moonEmoji}</h3>
-      <div class="data-row">
-        <span>Rise: ${rise}</span>
-        <span>Set: ${set}</span>
-      </div>
+      <p>Rise: ${rise}</p>
+      <p>Set: ${set}</p>
     </div>
   `;
 }
