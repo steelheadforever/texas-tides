@@ -121,6 +121,9 @@ export async function fetchAirTemp(stationId, lat, lon) {
 export async function fetchWaterTempHistory(stationId, hoursBack = 3) {
   const range = getDateRange(-hoursBack, 0);
 
+  console.log(`[Water Temp] Requesting ${hoursBack} hours back`);
+  console.log(`[Water Temp] Date range: ${range.begin} to ${range.end}`);
+
   const params = {
     station: stationId,
     product: 'water_temperature',
@@ -131,14 +134,20 @@ export async function fetchWaterTempHistory(stationId, hoursBack = 3) {
 
   const data = await noaaGet(params);
 
+  console.log(`[Water Temp] API returned: ${data?.data?.length || 0} records`);
+
   if (!data || !data.data || data.data.length === 0) {
     return [];
   }
 
-  return data.data.map(obs => ({
+  const result = data.data.map(obs => ({
     time: parseNOAALocalTime(obs.t),
     temp: safeFloat(obs.v)
   }));
+
+  console.log(`[Water Temp] Parsed ${result.length} records`);
+
+  return result;
 }
 
 /**
