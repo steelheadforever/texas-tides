@@ -277,16 +277,16 @@ body.dark-mode #status-bar span {
 
 .station-popup h3 {
   color: var(--gray-dark);
-  font-size: 0.95rem;
-  margin-bottom: 0.5rem;
+  font-size: 0.85rem;
+  margin-bottom: 0.25rem;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.35rem;
 }
 
 .section {
-  margin: 0.5rem 0;
-  padding: 0.25rem;
+  margin: 0.35rem 0;
+  padding: 0.35rem 0.5rem;
   border-left: 3px solid var(--gray-medium);
   background-color: var(--gray-lightest);
 }
@@ -310,15 +310,16 @@ body.dark-mode #status-bar span {
 .tide-levels {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
-  margin: 0.5rem 0;
+  gap: 0.15rem;
+  margin: 0.15rem 0;
 }
 
 .tide-levels span {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0.25rem 0;
+  padding: 0.1rem 0;
+  font-size: 0.85rem;
 }
 
 .tide-levels .observed {
@@ -336,11 +337,11 @@ body.dark-mode #status-bar span {
 
 /* Phase Display */
 .phase {
-  font-size: 0.95rem;
+  font-size: 0.85rem;
   font-weight: 600;
   color: var(--gray-darkest);
-  margin-top: 0.5rem;
-  padding: 0.5rem;
+  margin-top: 0.25rem;
+  padding: 0.3rem;
   background-color: var(--white);
   border-radius: 4px;
   text-align: center;
@@ -349,7 +350,7 @@ body.dark-mode #status-bar span {
 /* Two-Column Layout */
 .two-column-row {
   display: flex;
-  gap: 0.75rem;
+  gap: 0.5rem;
   margin: 0.5rem 0;
 }
 
@@ -365,6 +366,93 @@ body.dark-mode #status-bar span {
 
 .two-column-row .section p {
   font-size: 0.85rem;
+}
+
+/* Compact Section - for minimal data blocks */
+.section.compact {
+  padding: 0.35rem 0.5rem;
+}
+
+.section.compact h3 {
+  font-size: 0.8rem;
+  margin-bottom: 0.15rem;
+}
+
+.section.compact p {
+  font-size: 0.85rem;
+  margin: 0;
+}
+
+.section.compact .data-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.section.compact .data-value {
+  font-weight: 600;
+  color: var(--gray-darkest);
+  font-size: 1rem;
+}
+
+/* Inline data layout for single values */
+.inline-data {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+
+.inline-data .label {
+  font-size: 0.8rem;
+  color: var(--gray-medium);
+}
+
+.inline-data .value {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--gray-darkest);
+}
+
+/* Next Tide optimized styling */
+.section.next-tide {
+  padding: 0.35rem 0.5rem;
+}
+
+.section.next-tide h3 {
+  margin-bottom: 0.25rem;
+}
+
+.section.next-tide .tide-event {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.15rem 0;
+  font-size: 0.85rem;
+}
+
+.section.next-tide .tide-event .tide-kind {
+  font-weight: 600;
+  color: var(--gray-darkest);
+  min-width: 35px;
+}
+
+.section.next-tide .tide-event .tide-time {
+  color: var(--gray-dark);
+}
+
+.section.next-tide .tide-event .tide-height {
+  font-weight: 600;
+  color: var(--gray-darkest);
+}
+
+/* Tide Status optimized */
+.section.tide-status {
+  padding: 0.35rem 0.5rem;
+}
+
+.section.tide-status h3 {
+  margin-bottom: 0.25rem;
 }
 
 /* Chart Container */
@@ -438,15 +526,53 @@ body.dark-mode #status-bar span {
   }
 
   .station-popup {
-    padding: 0.75rem;
+    padding: 0.5rem;
   }
 
   .station-popup h2 {
-    font-size: 1.25rem;
+    font-size: 1.1rem;
+    margin-bottom: 0.35rem;
+    padding-bottom: 0.25rem;
+  }
+
+  .station-popup h3 {
+    font-size: 0.8rem;
+    margin-bottom: 0.15rem;
   }
 
   .section {
-    padding: 0.5rem;
+    padding: 0.35rem 0.5rem;
+  }
+
+  .section.compact {
+    padding: 0.25rem 0.4rem;
+  }
+
+  .section.compact h3 {
+    font-size: 0.75rem;
+  }
+
+  .section.compact .data-value {
+    font-size: 0.9rem;
+  }
+
+  .two-column-row {
+    gap: 0.35rem;
+    margin: 0.35rem 0;
+  }
+
+  .tide-levels span {
+    font-size: 0.8rem;
+  }
+
+  .section.next-tide .tide-event {
+    font-size: 0.8rem;
+    padding: 0.1rem 0;
+  }
+
+  .phase {
+    font-size: 0.8rem;
+    padding: 0.25rem;
   }
 
   #tide-chart {
@@ -456,6 +582,11 @@ body.dark-mode #status-bar span {
   #water-temp-chart {
     height: 170px !important;
   }
+
+  .chart-container {
+    padding: 0.35rem;
+    margin: 0.35rem 0;
+  }
 }
 
 @media (max-width: 480px) {
@@ -464,12 +595,44 @@ body.dark-mode #status-bar span {
   }
 
   .leaflet-popup-content {
-    min-width: 240px;
-    max-width: 280px;
+    min-width: 260px;
+    max-width: 290px;
+  }
+
+  .station-popup {
+    padding: 0.4rem;
+  }
+
+  .station-popup h2 {
+    font-size: 1rem;
+  }
+
+  .two-column-row {
+    gap: 0.25rem;
+  }
+
+  .section.compact {
+    padding: 0.2rem 0.35rem;
+  }
+
+  .section.compact h3 {
+    font-size: 0.7rem;
+  }
+
+  .section.compact .data-row {
+    font-size: 0.8rem;
+  }
+
+  .section.compact .data-value {
+    font-size: 0.85rem;
   }
 
   .tide-levels {
-    font-size: 0.9rem;
+    font-size: 0.8rem;
+  }
+
+  .tide-levels span {
+    font-size: 0.75rem;
   }
 
   #tide-chart {
