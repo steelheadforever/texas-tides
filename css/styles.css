@@ -338,7 +338,6 @@ body.dark-mode #status-bar span {
 /* Phase Display */
 .phase {
   font-size: 0.85rem;
-  font-weight: 600;
   color: var(--gray-darkest);
   margin-top: 0.25rem;
   padding: 0.3rem;
@@ -391,7 +390,6 @@ body.dark-mode #status-bar span {
 }
 
 .section.compact .data-value {
-  font-weight: 600;
   color: var(--gray-darkest);
   font-size: 1rem;
 }
@@ -442,7 +440,6 @@ body.dark-mode #status-bar span {
 }
 
 .section.next-tide .tide-event .tide-height {
-  font-weight: 600;
   color: var(--gray-darkest);
 }
 

@@ -93,16 +93,16 @@ function buildTideStatusSection(tideNow) {
       <h3>Tide Status ${trendEmoji}</h3>
       <div class="tide-levels">
         <span class="observed">
-          <span>Observed:</span>
-          <strong>${formatFeet(tideNow.observed)}</strong>
+          <strong>Observed:</strong>
+          <span>${formatFeet(tideNow.observed)}</span>
         </span>
         <span class="predicted">
-          <span>Predicted:</span>
-          <strong>${formatFeet(tideNow.predicted)}</strong>
+          <strong>Predicted:</strong>
+          <span>${formatFeet(tideNow.predicted)}</span>
         </span>
         <span class="delta">
-          <span>Difference:</span>
-          <strong>${formatDelta(tideNow.delta)}</strong>
+          <strong>Difference:</strong>
+          <span>${formatDelta(tideNow.delta)}</span>
         </span>
       </div>
       ${tideNow.phaseText && tideNow.phaseText !== 'n/a' ? `
@@ -286,8 +286,8 @@ function buildSunSection(sunMoon) {
   return `
     <div class="section compact sun">
       <h3>Sun ☀️</h3>
-      <p>Rise: ${rise}</p>
-      <p>Set: ${set}</p>
+      <p><strong>Rise:</strong> ${rise}</p>
+      <p><strong>Set:</strong> ${set}</p>
     </div>
   `;
 }
@@ -307,8 +307,8 @@ function buildMoonSection(sunMoon) {
   return `
     <div class="section compact moon">
       <h3>${moonPhase} ${moonEmoji}</h3>
-      <p>Rise: ${rise}</p>
-      <p>Set: ${set}</p>
+      <p><strong>Rise:</strong> ${rise}</p>
+      <p><strong>Set:</strong> ${set}</p>
     </div>
   `;
 }
