@@ -121,7 +121,7 @@ async function handleStationClick(station) {
       fetchNextTide(station.id),
       fetch24HourCurve(station.id),
       fetchWaterTemp(station.id),
-      fetchWaterTempHistory(station.id, 1), // Past 1 hour
+      fetchWaterTempHistory(station.id, 24), // Past 24 hours
       fetchAirTemp(station.id, station.lat, station.lon),
       fetchStationWind(station.id),
       fetchForecast12h(station.lat, station.lon),
