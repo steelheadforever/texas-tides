@@ -25,6 +25,11 @@
         <h1>Slackwater</h1>
         <p class="subtitle">Tides and weather for the Texas Coast</p>
       </div>
+      <button id="menu-toggle" class="menu-toggle" aria-label="Toggle menu">
+        <span class="menu-icon"></span>
+        <span class="menu-icon"></span>
+        <span class="menu-icon"></span>
+      </button>
     </div>
   </header>
 
@@ -33,16 +38,52 @@
     <div id="status-bar">
       <div class="status-bar-left">
         <div class="status-bar-updates">
-          <span id="last-update">Last updated: <span class="time">--</span></span>
-          <span id="next-update">Next update in: <span class="time">--</span></span>
+          <span id="last-update">Next update on station click. Last Updated: <span class="time">--</span></span>
         </div>
         <span class="status-bar-credit">Data from NOAA CO-OPS & National Weather Service</span>
       </div>
-      <button id="dark-mode-toggle" class="dark-mode-toggle" aria-label="Toggle dark mode">
-        <span class="toggle-icon">🌙</span>
-      </button>
     </div>
   </main>
+
+  <!-- Menu Backdrop -->
+  <div id="menu-backdrop" class="menu-backdrop"></div>
+
+  <!-- Side Menu -->
+  <div id="side-menu" class="side-menu">
+    <div class="menu-content">
+      <div class="menu-item">
+        <label class="menu-label">
+          <span>Winds</span>
+          <div class="toggle-switch">
+            <input type="checkbox" id="winds-toggle" disabled>
+            <span class="toggle-slider"></span>
+          </div>
+        </label>
+      </div>
+      <div class="menu-item">
+        <label class="menu-label">
+          <span>Precip</span>
+          <div class="toggle-switch">
+            <input type="checkbox" id="precip-toggle" disabled>
+            <span class="toggle-slider"></span>
+          </div>
+        </label>
+      </div>
+      <div class="menu-item">
+        <label class="menu-label">
+          <span>Dark Mode</span>
+          <div class="toggle-switch">
+            <input type="checkbox" id="dark-mode-toggle">
+            <span class="toggle-slider"></span>
+          </div>
+        </label>
+      </div>
+      <div class="menu-divider"></div>
+      <div class="menu-item">
+        <button id="compare-button" class="compare-button" disabled>Compare</button>
+      </div>
+    </div>
+  </div>
 
   <!-- Leaflet JS -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"

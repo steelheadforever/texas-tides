@@ -3,6 +3,7 @@
 
 import { initMap } from './map.js';
 import { initDarkMode } from './utils/dark-mode.js';
+import { initMenu } from './utils/menu.js';
 
 /**
  * Wait for external libraries (Leaflet, Chart.js) to load
@@ -30,6 +31,9 @@ async function init() {
 
   // Initialize dark mode first (before anything renders)
   initDarkMode();
+
+  // Initialize menu
+  initMenu();
 
   // Wait for external libraries to load
   await waitForLibraries();

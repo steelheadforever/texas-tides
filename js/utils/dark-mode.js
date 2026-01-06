@@ -19,10 +19,14 @@ export function initDarkMode() {
     enableDarkMode();
   }
 
-  // Set up toggle button
-  const toggleButton = document.getElementById('dark-mode-toggle');
-  if (toggleButton) {
-    toggleButton.addEventListener('click', toggleDarkMode);
+  // Set up toggle checkbox in menu
+  const toggleCheckbox = document.getElementById('dark-mode-toggle');
+  if (toggleCheckbox) {
+    // Set initial state
+    toggleCheckbox.checked = document.body.classList.contains('dark-mode');
+
+    // Listen for changes
+    toggleCheckbox.addEventListener('change', toggleDarkMode);
   }
 }
 
@@ -43,7 +47,7 @@ function toggleDarkMode() {
 function enableDarkMode() {
   document.body.classList.add('dark-mode');
   localStorage.setItem(STORAGE_KEY, 'dark');
-  updateToggleIcon();
+  updateToggleCheckbox();
   switchMapTiles(true);
 }
 
@@ -53,20 +57,16 @@ function enableDarkMode() {
 function disableDarkMode() {
   document.body.classList.remove('dark-mode');
   localStorage.setItem(STORAGE_KEY, 'light');
-  updateToggleIcon();
+  updateToggleCheckbox();
   switchMapTiles(false);
 }
 
 /**
- * Update the toggle button icon
+ * Update the toggle checkbox state
  */
-function updateToggleIcon() {
-  const toggleIcon = document.querySelector('.toggle-icon');
-  if (toggleIcon) {
-    if (document.body.classList.contains('dark-mode')) {
-      toggleIcon.textContent = '☀️'; // Sun icon for dark mode
-    } else {
-      toggleIcon.textContent = '🌙'; // Moon icon for light mode
-    }
+function updateToggleCheckbox() {
+  const toggleCheckbox = document.getElementById('dark-mode-toggle');
+  if (toggleCheckbox) {
+    toggleCheckbox.checked = document.body.classList.contains('dark-mode');
   }
 }
