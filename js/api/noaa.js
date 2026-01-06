@@ -180,13 +180,13 @@ async function fetchPredictions(stationId, beginDate, endDate, interval = '6') {
  * Fetch observed water levels over a time range
  * Uses water_level product to get actual measured tide heights
  */
-async function fetchObservedWaterLevels(stationId, hoursBack = 6) {
+async function fetchObservedWaterLevels(stationId, hoursBack = 6, datum = 'MLLW') {
   const range = getDateRange(-hoursBack, 0);
 
   const params = {
     station: stationId,
     product: 'water_level',
-    datum: 'MLLW',
+    datum: datum,
     begin_date: range.begin,
     end_date: range.end,
     interval: '6' // 6-minute intervals to match predictions
@@ -202,6 +202,35 @@ async function fetchObservedWaterLevels(stationId, hoursBack = 6) {
     time: parseNOAALocalTime(obs.t),
     ft: safeFloat(obs.v)
   }));
+}
+
+/**
+ * Fetch observed water levels with fallback datums
+ * Some stations don't support MLLW, so try MSL and NAVD as fallbacks
+ */
+async function fetchObservedWaterLevelsWithFallback(stationId, hoursBack = 6) {
+  // Try MLLW first (most common)
+  let result = await fetchObservedWaterLevels(stationId, hoursBack, 'MLLW');
+  if (result && result.length > 0) {
+    return result;
+  }
+
+  // Try MSL
+  console.log(`MLLW failed, trying MSL datum for station ${stationId}`);
+  result = await fetchObservedWaterLevels(stationId, hoursBack, 'MSL');
+  if (result && result.length > 0) {
+    return result;
+  }
+
+  // Try NAVD
+  console.log(`MSL failed, trying NAVD datum for station ${stationId}`);
+  result = await fetchObservedWaterLevels(stationId, hoursBack, 'NAVD');
+  if (result && result.length > 0) {
+    return result;
+  }
+
+  console.warn(`All datums failed for station ${stationId}`);
+  return [];
 }
 
 /**
@@ -230,7 +259,7 @@ export async function fetch24HourCurve(stationId) {
   // If no predictions available, fetch 24 hours of water level history instead
   if (!predictions || predictions.length === 0) {
     console.log(`No predictions available for station ${stationId}, fetching 24h water level history`);
-    const waterLevelHistory = await fetchObservedWaterLevels(stationId, 24);
+    const waterLevelHistory = await fetchObservedWaterLevelsWithFallback(stationId, 24);
 
     if (!waterLevelHistory || waterLevelHistory.length === 0) {
       return null;
