@@ -208,6 +208,7 @@ async function fetchObservedWaterLevels(stationId, hoursBack = 6) {
  * Fetch 24-hour tide curve with both observed and predicted data
  * Observed: past 6 hours of actual measurements
  * Predicted: next 24 hours of predictions
+ * If predictions unavailable: past 24 hours of water level observations
  */
 export async function fetch24HourCurve(stationId) {
   // Fetch predictions from 6 hours ago to 24 hours ahead
@@ -226,8 +227,38 @@ export async function fetch24HourCurve(stationId) {
     fetchObservedWaterLevels(stationId, 6) // Past 6 hours of observations
   ]);
 
+  // If no predictions available, fetch 24 hours of water level history instead
   if (!predictions || predictions.length === 0) {
-    return null;
+    console.log(`No predictions available for station ${stationId}, fetching 24h water level history`);
+    const waterLevelHistory = await fetchObservedWaterLevels(stationId, 24);
+
+    if (!waterLevelHistory || waterLevelHistory.length === 0) {
+      return null;
+    }
+
+    const now = new Date();
+    let nowIndex = 0;
+
+    // Find closest observation to current time
+    let minDiff = Infinity;
+    waterLevelHistory.forEach((obs, idx) => {
+      const diff = Math.abs(obs.time - now);
+      if (diff < minDiff) {
+        minDiff = diff;
+        nowIndex = idx;
+      }
+    });
+
+    // Return water level only (no predictions)
+    return {
+      predicted: null,
+      observed: {
+        times: waterLevelHistory.map(o => o.time),
+        heights: waterLevelHistory.map(o => o.ft)
+      },
+      nowIndex: nowIndex,
+      noPredictions: true // Flag to indicate predictions aren't available
+    };
   }
 
   const now = new Date();
@@ -253,7 +284,8 @@ export async function fetch24HourCurve(stationId) {
       times: observed.map(o => o.time),
       heights: observed.map(o => o.ft)
     } : null,
-    nowIndex: nowIndex
+    nowIndex: nowIndex,
+    noPredictions: false
   };
 }
 

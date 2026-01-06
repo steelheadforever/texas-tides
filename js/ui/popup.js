@@ -117,7 +117,7 @@ function buildTideStatusSection(tideNow) {
  */
 function buildNextTideSection(nextTide) {
   if (!nextTide || !nextTide.first) {
-    return '<div class="section next-tide"><h3>Next Tides</h3><p class="unavailable">No data</p></div>';
+    return '<div class="section next-tide"><h3>Next Tides</h3><p class="unavailable">NOAA predicted tides unavailable for this location.</p></div>';
   }
 
   const firstEmoji = getTideKindEmoji(nextTide.first.kind);
