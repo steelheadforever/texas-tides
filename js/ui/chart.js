@@ -303,7 +303,7 @@ export function renderWaterTempChart(tempHistory) {
         time: {
           unit: 'hour',
           displayFormats: {
-            hour: 'HH:mm'
+            hour: 'h a'
           },
           tooltipFormat: 'MMM d, h:mm a'
         },
