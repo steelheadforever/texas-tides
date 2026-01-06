@@ -6,10 +6,13 @@ let currentWaterTempChart = null; // Store water temp chart instance
 
 /**
  * Render 24-hour tide curve chart with observed and predicted data
- * @param {Object} curveData - Object with predicted, observed (optional), and nowIndex
+ * @param {Object} curveData - Object with predicted, observed (optional), nowIndex, and noPredictions flag
  */
 export function renderTideChart(curveData) {
-  if (!curveData || !curveData.predicted || !curveData.predicted.times || !curveData.predicted.heights) {
+  // Handle case where predictions aren't available - show water level only
+  const noPredictions = curveData && curveData.noPredictions === true;
+
+  if (!curveData || (!noPredictions && (!curveData.predicted || !curveData.predicted.times || !curveData.predicted.heights))) {
     console.warn('Invalid curve data for chart');
     return;
   }
@@ -27,12 +30,32 @@ export function renderTideChart(curveData) {
     currentChart.destroy();
   }
 
-  // Build datasets using actual Date objects for x values (time scale)
-  const predictedData = curveData.predicted.times.map((time, idx) => ({
-    x: time,
-    y: curveData.predicted.heights[idx]
-  }));
+  // Build datasets array
+  const datasets = [];
 
+  // If predictions are available, build predicted dataset
+  let predictedData = [];
+  if (!noPredictions && curveData.predicted) {
+    predictedData = curveData.predicted.times.map((time, idx) => ({
+      x: time,
+      y: curveData.predicted.heights[idx]
+    }));
+
+    // Dataset 1: Predicted water level (blue)
+    datasets.push({
+      label: 'Predicted Water Level',
+      data: predictedData,
+      borderColor: '#4A90E2',
+      backgroundColor: 'rgba(74, 144, 226, 0.1)',
+      tension: 0.4,
+      pointRadius: 0,
+      borderWidth: 2,
+      fill: true,
+      order: 2 // Draw behind observed
+    });
+  }
+
+  // Build observed dataset
   const observedData = [];
   if (curveData.observed && curveData.observed.times && curveData.observed.times.length > 0) {
     curveData.observed.times.forEach((time, idx) => {
@@ -41,41 +64,23 @@ export function renderTideChart(curveData) {
         y: curveData.observed.heights[idx]
       });
     });
+
+    // Dataset 2: Observed water level (red/blue depending on mode)
+    datasets.push({
+      label: noPredictions ? 'Water Level' : 'Observed Water Level',
+      data: observedData,
+      borderColor: noPredictions ? '#4A90E2' : '#E24A4A',
+      backgroundColor: noPredictions ? 'rgba(74, 144, 226, 0.1)' : 'transparent',
+      tension: 0.4,
+      pointRadius: 0,
+      borderWidth: 2,
+      fill: noPredictions ? true : false,
+      order: 1 // Draw on top of predicted
+    });
   }
 
   // Store current time for "Now" marker
   const now = new Date();
-
-  // Build datasets array
-  const datasets = [];
-
-  // Dataset 1: Predicted water level (blue)
-  datasets.push({
-    label: 'Predicted Water Level',
-    data: predictedData,
-    borderColor: '#4A90E2',
-    backgroundColor: 'rgba(74, 144, 226, 0.1)',
-    tension: 0.4,
-    pointRadius: 0,
-    borderWidth: 2,
-    fill: true,
-    order: 2 // Draw behind observed
-  });
-
-  // Dataset 2: Observed water level (red) - only if available
-  if (curveData.observed && observedData.length > 0) {
-    datasets.push({
-      label: 'Observed Water Level',
-      data: observedData,
-      borderColor: '#E24A4A',
-      backgroundColor: 'transparent',
-      tension: 0.4,
-      pointRadius: 0,
-      borderWidth: 2,
-      fill: false,
-      order: 1 // Draw on top of predicted
-    });
-  }
 
   // Build chart options
   const chartOptions = {
@@ -83,7 +88,7 @@ export function renderTideChart(curveData) {
     maintainAspectRatio: false,
     plugins: {
       legend: {
-        display: true,
+        display: !noPredictions, // Hide legend when only showing water level
         position: 'bottom',
         labels: {
           boxWidth: 16,
@@ -94,6 +99,9 @@ export function renderTideChart(curveData) {
           },
           color: '#333',
           generateLabels: (chart) => {
+            if (noPredictions) {
+              return [];
+            }
             return [
               {
                 text: 'Predicted',
@@ -237,6 +245,20 @@ export function renderTideChart(curveData) {
     },
     options: chartOptions
   });
+
+  // Add disclaimer below chart if no predictions available
+  if (noPredictions) {
+    const chartContainer = canvas.parentElement;
+    let disclaimer = chartContainer.querySelector('.no-predictions-disclaimer');
+
+    if (!disclaimer) {
+      disclaimer = document.createElement('p');
+      disclaimer.className = 'no-predictions-disclaimer';
+      disclaimer.style.cssText = 'font-size: 0.75rem; color: #666; text-align: center; margin-top: 0.5rem; font-style: italic;';
+      disclaimer.textContent = 'No NOAA predicted tide available';
+      chartContainer.appendChild(disclaimer);
+    }
+  }
 }
 
 /**

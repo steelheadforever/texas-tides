@@ -1,7 +1,7 @@
 // Texas Coastal Tide Stations
 // Source: NOAA CO-OPS Station Directory
 // Data verified: 2026-01-03
-// 45 Texas NOAA CO-OPS tide stations (1 station commented out - no tide predictions)
+// 44 Texas NOAA CO-OPS tide stations (6 stations do not have tide predictions)
 // Verified against NOAA Tides & Currents database and web search
 
 export const TEXAS_STATIONS = [
@@ -180,14 +180,6 @@ export const TEXAS_STATIONS = [
     lon: -96.712,
     products: ["water_level", "predictions", "wind", "water_temperature", "air_temperature", "air_pressure"]
   },
-  {
-    id: "8773767",
-    name: "Seadrift",
-    lat: 28.415,
-    lon: -96.712,
-    products: ["water_level", "predictions"]
-  },
-
   // Aransas & Rockport Region
   {
     id: "8774513",
@@ -275,14 +267,14 @@ export const TEXAS_STATIONS = [
     name: "South Bird Island",
     lat: 27.480,
     lon: -97.322,
-    products: ["water_level", "predictions", "wind", "water_temperature"]
+    products: ["water_level", "wind", "water_temperature"]
   },
   {
     id: "8776604",
     name: "Baffin Bay",
     lat: 27.295,
     lon: -97.405,
-    products: ["water_level", "predictions"]
+    products: ["water_level"]
   },
   {
     id: "8777812",
@@ -296,14 +288,14 @@ export const TEXAS_STATIONS = [
     name: "Padre Island, Port Mansfield Channel Entrance",
     lat: 26.565,
     lon: -97.2767,
-    products: ["water_level", "predictions"]
+    products: ["water_level"]
   },
   {
     id: "8778490",
     name: "Port Mansfield",
     lat: 26.5583,
     lon: -97.425,
-    products: ["water_level", "predictions", "wind", "water_temperature"]
+    products: ["water_level", "wind", "water_temperature"]
   },
 
   // South Padre Island & Port Isabel Region (South Texas Coast)
