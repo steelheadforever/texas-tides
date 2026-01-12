@@ -452,6 +452,7 @@ body.dark-mode #status-bar span {
 /* Station Popup Styles */
 .station-popup {
   padding: 1rem;
+  padding-bottom: 2rem; /* Extra padding for forecast button */
 }
 
 .station-popup h2 {
@@ -680,34 +681,41 @@ body.dark-mode #status-bar span {
   margin: 0;
 }
 
-.forecast-close {
-  background: transparent;
-  border: none;
-  font-size: 1.5rem;
-  cursor: pointer;
-  color: var(--gray-dark);
-  padding: 0;
-  width: 30px;
-  height: 30px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 4px;
-  transition: all 0.2s ease;
+/* Forecast Scroll Container */
+.forecast-scroll-container {
+  overflow-x: auto;
+  overflow-y: visible;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: var(--gray-medium) var(--gray-lightest);
 }
 
-.forecast-close:hover {
-  background-color: var(--gray-lightest);
-  color: var(--gray-darkest);
+.forecast-scroll-container::-webkit-scrollbar {
+  height: 8px;
+}
+
+.forecast-scroll-container::-webkit-scrollbar-track {
+  background: var(--gray-lightest);
+  border-radius: 4px;
+}
+
+.forecast-scroll-container::-webkit-scrollbar-thumb {
+  background: var(--gray-medium);
+  border-radius: 4px;
+}
+
+.forecast-scroll-container::-webkit-scrollbar-thumb:hover {
+  background: var(--gray-dark);
 }
 
 /* Forecast Table Structure */
 .forecast-table-row {
   display: grid;
-  grid-template-columns: 120px repeat(8, 1fr);
+  grid-template-columns: 120px repeat(8, minmax(90px, 1fr));
   gap: 0.25rem;
   margin-bottom: 0.25rem;
   align-items: center;
+  min-width: fit-content;
 }
 
 .forecast-header-row {
@@ -987,11 +995,6 @@ body.dark-mode #status-bar span {
   .forecast-popup {
     max-width: 600px;
     padding-bottom: 100px; /* More padding on mobile */
-  }
-
-  .forecast-table-row {
-    overflow-x: scroll;
-    -webkit-overflow-scrolling: touch;
   }
 
   .forecast-row-label {

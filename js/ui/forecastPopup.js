@@ -89,86 +89,87 @@ export function buildForecastPopupContent(forecastData, station) {
     <div class="forecast-popup">
       <div class="forecast-header">
         <h2>${station.name || 'Station'} - 8-Day Forecast</h2>
-        <button class="forecast-close" aria-label="Close forecast">×</button>
       </div>
 
-      <!-- Date Headers -->
-      <div class="forecast-table-row forecast-header-row">
-        <div class="forecast-row-label"></div>
-        ${dateHeaders}
-      </div>
+      <div class="forecast-scroll-container">
+        <!-- Date Headers -->
+        <div class="forecast-table-row forecast-header-row">
+          <div class="forecast-row-label"></div>
+          ${dateHeaders}
+        </div>
 
-      <!-- TIDES Section (NOAA) -->
-      <div class="forecast-section-header">TIDES (NOAA)</div>
-      <div class="forecast-chart-container">
-        <canvas id="forecast-tide-chart"></canvas>
-      </div>
+        <!-- TIDES Section (NOAA) -->
+        <div class="forecast-section-header">TIDES (NOAA)</div>
+        <div class="forecast-chart-container">
+          <canvas id="forecast-tide-chart"></canvas>
+        </div>
 
-      <!-- WEATHER Section (NWS) -->
-      <div class="forecast-section-header">WEATHER (NWS)</div>
+        <!-- WEATHER Section (NWS) -->
+        <div class="forecast-section-header">WEATHER (NWS)</div>
 
-      <div class="forecast-table-row">
-        <div class="forecast-row-label">Conditions</div>
-        ${weatherEmojiRow}
-      </div>
+        <div class="forecast-table-row">
+          <div class="forecast-row-label">Conditions</div>
+          ${weatherEmojiRow}
+        </div>
 
-      <div class="forecast-table-row">
-        <div class="forecast-row-label">Description</div>
-        ${weatherDescRow}
-      </div>
+        <div class="forecast-table-row">
+          <div class="forecast-row-label">Description</div>
+          ${weatherDescRow}
+        </div>
 
-      <div class="forecast-table-row">
-        <div class="forecast-row-label">Temp Range</div>
-        ${tempRow}
-      </div>
+        <div class="forecast-table-row">
+          <div class="forecast-row-label">Temp Range</div>
+          ${tempRow}
+        </div>
 
-      <div class="forecast-table-row">
-        <div class="forecast-row-label">Precip</div>
-        ${precipRow}
-      </div>
+        <div class="forecast-table-row">
+          <div class="forecast-row-label">Precip</div>
+          ${precipRow}
+        </div>
 
-      <!-- WIND Section (NWS) -->
-      <div class="forecast-section-header">WIND (NWS)</div>
+        <!-- WIND Section (NWS) -->
+        <div class="forecast-section-header">WIND (NWS)</div>
 
-      <div class="forecast-table-row">
-        <div class="forecast-row-label">Direction</div>
-        ${windDirRow}
-      </div>
+        <div class="forecast-table-row">
+          <div class="forecast-row-label">Direction</div>
+          ${windDirRow}
+        </div>
 
-      <div class="forecast-table-row">
-        <div class="forecast-row-label">Speed/Gusts</div>
-        ${windSpeedRow}
-      </div>
+        <div class="forecast-table-row">
+          <div class="forecast-row-label">Speed/Gusts</div>
+          ${windSpeedRow}
+        </div>
 
-      <!-- SUN Section (USNO) -->
-      <div class="forecast-section-header">SUN (USNO)</div>
+        <!-- SUN Section (USNO) -->
+        <div class="forecast-section-header">SUN (USNO)</div>
 
-      <div class="forecast-table-row">
-        <div class="forecast-row-label">Sunrise</div>
-        ${sunriseRow}
-      </div>
+        <div class="forecast-table-row">
+          <div class="forecast-row-label">Sunrise</div>
+          ${sunriseRow}
+        </div>
 
-      <div class="forecast-table-row">
-        <div class="forecast-row-label">Sunset</div>
-        ${sunsetRow}
-      </div>
+        <div class="forecast-table-row">
+          <div class="forecast-row-label">Sunset</div>
+          ${sunsetRow}
+        </div>
 
-      <!-- MOON Section (USNO) -->
-      <div class="forecast-section-header">MOON (USNO)</div>
+        <!-- MOON Section (USNO) -->
+        <div class="forecast-section-header">MOON (USNO)</div>
 
-      <div class="forecast-table-row">
-        <div class="forecast-row-label">Phase</div>
-        ${moonPhaseRow}
-      </div>
+        <div class="forecast-table-row">
+          <div class="forecast-row-label">Phase</div>
+          ${moonPhaseRow}
+        </div>
 
-      <div class="forecast-table-row">
-        <div class="forecast-row-label">Moonrise</div>
-        ${moonriseRow}
-      </div>
+        <div class="forecast-table-row">
+          <div class="forecast-row-label">Moonrise</div>
+          ${moonriseRow}
+        </div>
 
-      <div class="forecast-table-row">
-        <div class="forecast-row-label">Moonset</div>
-        ${moonsetRow}
+        <div class="forecast-table-row">
+          <div class="forecast-row-label">Moonset</div>
+          ${moonsetRow}
+        </div>
       </div>
     </div>
   `;

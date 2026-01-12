@@ -542,16 +542,11 @@ export function renderWeeklyTideChart(predictions8Day) {
           displayFormats: {
             day: 'EEE M/d'
           },
-          tooltipFormat: 'EEE MMM d, h:mm a',
-          // Round to start of day for consistent alignment
-          round: 'day'
+          tooltipFormat: 'EEE MMM d, h:mm a'
         },
-        min: startDate,
-        max: endDate,
         grid: {
           color: '#e0e0e0',
-          drawBorder: true,
-          offset: false
+          drawBorder: true
         },
         ticks: {
           color: '#666',
@@ -561,11 +556,8 @@ export function renderWeeklyTideChart(predictions8Day) {
           font: {
             size: 10,
             weight: 'bold'
-          },
-          align: 'center',
-          source: 'data'
-        },
-        offset: true // Add padding on both sides
+          }
+        }
       },
       y: {
         grid: {

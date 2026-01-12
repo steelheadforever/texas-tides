@@ -208,14 +208,6 @@ function setupForecastButtonHandler() {
     if (event.target.classList.contains('forecast-button')) {
       handleForecastClick(event);
     }
-
-    // Also handle close button clicks in forecast popup
-    if (event.target.classList.contains('forecast-close')) {
-      // Close the popup
-      if (map) {
-        map.closePopup();
-      }
-    }
   });
 }
 
