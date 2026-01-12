@@ -74,6 +74,14 @@ export function buildPopupContent(station, data) {
           Station ID: ${station.id} • Data from NOAA & NWS
         </p>
       </div>
+
+      <button class="forecast-button"
+              data-station-id="${station.id}"
+              data-station-name="${station.name}"
+              data-lat="${station.lat}"
+              data-lon="${station.lon}">
+        Forecast
+      </button>
     </div>
   `;
 }

@@ -72,3 +72,21 @@ export function getDateRange(hoursFromNowStart = 0, hoursFromNowEnd = 24) {
     endDate: end
   };
 }
+
+/**
+ * Format date for forecast display
+ * Format: "Sun 1/12"
+ * @param {Date} date - Date to format
+ * @returns {string} Formatted date string
+ */
+export function formatForecastDate(date) {
+  if (!date || !(date instanceof Date)) {
+    return 'N/A';
+  }
+
+  const dayOfWeek = date.toLocaleDateString('en-US', { weekday: 'short' });
+  const month = date.getMonth() + 1; // 0-indexed, so add 1
+  const day = date.getDate();
+
+  return `${dayOfWeek} ${month}/${day}`;
+}

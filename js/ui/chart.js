@@ -3,6 +3,7 @@
 
 let currentChart = null; // Store current chart instance to destroy before creating new one
 let currentWaterTempChart = null; // Store water temp chart instance
+let currentForecastTideChart = null; // Store forecast tide chart instance
 
 /**
  * Render 24-hour tide curve chart with observed and predicted data
@@ -423,4 +424,193 @@ export function renderWaterTempChart(tempHistory) {
   });
 
   console.log(`Water temp chart rendered with ${tempData.length} data points`);
+}
+
+/**
+ * Render 8-day weekly tide forecast chart
+ * @param {Array} predictions8Day - Array of {time, ft} prediction objects for 8 days
+ */
+export function renderWeeklyTideChart(predictions8Day) {
+  if (!predictions8Day || predictions8Day.length === 0) {
+    console.warn('No 8-day prediction data available');
+    return;
+  }
+
+  const canvas = document.getElementById('forecast-tide-chart');
+  if (!canvas) {
+    console.warn('Forecast tide chart canvas element not found');
+    return;
+  }
+
+  const ctx = canvas.getContext('2d');
+
+  // Destroy previous chart if exists
+  if (currentForecastTideChart) {
+    currentForecastTideChart.destroy();
+  }
+
+  // Build dataset from predictions
+  const tideData = predictions8Day.map(pred => ({
+    x: pred.time,
+    y: pred.ft
+  }));
+
+  // Create day boundary annotations for vertical lines
+  const dayBoundaries = [];
+  const dayLabels = [];
+  const startDate = predictions8Day[0].time;
+  const endDate = predictions8Day[predictions8Day.length - 1].time;
+
+  // Create vertical lines at midnight for each day
+  let currentDay = new Date(startDate);
+  currentDay.setHours(0, 0, 0, 0);
+  currentDay.setDate(currentDay.getDate() + 1); // Start from next day
+
+  while (currentDay < endDate) {
+    dayBoundaries.push({
+      type: 'line',
+      xMin: currentDay,
+      xMax: currentDay,
+      borderColor: 'rgba(0, 0, 0, 0.1)',
+      borderWidth: 1,
+      borderDash: [3, 3]
+    });
+
+    // Move to next day
+    currentDay = new Date(currentDay);
+    currentDay.setDate(currentDay.getDate() + 1);
+  }
+
+  // Build chart options
+  const chartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        display: false
+      },
+      tooltip: {
+        enabled: true,
+        mode: 'index',
+        intersect: false,
+        callbacks: {
+          title: (context) => {
+            const date = new Date(context[0].parsed.x);
+            return date.toLocaleString('en-US', {
+              weekday: 'short',
+              month: 'short',
+              day: 'numeric',
+              hour: 'numeric',
+              minute: '2-digit',
+              hour12: true
+            });
+          },
+          label: (context) => {
+            return `Height: ${context.parsed.y.toFixed(2)} ft`;
+          }
+        }
+      }
+    },
+    scales: {
+      x: {
+        type: 'time',
+        time: {
+          unit: 'day',
+          displayFormats: {
+            day: 'EEE M/d'
+          },
+          tooltipFormat: 'EEE MMM d, h:mm a'
+        },
+        grid: {
+          color: '#e0e0e0',
+          drawBorder: true
+        },
+        ticks: {
+          color: '#666',
+          maxRotation: 0,
+          minRotation: 0,
+          autoSkip: false,
+          font: {
+            size: 10,
+            weight: 'bold'
+          }
+        }
+      },
+      y: {
+        grid: {
+          color: (context) => {
+            return context.tick.value === 0 ? '#666' : '#e0e0e0';
+          },
+          lineWidth: (context) => {
+            return context.tick.value === 0 ? 2 : 1;
+          },
+          drawBorder: true
+        },
+        ticks: {
+          color: '#666',
+          stepSize: 0.5,
+          callback: (value) => {
+            return value.toFixed(1) + ' ft';
+          }
+        },
+        title: {
+          display: true,
+          text: 'Height (ft MLLW)',
+          color: '#333',
+          font: {
+            size: 11,
+            weight: 'bold'
+          }
+        },
+        beginAtZero: false,
+        grace: '5%'
+      }
+    },
+    interaction: {
+      mode: 'index',
+      intersect: false
+    }
+  };
+
+  // Add day boundary lines using annotation plugin
+  const annotationPlugin = window.ChartAnnotation || window.chartjsPluginAnnotation;
+
+  if (annotationPlugin && dayBoundaries.length > 0) {
+    try {
+      if (!Chart.registry.plugins.get('annotation')) {
+        Chart.register(annotationPlugin);
+      }
+    } catch (e) {
+      // Plugin already registered
+    }
+
+    const annotations = {};
+    dayBoundaries.forEach((boundary, idx) => {
+      annotations[`dayBoundary${idx}`] = boundary;
+    });
+
+    chartOptions.plugins.annotation = {
+      annotations: annotations
+    };
+  }
+
+  // Create the chart
+  currentForecastTideChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      datasets: [{
+        label: 'Predicted Tide',
+        data: tideData,
+        borderColor: '#4A90E2',
+        backgroundColor: 'rgba(74, 144, 226, 0.1)',
+        tension: 0.4,
+        pointRadius: 0,
+        borderWidth: 2,
+        fill: true
+      }]
+    },
+    options: chartOptions
+  });
+
+  console.log(`8-day forecast tide chart rendered with ${tideData.length} data points`);
 }

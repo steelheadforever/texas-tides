@@ -495,3 +495,27 @@ export async function fetchStationWind(stationId) {
   };
 }
 
+/**
+ * Fetch 8-day tide predictions (current day + 7 days forward)
+ * Used for weekly forecast tide chart
+ * Returns array of {time, ft} prediction objects
+ */
+export async function fetchTidePredictions8Day(stationId) {
+  // Get current day + 7 days forward (8 days total)
+  const range = getDateRange(0, 8 * 24);
+
+  const predictions = await fetchPredictions(
+    stationId,
+    range.begin,
+    range.end,
+    '6' // 6-minute intervals for smooth curve
+  );
+
+  if (!predictions || predictions.length === 0) {
+    console.warn(`No 8-day predictions available for station ${stationId}`);
+    return null;
+  }
+
+  return predictions;
+}
+

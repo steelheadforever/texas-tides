@@ -55,6 +55,7 @@ async function fetchNWSPoints(lat, lon) {
   }
 
   return {
+    forecast: data.properties.forecast,
     forecastHourly: data.properties.forecastHourly,
     observationStations: data.properties.observationStations
   };
@@ -246,4 +247,73 @@ export async function fetchNWSTemperature(lat, lon) {
   }
 
   return null;
+}
+
+/**
+ * Fetch 8-day weather forecast (current day + 7 days forward)
+ * Returns array of daily forecast objects with weather, temp, wind, precip
+ */
+export async function fetchWeatherForecast8Day(lat, lon) {
+  const points = await fetchNWSPoints(lat, lon);
+
+  if (!points || !points.forecast) {
+    return null;
+  }
+
+  // Use the regular forecast endpoint for daily periods
+  const data = await nwsGet(points.forecast);
+
+  if (!data || !data.properties || !data.properties.periods) {
+    return null;
+  }
+
+  const periods = data.properties.periods;
+
+  // NWS returns day and night periods separately
+  // We need to combine them to get daily high/low temps
+  const dailyForecasts = [];
+
+  for (let i = 0; i < periods.length && dailyForecasts.length < 8; i++) {
+    const period = periods[i];
+    const nextPeriod = periods[i + 1];
+
+    // Check if this is a daytime period
+    if (period.isDaytime) {
+      const dayData = period;
+      const nightData = nextPeriod && !nextPeriod.isDaytime ? nextPeriod : null;
+
+      // Parse wind speed and gusts
+      const windMatch = dayData.windSpeed?.match(/(\d+)\s*(?:to\s*(\d+))?\s*mph/);
+      let windSpeed = 0;
+      let windGust = 0;
+
+      if (windMatch) {
+        const speed1 = parseInt(windMatch[1]);
+        const speed2 = windMatch[2] ? parseInt(windMatch[2]) : speed1;
+        windSpeed = speed1;
+        windGust = speed2;
+      }
+
+      dailyForecasts.push({
+        date: new Date(dayData.startTime),
+        dayOfWeek: new Date(dayData.startTime).toLocaleDateString('en-US', { weekday: 'short' }),
+        icon: dayData.icon || '',
+        shortForecast: dayData.shortForecast || 'N/A',
+        detailedForecast: dayData.detailedForecast || '',
+        tempHigh: dayData.temperature || null,
+        tempLow: nightData?.temperature || null,
+        windSpeed: windSpeed,
+        windGust: windGust,
+        windDirection: dayData.windDirection || 'N',
+        precipProbability: dayData.probabilityOfPrecipitation?.value || 0
+      });
+
+      // Skip the night period since we already processed it
+      if (nightData) {
+        i++;
+      }
+    }
+  }
+
+  return dailyForecasts;
 }
