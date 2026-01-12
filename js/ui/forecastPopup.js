@@ -25,41 +25,64 @@ export function buildForecastPopupContent(forecastData, station) {
     return `<div class="forecast-date-cell">${dateStr}</div>`;
   }).join('');
 
-  // Build daily forecast columns
-  const dailyColumns = weather.map((day, index) => {
-    const sunMoonData = sunMoon[index] || {};
-
-    // Get weather emoji
+  // Build weather emoji row
+  const weatherEmojiRow = weather.map(day => {
     const weatherEmoji = getWeatherEmoji(day.icon);
+    return `<div class="forecast-data-cell">${weatherEmoji}</div>`;
+  }).join('');
 
-    // Get wind direction
-    const windDir = getWindDirectionFromDegrees(convertWindDirectionTodegrees(day.windDirection));
+  // Build weather description row
+  const weatherDescRow = weather.map(day => {
+    return `<div class="forecast-data-cell">${day.shortForecast || 'N/A'}</div>`;
+  }).join('');
 
-    // Format temperature
+  // Build temperature row
+  const tempRow = weather.map(day => {
     const tempRange = formatTempRange(day.tempHigh, day.tempLow);
+    return `<div class="forecast-data-cell">${tempRange}</div>`;
+  }).join('');
 
-    // Format wind speed
-    const windSpeedStr = formatWindSpeed(day.windSpeed, day.windGust);
-
-    // Format precipitation
+  // Build precipitation row
+  const precipRow = weather.map(day => {
     const precipStr = formatPrecipProbability(day.precipProbability);
+    return `<div class="forecast-data-cell">${precipStr}</div>`;
+  }).join('');
 
-    return `
-      <div class="forecast-day-column">
-        <div class="forecast-row forecast-emoji">${weatherEmoji}</div>
-        <div class="forecast-row forecast-description">${day.shortForecast || 'N/A'}</div>
-        <div class="forecast-row forecast-temp">${tempRange}</div>
-        <div class="forecast-row forecast-wind-dir">${windDir.emoji} ${windDir.text}</div>
-        <div class="forecast-row forecast-wind-speed">${windSpeedStr}</div>
-        <div class="forecast-row forecast-precip">${precipStr}</div>
-        <div class="forecast-row forecast-sunrise">☀️↑ ${sunMoonData.sunrise || 'N/A'}</div>
-        <div class="forecast-row forecast-sunset">☀️↓ ${sunMoonData.sunset || 'N/A'}</div>
-        <div class="forecast-row forecast-moonrise">🌙↑ ${sunMoonData.moonrise || 'N/A'}</div>
-        <div class="forecast-row forecast-moonset">🌙↓ ${sunMoonData.moonset || 'N/A'}</div>
-        <div class="forecast-row forecast-moon-emoji">${sunMoonData.moonEmoji || '🌙'}</div>
-        <div class="forecast-row forecast-moon-phase">${sunMoonData.moonPhase || 'N/A'}</div>
-      </div>
-    `;
+  // Build wind direction row
+  const windDirRow = weather.map(day => {
+    const windDir = getWindDirectionFromDegrees(convertWindDirectionTodegrees(day.windDirection));
+    return `<div class="forecast-data-cell">${windDir.emoji} ${windDir.text}</div>`;
+  }).join('');
+
+  // Build wind speed row
+  const windSpeedRow = weather.map(day => {
+    const windSpeedStr = formatWindSpeed(day.windSpeed, day.windGust);
+    return `<div class="forecast-data-cell">${windSpeedStr}</div>`;
+  }).join('');
+
+  // Build sunrise row
+  const sunriseRow = sunMoon.map(data => {
+    return `<div class="forecast-data-cell">${data.sunrise || 'N/A'}</div>`;
+  }).join('');
+
+  // Build sunset row
+  const sunsetRow = sunMoon.map(data => {
+    return `<div class="forecast-data-cell">${data.sunset || 'N/A'}</div>`;
+  }).join('');
+
+  // Build moon phase row
+  const moonPhaseRow = sunMoon.map(data => {
+    return `<div class="forecast-data-cell">${data.moonEmoji || '🌙'} ${data.moonPhase || 'N/A'}</div>`;
+  }).join('');
+
+  // Build moonrise row
+  const moonriseRow = sunMoon.map(data => {
+    return `<div class="forecast-data-cell">${data.moonrise || 'N/A'}</div>`;
+  }).join('');
+
+  // Build moonset row
+  const moonsetRow = sunMoon.map(data => {
+    return `<div class="forecast-data-cell">${data.moonset || 'N/A'}</div>`;
   }).join('');
 
   return `
@@ -69,17 +92,83 @@ export function buildForecastPopupContent(forecastData, station) {
         <button class="forecast-close" aria-label="Close forecast">×</button>
       </div>
 
-      <div class="forecast-dates">
+      <!-- Date Headers -->
+      <div class="forecast-table-row forecast-header-row">
+        <div class="forecast-row-label"></div>
         ${dateHeaders}
       </div>
 
-      <div class="forecast-chart-container section">
-        <h3>8-Day Tide Forecast</h3>
+      <!-- TIDES Section (NOAA) -->
+      <div class="forecast-section-header">TIDES (NOAA)</div>
+      <div class="forecast-chart-container">
         <canvas id="forecast-tide-chart"></canvas>
       </div>
 
-      <div class="forecast-grid">
-        ${dailyColumns}
+      <!-- WEATHER Section (NWS) -->
+      <div class="forecast-section-header">WEATHER (NWS)</div>
+
+      <div class="forecast-table-row">
+        <div class="forecast-row-label">Conditions</div>
+        ${weatherEmojiRow}
+      </div>
+
+      <div class="forecast-table-row">
+        <div class="forecast-row-label">Description</div>
+        ${weatherDescRow}
+      </div>
+
+      <div class="forecast-table-row">
+        <div class="forecast-row-label">Temp Range</div>
+        ${tempRow}
+      </div>
+
+      <div class="forecast-table-row">
+        <div class="forecast-row-label">Precip</div>
+        ${precipRow}
+      </div>
+
+      <!-- WIND Section (NWS) -->
+      <div class="forecast-section-header">WIND (NWS)</div>
+
+      <div class="forecast-table-row">
+        <div class="forecast-row-label">Direction</div>
+        ${windDirRow}
+      </div>
+
+      <div class="forecast-table-row">
+        <div class="forecast-row-label">Speed/Gusts</div>
+        ${windSpeedRow}
+      </div>
+
+      <!-- SUN Section (USNO) -->
+      <div class="forecast-section-header">SUN (USNO)</div>
+
+      <div class="forecast-table-row">
+        <div class="forecast-row-label">Sunrise</div>
+        ${sunriseRow}
+      </div>
+
+      <div class="forecast-table-row">
+        <div class="forecast-row-label">Sunset</div>
+        ${sunsetRow}
+      </div>
+
+      <!-- MOON Section (USNO) -->
+      <div class="forecast-section-header">MOON (USNO)</div>
+
+      <div class="forecast-table-row">
+        <div class="forecast-row-label">Phase</div>
+        ${moonPhaseRow}
+      </div>
+
+      <div class="forecast-table-row">
+        <div class="forecast-row-label">Moonrise</div>
+        ${moonriseRow}
+      </div>
+
+      <div class="forecast-table-row">
+        <div class="forecast-row-label">Moonset</div>
+        ${moonsetRow}
       </div>
     </div>
   `;

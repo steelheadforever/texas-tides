@@ -457,11 +457,11 @@ export function renderWeeklyTideChart(predictions8Day) {
 
   // Create day boundary annotations for vertical lines
   const dayBoundaries = [];
-  const dayLabels = [];
+  const noonMarkers = [];
   const startDate = predictions8Day[0].time;
   const endDate = predictions8Day[predictions8Day.length - 1].time;
 
-  // Create vertical lines at midnight for each day
+  // Create vertical lines at midnight for each day (day separators)
   let currentDay = new Date(startDate);
   currentDay.setHours(0, 0, 0, 0);
   currentDay.setDate(currentDay.getDate() + 1); // Start from next day
@@ -471,7 +471,7 @@ export function renderWeeklyTideChart(predictions8Day) {
       type: 'line',
       xMin: currentDay,
       xMax: currentDay,
-      borderColor: 'rgba(0, 0, 0, 0.1)',
+      borderColor: 'rgba(0, 0, 0, 0.15)',
       borderWidth: 1,
       borderDash: [3, 3]
     });
@@ -479,6 +479,29 @@ export function renderWeeklyTideChart(predictions8Day) {
     // Move to next day
     currentDay = new Date(currentDay);
     currentDay.setDate(currentDay.getDate() + 1);
+  }
+
+  // Create transparent dashed lines at noon for each day
+  let noonDay = new Date(startDate);
+  noonDay.setHours(0, 0, 0, 0);
+
+  while (noonDay < endDate) {
+    const noonTime = new Date(noonDay);
+    noonTime.setHours(12, 0, 0, 0); // Set to 12:00 PM
+
+    if (noonTime > startDate && noonTime < endDate) {
+      noonMarkers.push({
+        type: 'line',
+        xMin: noonTime,
+        xMax: noonTime,
+        borderColor: 'rgba(0, 0, 0, 0.06)', // More transparent
+        borderWidth: 1,
+        borderDash: [2, 4] // Different dash pattern
+      });
+    }
+
+    // Move to next day
+    noonDay.setDate(noonDay.getDate() + 1);
   }
 
   // Build chart options
@@ -519,11 +542,16 @@ export function renderWeeklyTideChart(predictions8Day) {
           displayFormats: {
             day: 'EEE M/d'
           },
-          tooltipFormat: 'EEE MMM d, h:mm a'
+          tooltipFormat: 'EEE MMM d, h:mm a',
+          // Round to start of day for consistent alignment
+          round: 'day'
         },
+        min: startDate,
+        max: endDate,
         grid: {
           color: '#e0e0e0',
-          drawBorder: true
+          drawBorder: true,
+          offset: false
         },
         ticks: {
           color: '#666',
@@ -533,8 +561,11 @@ export function renderWeeklyTideChart(predictions8Day) {
           font: {
             size: 10,
             weight: 'bold'
-          }
-        }
+          },
+          align: 'center',
+          source: 'data'
+        },
+        offset: true // Add padding on both sides
       },
       y: {
         grid: {
@@ -572,10 +603,10 @@ export function renderWeeklyTideChart(predictions8Day) {
     }
   };
 
-  // Add day boundary lines using annotation plugin
+  // Add day boundary lines and noon markers using annotation plugin
   const annotationPlugin = window.ChartAnnotation || window.chartjsPluginAnnotation;
 
-  if (annotationPlugin && dayBoundaries.length > 0) {
+  if (annotationPlugin && (dayBoundaries.length > 0 || noonMarkers.length > 0)) {
     try {
       if (!Chart.registry.plugins.get('annotation')) {
         Chart.register(annotationPlugin);
@@ -585,8 +616,15 @@ export function renderWeeklyTideChart(predictions8Day) {
     }
 
     const annotations = {};
+
+    // Add day boundaries (midnight lines)
     dayBoundaries.forEach((boundary, idx) => {
       annotations[`dayBoundary${idx}`] = boundary;
+    });
+
+    // Add noon markers
+    noonMarkers.forEach((marker, idx) => {
+      annotations[`noonMarker${idx}`] = marker;
     });
 
     chartOptions.plugins.annotation = {
