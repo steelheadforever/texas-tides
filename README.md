@@ -2,6 +2,8 @@
 
 A web application that displays real-time tide and weather data for Texas coastal stations on an interactive map.
 
+**Live site:** [slackwater.app](https://slackwater.app)
+
 ## Features
 
 - Interactive grayscale map showing ~50 Texas coastal tide stations
@@ -51,6 +53,41 @@ A web application that displays real-time tide and weather data for Texas coasta
 ### Alternative: Direct File Opening
 
 For simple testing, you can open `index.html` directly in your browser, but some features may not work due to CORS restrictions. Using a local HTTP server is recommended.
+
+## Deployment
+
+The application is deployed on **Cloudflare Pages** with automatic deployments from GitHub.
+
+### Production Deployment
+
+- **Live site**: [slackwater.app](https://slackwater.app)
+- **Hosted on**: Cloudflare Pages
+- **Auto-deployment**: Every push to the `main` branch automatically deploys to production
+- **SSL/HTTPS**: Automatically provisioned and managed by Cloudflare
+- **CDN**: Global content delivery network for fast loading worldwide
+
+### Development Workflow
+
+1. **Create a feature branch**: `git checkout -b claude/your-feature`
+2. **Make your changes** and commit
+3. **Push to GitHub**: `git push -u origin claude/your-feature`
+4. **Preview deployment**: Cloudflare automatically creates a preview URL for your branch
+5. **Create a Pull Request** on GitHub
+6. **Review the preview**: Test your changes on the auto-generated preview URL
+7. **Merge to main**: Once approved, merging deploys to production automatically
+
+### Branch Previews
+
+Every branch pushed to GitHub gets its own preview URL:
+- Format: `your-branch-name.texas-tides.pages.dev`
+- Perfect for testing changes before merging to production
+- Preview URLs are automatically commented on Pull Requests
+
+### Rollback & Build History
+
+- View all deployments in the Cloudflare Pages dashboard
+- Instant rollback to any previous deployment if needed
+- Build logs available for debugging
 
 ## Project Structure
 
@@ -103,7 +140,9 @@ The application includes **45 verified NOAA CO-OPS tide stations** along the Tex
 ## Development Notes
 
 - API calls are made on-demand when clicking a station
-- No backend required - all data fetched client-side
+- Currently serverless - all data fetched client-side from public APIs
+- Cloudflare Pages infrastructure provides CDN and global edge network
+- Future backend features possible via Cloudflare Workers if needed
 - Error handling: Gracefully degrades when data is unavailable
 - Responsive design for mobile and desktop
 
@@ -115,12 +154,13 @@ The application includes **45 verified NOAA CO-OPS tide stations** along the Tex
 
 ## Future Enhancements
 
-- [ ] Implement server-side caching for API requests
+- [ ] Server-side caching via Cloudflare Workers for faster API responses
 - [ ] Add station search/filter functionality
 - [ ] Save favorite stations (localStorage)
 - [ ] Historical tide data view
 - [ ] Progressive Web App (PWA) support
 - [ ] Push notifications for tide alerts
+- [ ] Analytics dashboard using Cloudflare Pages analytics
 
 ## License
 

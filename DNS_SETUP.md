@@ -1,111 +1,202 @@
-# DNS Setup Guide for slackwater.app
+# Cloudflare Pages Deployment Guide
 
-This guide will help you configure your Namecheap domain to work with GitHub Pages.
+This application is deployed on Cloudflare Pages with automatic deployments from GitHub.
 
-## Step 1: Configure GitHub Pages
+## Initial Setup (Already Completed)
 
-1. Go to your GitHub repository settings: `https://github.com/steelheadforever/texas-tides/settings/pages`
-2. Under "Build and deployment":
-   - Source: Deploy from a branch
-   - Branch: Select your main branch (likely `main` or `master`) and `/root` folder
-   - Click "Save"
-3. The CNAME file in this repository will automatically configure the custom domain as `slackwater.app`
-4. GitHub will provide a checkbox to "Enforce HTTPS" - enable this after DNS is configured and working
+The site is already configured and live at [slackwater.app](https://slackwater.app). This guide is for reference if you need to recreate the setup.
 
-## Step 2: Configure DNS in Namecheap
+### 1. Connect to Cloudflare Pages
 
-### A. Log into Namecheap
+1. Log into your Cloudflare account
+2. Navigate to **Workers & Pages**
+3. Click **Create Application** → **Pages** → **Connect to Git**
+4. Select the `texas-tides` repository from GitHub
+5. Configure build settings:
+   - **Build command**: (leave empty)
+   - **Build output directory**: `/`
+   - **Root directory**: (leave empty)
+6. Click **Save and Deploy**
 
-1. Go to https://www.namecheap.com and sign in
-2. Navigate to "Domain List" in your account
-3. Click "Manage" next to slackwater.app
+### 2. Custom Domain Setup
 
-### B. Configure DNS Records
+1. In your Cloudflare Pages project, go to **Custom domains**
+2. Click **Set up a custom domain**
+3. Add `slackwater.app` (main domain)
+4. Add `www.slackwater.app` (www subdomain)
+5. Cloudflare automatically configures DNS if domain is already in your account
 
-1. Go to the "Advanced DNS" tab
-2. Remove any existing A records and CNAME records for @ and www
-3. Add the following records:
+### 3. DNS Configuration
 
-#### Required A Records (for apex domain)
+If your domain is registered elsewhere (e.g., Namecheap):
 
-Add **FOUR** A Records with the host `@`:
+**Option A: Transfer nameservers to Cloudflare (Recommended)**
+1. Add domain to Cloudflare (Dashboard → Add a site)
+2. Cloudflare provides nameservers
+3. Update nameservers at your registrar (Namecheap, GoDaddy, etc.)
+4. DNS records are automatically configured by Cloudflare Pages
 
-| Type | Host | Value | TTL |
-|------|------|-------|-----|
-| A Record | @ | 185.199.108.153 | Automatic |
-| A Record | @ | 185.199.109.153 | Automatic |
-| A Record | @ | 185.199.110.153 | Automatic |
-| A Record | @ | 185.199.111.153 | Automatic |
+**Option B: Keep DNS at registrar**
+1. Add CNAME record: `slackwater.app` → `texas-tides.pages.dev`
+2. Add CNAME record: `www` → `texas-tides.pages.dev`
 
-#### Required CNAME Record (for www subdomain)
+### 4. SSL/HTTPS
 
-| Type | Host | Value | TTL |
-|------|------|-------|-----|
-| CNAME Record | www | steelheadforever.github.io. | Automatic |
+- Automatically provisioned and managed by Cloudflare
+- Free SSL certificates for custom domains
+- Forced HTTPS enabled by default
 
-**Note:** Make sure to include the trailing dot (.) after `github.io.`
+## Deployment Workflow
 
-### C. Save Changes
+### Production Deployments
 
-1. Click "Save all changes"
-2. DNS propagation can take anywhere from a few minutes to 48 hours (usually 15-30 minutes)
+- **Trigger**: Every push to `main` branch
+- **Process**: Automatic - no manual steps required
+- **Time**: Typically 30-60 seconds
+- **URL**: https://slackwater.app
 
-## Step 3: Verify DNS Configuration
+### Preview Deployments
 
-### Check DNS Propagation
+- **Trigger**: Push to any branch
+- **URL Format**: `branch-name.texas-tides.pages.dev`
+- **Pull Requests**: Cloudflare automatically comments with preview URL
+- **Cleanup**: Preview deployments are retained for 30 days
 
-Use these tools to verify your DNS records are propagating:
-- https://dnschecker.org/#A/slackwater.app
-- https://dnschecker.org/#CNAME/www.slackwater.app
+## Managing Deployments
 
-### Expected Results
+### View Build History
 
-- `slackwater.app` should resolve to all four GitHub Pages IP addresses
-- `www.slackwater.app` should resolve to `steelheadforever.github.io`
+1. Go to Cloudflare Pages dashboard
+2. Select your project
+3. Click **Deployments** tab
+4. View all production and preview deployments
 
-## Step 4: Enable HTTPS
+### Rollback a Deployment
 
-1. Once DNS is fully propagated (all A records resolving correctly)
-2. Go back to GitHub repository settings → Pages
-3. Check the box for "Enforce HTTPS"
-4. GitHub will automatically provision an SSL certificate (this can take a few minutes)
+1. Go to **Deployments** tab
+2. Find the deployment you want to rollback to
+3. Click **...** menu → **Rollback to this deployment**
+4. Confirm - site reverts immediately
+
+### View Build Logs
+
+1. Go to **Deployments** tab
+2. Click on any deployment
+3. Click **View build logs**
+4. Debug any build or deployment issues
+
+## Analytics & Monitoring
+
+### Web Analytics (Built-in)
+
+1. Go to your Cloudflare Pages project
+2. Click **Analytics** tab
+3. View metrics:
+   - Page views
+   - Unique visitors
+   - Top pages
+   - Geographic distribution
+   - Bandwidth usage
+
+### Enable Advanced Analytics (Optional)
+
+For more detailed insights, upgrade to Cloudflare Pages Pro plan:
+- Real-time analytics
+- Detailed visitor data
+- Custom event tracking
+- Performance metrics
+
+## Configuration Settings
+
+### Branch Preview Settings
+
+1. Go to **Settings** → **Builds & deployments**
+2. Under **Preview deployments**, configure:
+   - **All branches**: Every branch gets a preview
+   - **None**: Only production deployments
+   - **Custom**: Specify branch patterns
+
+### Environment Variables
+
+If you need to add API keys or environment variables:
+1. Go to **Settings** → **Environment variables**
+2. Add variables for:
+   - Production deployments
+   - Preview deployments
+3. Variables are encrypted and secure
+
+### Build Configuration
+
+Current settings (no build process needed):
+- **Build command**: (empty)
+- **Build output directory**: `/`
+- **Root directory**: (empty)
 
 ## Troubleshooting
 
-### "Domain's DNS record could not be retrieved" in GitHub
+### Domain Not Loading
 
-- Wait longer for DNS propagation (can take up to 48 hours)
-- Verify all four A records are configured correctly
-- Check that you didn't add extra characters or spaces
+- Check DNS propagation: https://dnschecker.org
+- Verify domain status in Custom domains tab
+- Wait 5-30 minutes after DNS changes
 
-### Site not loading after DNS setup
+### Deployment Failed
 
-- Clear your browser cache
-- Try accessing in incognito/private mode
-- Wait for DNS propagation to complete globally
-- Check DNS propagation status using the tools above
+- Check build logs in Deployments tab
+- Verify GitHub connection is active
+- Check Cloudflare status page
 
-### HTTPS certificate issues
+### Preview URL Not Working
 
-- Make sure DNS is fully propagated first
-- Disable and re-enable "Enforce HTTPS" in GitHub Pages settings
-- Wait 10-15 minutes for certificate provisioning
+- Ensure branch is pushed to GitHub
+- Check preview deployment settings
+- Verify build completed successfully
 
-## Testing Your Site
+## GitHub Integration
 
-Once everything is configured:
+### Permissions Required
 
-1. Visit `http://slackwater.app` - should load your site
-2. Visit `https://slackwater.app` - should load with HTTPS (after SSL is enabled)
-3. Visit `http://www.slackwater.app` - should redirect to your main domain
-4. Visit `https://www.slackwater.app` - should redirect to your main domain with HTTPS
+Cloudflare Pages needs these GitHub permissions:
+- Read access to code
+- Write access to deployments (for status checks)
+- Write access to pull requests (for preview comments)
 
-## GitHub Pages IP Addresses (for reference)
+### Reconnect GitHub
 
-Current GitHub Pages IP addresses (as of 2026):
-- 185.199.108.153
-- 185.199.109.153
-- 185.199.110.153
-- 185.199.111.153
+If connection breaks:
+1. Go to **Settings** → **Git integration**
+2. Click **Reconnect**
+3. Reauthorize Cloudflare in GitHub
 
-If these change, check the official documentation: https://docs.github.com/en/pages/configuring-a-custom-domain-for-your-github-pages-site/managing-a-custom-domain-for-your-github-pages-site
+## Cost & Limits
+
+### Free Tier (Current Plan)
+
+- Unlimited bandwidth
+- Unlimited sites
+- Unlimited requests
+- 500 builds per month
+- Basic analytics included
+
+### Pro Tier ($20/month - Optional)
+
+- Everything in Free
+- Advanced analytics
+- Increased concurrent builds
+- Priority support
+
+## Additional Resources
+
+- [Cloudflare Pages Documentation](https://developers.cloudflare.com/pages/)
+- [Cloudflare Community Forum](https://community.cloudflare.com/)
+- [GitHub Repository](https://github.com/steelheadforever/texas-tides)
+
+## Current Status
+
+- **Status**: Live and operational
+- **Domain**: slackwater.app
+- **Hosting**: Cloudflare Pages
+- **DNS**: Managed by Cloudflare
+- **SSL**: Active and auto-renewing
+- **Auto-deployments**: Enabled for `main` branch
+- **Preview deployments**: Enabled for all branches
