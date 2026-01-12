@@ -98,14 +98,9 @@ export function buildForecastPopupContent(forecastData, station) {
           ${dateHeaders}
         </div>
 
-        <!-- TIDES Section (NOAA) -->
-        <div class="forecast-section-header">TIDES (NOAA)</div>
         <div class="forecast-chart-container">
           <canvas id="forecast-tide-chart"></canvas>
         </div>
-
-        <!-- WEATHER Section (NWS) -->
-        <div class="forecast-section-header">WEATHER (NWS)</div>
 
         <div class="forecast-table-row">
           <div class="forecast-row-label">Conditions</div>
@@ -127,9 +122,6 @@ export function buildForecastPopupContent(forecastData, station) {
           ${precipRow}
         </div>
 
-        <!-- WIND Section (NWS) -->
-        <div class="forecast-section-header">WIND (NWS)</div>
-
         <div class="forecast-table-row">
           <div class="forecast-row-label">Direction</div>
           ${windDirRow}
@@ -140,9 +132,6 @@ export function buildForecastPopupContent(forecastData, station) {
           ${windSpeedRow}
         </div>
 
-        <!-- SUN Section (USNO) -->
-        <div class="forecast-section-header">SUN (USNO)</div>
-
         <div class="forecast-table-row">
           <div class="forecast-row-label">Sunrise</div>
           ${sunriseRow}
@@ -152,9 +141,6 @@ export function buildForecastPopupContent(forecastData, station) {
           <div class="forecast-row-label">Sunset</div>
           ${sunsetRow}
         </div>
-
-        <!-- MOON Section (USNO) -->
-        <div class="forecast-section-header">MOON (USNO)</div>
 
         <div class="forecast-table-row">
           <div class="forecast-row-label">Phase</div>

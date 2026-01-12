@@ -504,11 +504,42 @@ export function renderWeeklyTideChart(predictions7Day) {
     noonDay.setDate(noonDay.getDate() + 1);
   }
 
-  // Set fixed canvas dimensions for perfect column alignment
-  // 7 columns × 105px = 735px, plus 6 gaps of 4px = 24px, total = 759px
-  // Subtract container padding (16px total) = 743px
-  canvas.width = 743;
-  canvas.height = 220;
+  // Measure CSS column widths first, then size chart to match
+  // This ensures perfect alignment by making CSS the source of truth
+  const dateCell = document.querySelector('.forecast-date-cell');
+
+  if (!dateCell) {
+    console.warn('Could not find forecast date cell for measurement, using default width');
+    canvas.width = 743;
+    canvas.height = 220;
+  } else {
+    // Measure actual rendered column width
+    const cellRect = dateCell.getBoundingClientRect();
+    const columnWidth = cellRect.width;
+
+    // Measure gap between columns (from CSS grid gap)
+    const tableRow = document.querySelector('.forecast-table-row');
+    const computedStyle = window.getComputedStyle(tableRow);
+    const gapValue = computedStyle.columnGap || computedStyle.gridColumnGap || '4px';
+    const gap = parseFloat(gapValue);
+
+    // Calculate total chart width: 7 columns + 6 gaps
+    const chartContainerWidth = (7 * columnWidth) + (6 * gap);
+
+    // Get container padding
+    const chartContainer = document.querySelector('.forecast-chart-container');
+    const containerStyle = window.getComputedStyle(chartContainer);
+    const paddingLeft = parseFloat(containerStyle.paddingLeft) || 8;
+    const paddingRight = parseFloat(containerStyle.paddingRight) || 8;
+
+    // Calculate canvas width (container width minus padding)
+    const canvasWidth = Math.round(chartContainerWidth - paddingLeft - paddingRight);
+
+    canvas.width = canvasWidth;
+    canvas.height = 220;
+
+    console.log(`CSS-first measurement: columnWidth=${columnWidth}px, gap=${gap}px, chartWidth=${canvasWidth}px`);
+  }
 
   // Build chart options with responsive disabled for fixed sizing
   const chartOptions = {
