@@ -427,12 +427,12 @@ export function renderWaterTempChart(tempHistory) {
 }
 
 /**
- * Render 8-day weekly tide forecast chart
- * @param {Array} predictions8Day - Array of {time, ft} prediction objects for 8 days
+ * Render 7-day weekly tide forecast chart
+ * @param {Array} predictions7Day - Array of {time, ft} prediction objects for 7 days
  */
-export function renderWeeklyTideChart(predictions8Day) {
-  if (!predictions8Day || predictions8Day.length === 0) {
-    console.warn('No 8-day prediction data available');
+export function renderWeeklyTideChart(predictions7Day) {
+  if (!predictions7Day || predictions7Day.length === 0) {
+    console.warn('No 7-day prediction data available');
     return;
   }
 
@@ -450,7 +450,7 @@ export function renderWeeklyTideChart(predictions8Day) {
   }
 
   // Build dataset from predictions
-  const tideData = predictions8Day.map(pred => ({
+  const tideData = predictions7Day.map(pred => ({
     x: pred.time,
     y: pred.ft
   }));
@@ -458,8 +458,8 @@ export function renderWeeklyTideChart(predictions8Day) {
   // Create day boundary annotations for vertical lines
   const dayBoundaries = [];
   const noonMarkers = [];
-  const startDate = predictions8Day[0].time;
-  const endDate = predictions8Day[predictions8Day.length - 1].time;
+  const startDate = predictions7Day[0].time;
+  const endDate = predictions7Day[predictions7Day.length - 1].time;
 
   // Create vertical lines at midnight for each day (day separators)
   let currentDay = new Date(startDate);
@@ -504,9 +504,15 @@ export function renderWeeklyTideChart(predictions8Day) {
     noonDay.setDate(noonDay.getDate() + 1);
   }
 
-  // Build chart options
+  // Set fixed canvas dimensions for perfect column alignment
+  // 7 columns × 105px = 735px, plus 6 gaps of 4px = 24px, total = 759px
+  // Subtract container padding (16px total) = 743px
+  canvas.width = 743;
+  canvas.height = 220;
+
+  // Build chart options with responsive disabled for fixed sizing
   const chartOptions = {
-    responsive: true,
+    responsive: false,
     maintainAspectRatio: false,
     plugins: {
       legend: {
@@ -642,5 +648,5 @@ export function renderWeeklyTideChart(predictions8Day) {
     options: chartOptions
   });
 
-  console.log(`8-day forecast tide chart rendered with ${tideData.length} data points`);
+  console.log(`7-day forecast tide chart rendered with ${tideData.length} data points`);
 }

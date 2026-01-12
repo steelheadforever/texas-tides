@@ -708,14 +708,13 @@ body.dark-mode #status-bar span {
   background: var(--gray-dark);
 }
 
-/* Forecast Table Structure */
+/* Forecast Table Structure - Fixed widths for perfect alignment */
 .forecast-table-row {
   display: grid;
-  grid-template-columns: 120px repeat(8, minmax(90px, 1fr));
+  grid-template-columns: 120px repeat(7, 105px);
   gap: 0.25rem;
   margin-bottom: 0.25rem;
   align-items: center;
-  min-width: fit-content;
 }
 
 .forecast-header-row {
@@ -725,6 +724,7 @@ body.dark-mode #status-bar span {
 
 /* Row Label (left column) */
 .forecast-row-label {
+  width: 120px;
   padding: 0.5rem;
   font-size: 0.75rem;
   font-weight: 600;
@@ -737,17 +737,18 @@ body.dark-mode #status-bar span {
 
 /* Date Headers */
 .forecast-date-cell {
+  width: 105px;
   padding: 0.5rem;
   background-color: var(--gray-lightest);
   border-radius: 4px;
   font-size: 0.85rem;
   color: var(--gray-darkest);
   text-align: center;
-  min-width: 80px;
 }
 
 /* Data Cells */
 .forecast-data-cell {
+  width: 105px;
   padding: 0.4rem 0.25rem;
   text-align: center;
   font-size: 0.75rem;
@@ -771,8 +772,9 @@ body.dark-mode #status-bar span {
   letter-spacing: 0.5px;
 }
 
-/* Forecast Chart Container */
+/* Forecast Chart Container - Fixed width to match 7 columns */
 .forecast-chart-container {
+  width: 759px; /* 7 columns (7 × 105px) + 6 gaps (6 × 4px) = 735 + 24 = 759px */
   background-color: var(--white);
   padding: 0.5rem;
   margin: 0.5rem 0 1rem 0;
@@ -781,7 +783,7 @@ body.dark-mode #status-bar span {
 }
 
 #forecast-tide-chart {
-  width: 100% !important;
+  width: 743px !important; /* Container width (759px) - padding (16px) = 743px */
   height: 220px !important;
 }
 
@@ -1000,24 +1002,34 @@ body.dark-mode #status-bar span {
   .forecast-row-label {
     font-size: 0.65rem;
     padding: 0.3rem;
+    width: 100px; /* Slightly smaller on mobile */
+  }
+
+  .forecast-table-row {
+    grid-template-columns: 100px repeat(7, 90px); /* Slightly smaller columns on mobile */
   }
 
   .forecast-data-cell {
     font-size: 0.65rem;
-    min-width: 70px;
+    width: 90px; /* Match grid column width */
   }
 
   .forecast-date-cell {
     font-size: 0.75rem;
-    min-width: 70px;
+    width: 90px; /* Match grid column width */
+  }
+
+  .forecast-chart-container {
+    width: 654px; /* 7 columns (7 × 90px) + 6 gaps (6 × 4px) = 630 + 24 = 654px */
+  }
+
+  #forecast-tide-chart {
+    width: 638px !important; /* Container width (654px) - padding (16px) = 638px */
+    height: 180px !important;
   }
 
   .forecast-section-header {
     font-size: 0.8rem;
     padding: 0.4rem 0.8rem;
-  }
-
-  #forecast-tide-chart {
-    height: 180px !important;
   }
 }

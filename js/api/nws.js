@@ -250,10 +250,10 @@ export async function fetchNWSTemperature(lat, lon) {
 }
 
 /**
- * Fetch 8-day weather forecast (current day + 7 days forward)
+ * Fetch 7-day weather forecast (current day + 6 days forward)
  * Returns array of daily forecast objects with weather, temp, wind, precip
  */
-export async function fetchWeatherForecast8Day(lat, lon) {
+export async function fetchWeatherForecast7Day(lat, lon) {
   const points = await fetchNWSPoints(lat, lon);
 
   if (!points || !points.forecast) {
@@ -273,7 +273,7 @@ export async function fetchWeatherForecast8Day(lat, lon) {
   // We need to combine them to get daily high/low temps
   const dailyForecasts = [];
 
-  for (let i = 0; i < periods.length && dailyForecasts.length < 8; i++) {
+  for (let i = 0; i < periods.length && dailyForecasts.length < 7; i++) {
     const period = periods[i];
     const nextPeriod = periods[i + 1];
 

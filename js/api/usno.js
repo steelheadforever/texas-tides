@@ -191,15 +191,15 @@ export function getMoonEmoji(phaseDescription) {
 }
 
 /**
- * Fetch 8 days of sun/moon data (current day + 7 days forward)
+ * Fetch 7 days of sun/moon data (current day + 6 days forward)
  * Returns array of daily sun/moon rise/set times and moon phase
  */
-export async function fetchSunMoon8Day(lat, lon) {
+export async function fetchSunMoon7Day(lat, lon) {
   const dailyData = [];
   const today = new Date();
 
-  // Fetch data for each of the 8 days
-  for (let dayOffset = 0; dayOffset < 8; dayOffset++) {
+  // Fetch data for each of the 7 days
+  for (let dayOffset = 0; dayOffset < 7; dayOffset++) {
     const targetDate = new Date(today);
     targetDate.setDate(today.getDate() + dayOffset);
 

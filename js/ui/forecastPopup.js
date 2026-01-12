@@ -88,7 +88,7 @@ export function buildForecastPopupContent(forecastData, station) {
   return `
     <div class="forecast-popup">
       <div class="forecast-header">
-        <h2>${station.name || 'Station'} - 8-Day Forecast</h2>
+        <h2>${station.name || 'Station'} - 7-Day Forecast</h2>
       </div>
 
       <div class="forecast-scroll-container">

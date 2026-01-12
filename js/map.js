@@ -1,9 +1,9 @@
 // Leaflet map initialization and marker management
 
 import { TEXAS_STATIONS, TEXAS_COAST_BOUNDS } from './data/stations.js';
-import { fetchTideNow, fetchNextTide, fetch24HourCurve, fetchWaterTemp, fetchWaterTempHistory, fetchAirTemp, fetchStationWind, fetchTidePredictions8Day } from './api/noaa.js';
-import { fetchForecast12h, fetchPressure, fetchWeatherForecast8Day } from './api/nws.js';
-import { fetchSunMoonData, fetchSunMoon8Day } from './api/usno.js';
+import { fetchTideNow, fetchNextTide, fetch24HourCurve, fetchWaterTemp, fetchWaterTempHistory, fetchAirTemp, fetchStationWind, fetchTidePredictions7Day } from './api/noaa.js';
+import { fetchForecast12h, fetchPressure, fetchWeatherForecast7Day } from './api/nws.js';
+import { fetchSunMoonData, fetchSunMoon7Day } from './api/usno.js';
 import { buildPopupContent } from './ui/popup.js';
 import { buildForecastPopupContent } from './ui/forecastPopup.js';
 import { renderTideChart, renderWaterTempChart, renderWeeklyTideChart } from './ui/chart.js';
@@ -243,29 +243,29 @@ async function handleForecastClick(event) {
     autoPanPaddingBottomRight: [20, 80]
   })
     .setLatLng([lat, lon])
-    .setContent('<div class="loading">Loading 8-day forecast...</div>')
+    .setContent('<div class="loading">Loading 7-day forecast...</div>')
     .openOn(map);
 
   try {
-    console.log('Fetching 8-day forecast data for station:', stationId);
+    console.log('Fetching 7-day forecast data for station:', stationId);
 
     // Fetch all forecast data in parallel
     const [
-      tidePredictions8Day,
-      weatherForecast8Day,
-      sunMoon8Day
+      tidePredictions7Day,
+      weatherForecast7Day,
+      sunMoon7Day
     ] = await Promise.all([
-      fetchTidePredictions8Day(stationId),
-      fetchWeatherForecast8Day(lat, lon),
-      fetchSunMoon8Day(lat, lon)
+      fetchTidePredictions7Day(stationId),
+      fetchWeatherForecast7Day(lat, lon),
+      fetchSunMoon7Day(lat, lon)
     ]);
 
-    console.log('8-day forecast data fetched successfully');
+    console.log('7-day forecast data fetched successfully');
 
     // Build forecast popup content
     const content = buildForecastPopupContent({
-      weather: weatherForecast8Day || [],
-      sunMoon: sunMoon8Day || []
+      weather: weatherForecast7Day || [],
+      sunMoon: sunMoon7Day || []
     }, station);
 
     // Update popup with content
@@ -273,19 +273,19 @@ async function handleForecastClick(event) {
 
     // Render weekly tide chart after browser paint
     requestAnimationFrame(() => {
-      if (tidePredictions8Day && tidePredictions8Day.length > 0) {
-        renderWeeklyTideChart(tidePredictions8Day);
+      if (tidePredictions7Day && tidePredictions7Day.length > 0) {
+        renderWeeklyTideChart(tidePredictions7Day);
       } else {
-        console.warn('No 8-day tide prediction data available for chart');
+        console.warn('No 7-day tide prediction data available for chart');
       }
     });
 
   } catch (err) {
-    console.error('Error fetching 8-day forecast data:', err);
+    console.error('Error fetching 7-day forecast data:', err);
     popup.setContent(`
       <div class="error">
         <h3>Error Loading Forecast</h3>
-        <p>Unable to fetch 8-day forecast for ${stationName}.</p>
+        <p>Unable to fetch 7-day forecast for ${stationName}.</p>
         <p style="font-size: 0.85rem; margin-top: 0.5rem;">Please try again later.</p>
       </div>
     `);

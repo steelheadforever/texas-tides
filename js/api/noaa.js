@@ -496,13 +496,13 @@ export async function fetchStationWind(stationId) {
 }
 
 /**
- * Fetch 8-day tide predictions (current day + 7 days forward)
+ * Fetch 7-day tide predictions (current day + 6 days forward)
  * Used for weekly forecast tide chart
  * Returns array of {time, ft} prediction objects
  */
-export async function fetchTidePredictions8Day(stationId) {
-  // Get current day + 7 days forward (8 days total)
-  const range = getDateRange(0, 8 * 24);
+export async function fetchTidePredictions7Day(stationId) {
+  // Get current day + 6 days forward (7 days total)
+  const range = getDateRange(0, 7 * 24);
 
   const predictions = await fetchPredictions(
     stationId,
@@ -512,7 +512,7 @@ export async function fetchTidePredictions8Day(stationId) {
   );
 
   if (!predictions || predictions.length === 0) {
-    console.warn(`No 8-day predictions available for station ${stationId}`);
+    console.warn(`No 7-day predictions available for station ${stationId}`);
     return null;
   }
 
