@@ -735,6 +735,11 @@ export function renderDayTideSparkline(dayIndex, predictions7Day) {
   const yRange = maxY - minY;
   const yPadding = yRange * 0.15; // 15% padding top and bottom
 
+  // Use first and last data points for x-axis bounds instead of exact midnight
+  // This ensures the curve starts at the left edge and ends at the right edge
+  const xMin = tideData[0].x;
+  const xMax = tideData[tideData.length - 1].x;
+
   // Minimal sparkline options - no axes, no legend, just the curve
   const chartOptions = {
     responsive: false,
@@ -764,8 +769,10 @@ export function renderDayTideSparkline(dayIndex, predictions7Day) {
       x: {
         type: 'time',
         display: false, // Hide x-axis
-        min: dayStart.getTime(),
-        max: dayEnd.getTime()
+        offset: false, // Prevent automatic offset
+        bounds: 'ticks', // Don't extend beyond min/max
+        min: xMin,
+        max: xMax
       },
       y: {
         display: false, // Hide y-axis
