@@ -265,7 +265,8 @@ async function handleForecastClick(event) {
     // Build forecast popup content
     const content = buildForecastPopupContent({
       weather: weatherForecast7Day || [],
-      sunMoon: sunMoon7Day || []
+      sunMoon: sunMoon7Day || [],
+      tidePredictions: tidePredictions7Day || []
     }, station);
 
     // Update popup with content

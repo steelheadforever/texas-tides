@@ -17,12 +17,13 @@ import {
  * @returns {string} HTML content for forecast popup
  */
 export function buildForecastPopupContent(forecastData, station) {
-  const { weather, sunMoon } = forecastData;
+  const { weather, sunMoon, tidePredictions } = forecastData;
 
   // Build individual day cards
   const dayCards = weather.map((day, index) => {
     const sunMoonData = sunMoon[index] || {};
-    return buildDayCard(day, sunMoonData, index);
+    const tideTimesData = getTideTimesForDay(index, tidePredictions || []);
+    return buildDayCard(day, sunMoonData, tideTimesData, index);
   }).join('');
 
   return `
@@ -44,10 +45,11 @@ export function buildForecastPopupContent(forecastData, station) {
  * Build a single day card with all forecast information
  * @param {Object} weather - Weather data for the day
  * @param {Object} sunMoon - Sun/moon data for the day
+ * @param {Object} tideTimes - Tide high/low times for the day
  * @param {number} dayIndex - Day index (0-6)
  * @returns {string} HTML for day card
  */
-function buildDayCard(weather, sunMoon, dayIndex) {
+function buildDayCard(weather, sunMoon, tideTimes, dayIndex) {
   const dateStr = formatForecastDate(weather.date);
   const weatherEmoji = getWeatherEmoji(weather.icon);
   const tempRange = formatTempRange(weather.tempHigh, weather.tempLow);
@@ -89,6 +91,12 @@ function buildDayCard(weather, sunMoon, dayIndex) {
       </div>
 
       <div class="day-card-item">
+        <div class="day-card-label">Tides</div>
+        <div class="day-card-value">High: ${tideTimes.high || 'N/A'}</div>
+        <div class="day-card-value-sub">Low: ${tideTimes.low || 'N/A'}</div>
+      </div>
+
+      <div class="day-card-item">
         <div class="day-card-label">Sun</div>
         <div class="day-card-value">↑ ${sunMoon.sunrise || 'N/A'}</div>
         <div class="day-card-value-sub">↓ ${sunMoon.sunset || 'N/A'}</div>
@@ -101,6 +109,63 @@ function buildDayCard(weather, sunMoon, dayIndex) {
       </div>
     </div>
   `;
+}
+
+/**
+ * Get high and low tide times for a specific day
+ * @param {number} dayIndex - Day index (0-6)
+ * @param {Array} tidePredictions - Full 7-day tide prediction array
+ * @returns {Object} Object with high and low tide times formatted
+ */
+function getTideTimesForDay(dayIndex, tidePredictions) {
+  if (!tidePredictions || tidePredictions.length === 0) {
+    return { high: 'N/A', low: 'N/A' };
+  }
+
+  // Calculate midnight boundaries for this specific day
+  const now = new Date();
+  const midnightToday = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
+  const dayStart = new Date(midnightToday);
+  dayStart.setDate(midnightToday.getDate() + dayIndex);
+  const dayEnd = new Date(dayStart);
+  dayEnd.setDate(dayStart.getDate() + 1);
+
+  // Filter predictions for just this day
+  const dayPredictions = tidePredictions.filter(pred => {
+    const predTime = pred.time;
+    return predTime >= dayStart && predTime < dayEnd;
+  });
+
+  if (dayPredictions.length === 0) {
+    return { high: 'N/A', low: 'N/A' };
+  }
+
+  // Find highest and lowest tide values
+  let highTide = dayPredictions[0];
+  let lowTide = dayPredictions[0];
+
+  for (const pred of dayPredictions) {
+    if (pred.ft > highTide.ft) {
+      highTide = pred;
+    }
+    if (pred.ft < lowTide.ft) {
+      lowTide = pred;
+    }
+  }
+
+  // Format times as "h:MM AM/PM"
+  const formatTime = (date) => {
+    return date.toLocaleString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    });
+  };
+
+  return {
+    high: formatTime(highTide.time),
+    low: formatTime(lowTide.time)
+  };
 }
 
 /**

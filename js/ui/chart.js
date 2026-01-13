@@ -728,6 +728,13 @@ export function renderDayTideSparkline(dayIndex, predictions7Day) {
     y: pred.ft
   }));
 
+  // Calculate y-axis range with padding to prevent curve overflow
+  const yValues = tideData.map(d => d.y);
+  const minY = Math.min(...yValues);
+  const maxY = Math.max(...yValues);
+  const yRange = maxY - minY;
+  const yPadding = yRange * 0.15; // 15% padding top and bottom
+
   // Minimal sparkline options - no axes, no legend, just the curve
   const chartOptions = {
     responsive: false,
@@ -762,7 +769,9 @@ export function renderDayTideSparkline(dayIndex, predictions7Day) {
       },
       y: {
         display: false, // Hide y-axis
-        grid: { display: false }
+        grid: { display: false },
+        min: minY - yPadding,
+        max: maxY + yPadding
       }
     }
   };
