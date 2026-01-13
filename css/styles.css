@@ -745,6 +745,7 @@ body.dark-mode #status-bar span {
   width: 100%;
   height: 60px;
   margin-bottom: 0.25rem;
+  overflow: hidden;
 }
 
 .day-card-icon {
@@ -1012,7 +1013,9 @@ body.dark-mode #status-bar span {
   }
 
   .day-card-chart {
+    width: 100%;
     height: 70px;
+    overflow: hidden;
   }
 
   .day-card-icon {
