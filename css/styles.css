@@ -308,6 +308,32 @@ body.dark-mode .menu-toggle:hover {
   cursor: not-allowed;
 }
 
+/* Forecast Button (matches compare-button styling) */
+.forecast-button {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--gray-darkest);
+  background-color: transparent;
+  border: 2px solid var(--gray-medium);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-family: 'IBM Plex Sans', sans-serif;
+  margin-top: 1rem;
+}
+
+.forecast-button:hover:not(:disabled) {
+  background-color: var(--gray-lightest);
+  border-color: var(--gray-darkest);
+}
+
+.forecast-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 /* Smooth transition for dark mode */
 body {
   transition: background-color 0.3s ease, color 0.3s ease;
@@ -426,6 +452,7 @@ body.dark-mode #status-bar span {
 /* Station Popup Styles */
 .station-popup {
   padding: 1rem;
+  padding-bottom: 4rem; /* Extra padding for forecast button to clear status bar */
 }
 
 .station-popup h2 {
@@ -629,6 +656,129 @@ body.dark-mode #status-bar span {
 #water-temp-chart {
   width: 100% !important;
   height: 220px !important;
+}
+
+/* Forecast Popup Container - Override Leaflet's default max-width */
+.forecast-popup-container .leaflet-popup-content {
+  max-width: 900px;
+  min-width: 860px;
+}
+
+/* Forecast Popup Styles */
+.forecast-popup {
+  padding: 1rem;
+  padding-bottom: 80px; /* Extra padding to avoid status bar */
+  width: 100%;
+}
+
+.forecast-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  border-bottom: 3px solid var(--gray-light);
+  padding-bottom: 0.5rem;
+}
+
+.forecast-header h2 {
+  color: var(--gray-darkest);
+  font-size: 1.25rem;
+  margin: 0;
+}
+
+/* Forecast Scroll Container */
+.forecast-scroll-container {
+  overflow-x: auto;
+  overflow-y: visible;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: var(--gray-medium) var(--gray-lightest);
+}
+
+.forecast-scroll-container::-webkit-scrollbar {
+  height: 8px;
+}
+
+.forecast-scroll-container::-webkit-scrollbar-track {
+  background: var(--gray-lightest);
+  border-radius: 4px;
+}
+
+.forecast-scroll-container::-webkit-scrollbar-thumb {
+  background: var(--gray-medium);
+  border-radius: 4px;
+}
+
+.forecast-scroll-container::-webkit-scrollbar-thumb:hover {
+  background: var(--gray-dark);
+}
+
+/* Forecast Cards Grid - 7 vertical day cards */
+.forecast-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 120px);
+  gap: 0.5rem;
+  padding: 0.5rem 0;
+}
+
+/* Individual Day Card */
+.day-card {
+  background-color: var(--white);
+  border: 1px solid var(--gray-light);
+  border-radius: 6px;
+  padding: 0.75rem 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.day-card-header {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--gray-darkest);
+  text-align: center;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid var(--gray-light);
+}
+
+.day-card-chart {
+  width: 100%;
+  height: 60px;
+  margin-bottom: 0.25rem;
+  overflow: hidden;
+}
+
+.day-card-icon {
+  font-size: 2rem;
+  text-align: center;
+  margin: 0.25rem 0;
+}
+
+.day-card-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding: 0.25rem 0;
+  border-top: 1px solid var(--gray-lightest);
+}
+
+.day-card-label {
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: var(--gray-medium);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.day-card-value {
+  font-size: 0.75rem;
+  color: var(--gray-darkest);
+  font-weight: 500;
+}
+
+.day-card-value-sub {
+  font-size: 0.7rem;
+  color: var(--gray-dark);
 }
 
 /* Loading State */
@@ -835,5 +985,52 @@ body.dark-mode #status-bar span {
 
   #water-temp-chart {
     height: 180px !important;
+  }
+
+  /* Forecast popup responsive */
+  .forecast-popup {
+    max-width: 600px;
+    padding-bottom: 100px; /* More padding on mobile */
+  }
+
+  .forecast-popup-container .leaflet-popup-content {
+    max-width: 640px;
+    min-width: 600px;
+  }
+
+  .forecast-cards-grid {
+    grid-template-columns: repeat(7, 100px);
+    gap: 0.4rem;
+  }
+
+  .day-card {
+    padding: 0.5rem 0.3rem;
+    gap: 0.4rem;
+  }
+
+  .day-card-header {
+    font-size: 0.8rem;
+  }
+
+  .day-card-chart {
+    width: 100%;
+    height: 70px;
+    overflow: hidden;
+  }
+
+  .day-card-icon {
+    font-size: 1.75rem;
+  }
+
+  .day-card-label {
+    font-size: 0.6rem;
+  }
+
+  .day-card-value {
+    font-size: 0.7rem;
+  }
+
+  .day-card-value-sub {
+    font-size: 0.65rem;
   }
 }

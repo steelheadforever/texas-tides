@@ -1,11 +1,12 @@
 // Leaflet map initialization and marker management
 
 import { TEXAS_STATIONS, TEXAS_COAST_BOUNDS } from './data/stations.js';
-import { fetchTideNow, fetchNextTide, fetch24HourCurve, fetchWaterTemp, fetchWaterTempHistory, fetchAirTemp, fetchStationWind } from './api/noaa.js';
-import { fetchForecast12h, fetchPressure } from './api/nws.js';
-import { fetchSunMoonData } from './api/usno.js';
+import { fetchTideNow, fetchNextTide, fetch24HourCurve, fetchWaterTemp, fetchWaterTempHistory, fetchAirTemp, fetchStationWind, fetchTidePredictions7Day } from './api/noaa.js';
+import { fetchForecast12h, fetchPressure, fetchWeatherForecast7Day } from './api/nws.js';
+import { fetchSunMoonData, fetchSunMoon7Day } from './api/usno.js';
 import { buildPopupContent } from './ui/popup.js';
-import { renderTideChart, renderWaterTempChart } from './ui/chart.js';
+import { buildForecastPopupContent } from './ui/forecastPopup.js';
+import { renderTideChart, renderWaterTempChart, renderDayTideSparkline } from './ui/chart.js';
 
 let map;
 const markers = new Map(); // stationId -> marker
@@ -55,6 +56,9 @@ export function initMap() {
   TEXAS_STATIONS.forEach(station => {
     addStationMarker(station);
   });
+
+  // Set up event delegation for forecast button clicks
+  setupForecastButtonHandler();
 
   console.log(`Map initialized with ${TEXAS_STATIONS.length} stations`);
 }
@@ -191,4 +195,103 @@ export function switchMapTiles(isDarkMode) {
     maxZoom: 19,
     minZoom: 5
   }).addTo(map);
+}
+
+/**
+ * Set up event delegation for forecast button clicks
+ * Since buttons are created dynamically in popups, we need event delegation
+ */
+function setupForecastButtonHandler() {
+  // Listen for clicks on the entire document
+  document.addEventListener('click', (event) => {
+    // Check if the clicked element is a forecast button
+    if (event.target.classList.contains('forecast-button')) {
+      handleForecastClick(event);
+    }
+  });
+}
+
+/**
+ * Handle forecast button click
+ * Fetch 8-day forecast data and display forecast popup
+ */
+async function handleForecastClick(event) {
+  const button = event.target;
+
+  // Extract station data from button attributes
+  const stationId = button.getAttribute('data-station-id');
+  const stationName = button.getAttribute('data-station-name');
+  const lat = parseFloat(button.getAttribute('data-lat'));
+  const lon = parseFloat(button.getAttribute('data-lon'));
+
+  console.log(`Forecast button clicked for station: ${stationName} (${stationId})`);
+
+  const station = {
+    id: stationId,
+    name: stationName,
+    lat: lat,
+    lon: lon
+  };
+
+  // Create and show loading popup
+  const popup = L.popup({
+    maxWidth: 1000,
+    minWidth: 900,
+    className: 'forecast-popup-container',
+    autoPan: true,
+    autoPanPaddingTopLeft: [20, 80],
+    autoPanPaddingBottomRight: [20, 80]
+  })
+    .setLatLng([lat, lon])
+    .setContent('<div class="loading">Loading 7-day forecast...</div>')
+    .openOn(map);
+
+  try {
+    console.log('Fetching 7-day forecast data for station:', stationId);
+
+    // Fetch all forecast data in parallel
+    const [
+      tidePredictions7Day,
+      weatherForecast7Day,
+      sunMoon7Day
+    ] = await Promise.all([
+      fetchTidePredictions7Day(stationId),
+      fetchWeatherForecast7Day(lat, lon),
+      fetchSunMoon7Day(lat, lon)
+    ]);
+
+    console.log('7-day forecast data fetched successfully');
+
+    // Build forecast popup content
+    const content = buildForecastPopupContent({
+      weather: weatherForecast7Day || [],
+      sunMoon: sunMoon7Day || [],
+      tidePredictions: tidePredictions7Day || []
+    }, station);
+
+    // Update popup with content
+    popup.setContent(content);
+
+    // Render tide sparklines for each day after browser paint
+    requestAnimationFrame(() => {
+      if (tidePredictions7Day && tidePredictions7Day.length > 0) {
+        // Render sparkline for each of the 7 days
+        for (let dayIndex = 0; dayIndex < 7; dayIndex++) {
+          renderDayTideSparkline(dayIndex, tidePredictions7Day);
+        }
+      } else {
+        console.warn('No 7-day tide prediction data available for charts');
+      }
+    });
+
+  } catch (err) {
+    console.error('Error fetching 7-day forecast data:', err);
+    popup.setContent(`
+      <div class="error">
+        <h3>Error Loading Forecast</h3>
+        <p>Unable to fetch 7-day forecast for ${stationName}.</p>
+        <p style="font-size: 0.85rem; margin-top: 0.5rem;">Please try again later.</p>
+      </div>
+    `);
+  }
 }

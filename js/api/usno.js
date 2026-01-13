@@ -189,3 +189,48 @@ export function getMoonEmoji(phaseDescription) {
 
   return '🌙'; // Default moon emoji
 }
+
+/**
+ * Fetch 7 days of sun/moon data (current day + 6 days forward)
+ * Returns array of daily sun/moon rise/set times and moon phase
+ */
+export async function fetchSunMoon7Day(lat, lon) {
+  const dailyData = [];
+  const now = new Date();
+
+  // Set to midnight today to ensure we start from the beginning of the day
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
+
+  // Fetch data for each of the 7 days
+  for (let dayOffset = 0; dayOffset < 7; dayOffset++) {
+    const targetDate = new Date(today);
+    targetDate.setDate(today.getDate() + dayOffset);
+
+    const data = await fetchSunMoonData(lat, lon, targetDate);
+
+    if (data) {
+      dailyData.push({
+        date: new Date(targetDate),
+        sunrise: data.sun?.rise || 'N/A',
+        sunset: data.sun?.set || 'N/A',
+        moonrise: data.moon?.rise || 'N/A',
+        moonset: data.moon?.set || 'N/A',
+        moonPhase: data.moonPhase || 'N/A',
+        moonEmoji: getMoonEmoji(data.moonPhase)
+      });
+    } else {
+      // If fetch fails, add placeholder data
+      dailyData.push({
+        date: new Date(targetDate),
+        sunrise: 'N/A',
+        sunset: 'N/A',
+        moonrise: 'N/A',
+        moonset: 'N/A',
+        moonPhase: 'N/A',
+        moonEmoji: '🌙'
+      });
+    }
+  }
+
+  return dailyData;
+}

@@ -2,7 +2,7 @@
 // Based on fishing_bot4.py:246-484
 // API Documentation: https://api.tidesandcurrents.noaa.gov/api/prod/
 
-import { parseNOAALocalTime, getDateRange } from '../utils/datetime.js';
+import { parseNOAALocalTime, getDateRange, getDateRangeFromMidnightToday } from '../utils/datetime.js';
 import { safeFloat } from '../utils/conversions.js';
 import { determineTrend, getTideDirArrow } from '../utils/formatting.js';
 import { fetchNWSTemperature } from './nws.js';
@@ -493,5 +493,29 @@ export async function fetchStationWind(stationId) {
     direction: windData.dr || 'N/A', // direction text (N, NE, etc.)
     directionDegrees: safeFloat(windData.d) // direction in degrees
   };
+}
+
+/**
+ * Fetch 7-day tide predictions (current day + 6 days forward)
+ * Used for weekly forecast tide chart
+ * Returns array of {time, ft} prediction objects
+ */
+export async function fetchTidePredictions7Day(stationId) {
+  // Get 7 days starting from midnight today
+  const range = getDateRangeFromMidnightToday(7);
+
+  const predictions = await fetchPredictions(
+    stationId,
+    range.begin,
+    range.end,
+    '6' // 6-minute intervals for smooth curve
+  );
+
+  if (!predictions || predictions.length === 0) {
+    console.warn(`No 7-day predictions available for station ${stationId}`);
+    return null;
+  }
+
+  return predictions;
 }
 
