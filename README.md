@@ -15,6 +15,14 @@ A web application that displays real-time tide and weather data for Texas coasta
   - Barometric pressure and trend
   - Sky conditions
   - Moon phase
+- **7-Day Forecast** (click "Forecast" button on any station):
+  - Vertical day cards with individual 24-hour tide sparklines
+  - Daily weather forecast (temperature range, precipitation, conditions)
+  - High/low tide times for each day
+  - Wind speed and direction forecasts
+  - Sunrise/sunset and moonrise/moonset times
+  - Moon phase progression
+  - Responsive design with horizontal scrolling on mobile
 
 ## Data Sources
 
@@ -69,8 +77,9 @@ texas-tides/
 │   ├── data/
 │   │   └── stations.js   # Texas station definitions
 │   ├── ui/
-│   │   ├── popup.js      # Popup content generation
-│   │   └── chart.js      # Tide curve chart rendering
+│   │   ├── popup.js      # Current conditions popup
+│   │   ├── forecastPopup.js # 7-day forecast popup
+│   │   └── chart.js      # Tide charts and sparklines
 │   └── utils/
 │       ├── datetime.js   # Date/time utilities
 │       ├── conversions.js # Unit conversions
