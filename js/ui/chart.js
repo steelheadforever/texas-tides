@@ -674,5 +674,12 @@ export function renderWeeklyTideChart(predictions7Day) {
     options: chartOptions
   });
 
+  // Expose chart to console for interactive debugging
+  window.forecastTideChart = currentForecastTideChart;
+
   console.log(`7-day forecast tide chart rendered with ${tideData.length} data points`);
+  console.log('🔧 Chart exposed as window.forecastTideChart - Use these commands to tinker:');
+  console.log('  • Adjust width: forecastTideChart.canvas.width = 780; forecastTideChart.update();');
+  console.log('  • Adjust x-axis max: forecastTideChart.options.scales.x.max = Date.now() + (7*24*60*60*1000); forecastTideChart.update();');
+  console.log('  • View current settings: forecastTideChart.options.scales.x');
 }
