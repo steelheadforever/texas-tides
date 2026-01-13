@@ -1,5 +1,5 @@
 // Forecast popup content builder
-// Generates 8-day forecast display with weather, tides, and sun/moon data
+// Generates 7-day forecast display with vertical day cards
 
 import { formatForecastDate } from '../utils/datetime.js';
 import {
@@ -11,7 +11,7 @@ import {
 } from '../utils/formatting.js';
 
 /**
- * Build 8-day forecast popup content
+ * Build 7-day forecast popup content as vertical day cards
  * @param {Object} forecastData - Combined forecast data (weather, sunMoon arrays)
  * @param {Object} station - Station information
  * @returns {string} HTML content for forecast popup
@@ -19,70 +19,10 @@ import {
 export function buildForecastPopupContent(forecastData, station) {
   const { weather, sunMoon } = forecastData;
 
-  // Build date header row
-  const dateHeaders = weather.map(day => {
-    const dateStr = formatForecastDate(day.date);
-    return `<div class="forecast-date-cell">${dateStr}</div>`;
-  }).join('');
-
-  // Build weather emoji row
-  const weatherEmojiRow = weather.map(day => {
-    const weatherEmoji = getWeatherEmoji(day.icon);
-    return `<div class="forecast-data-cell">${weatherEmoji}</div>`;
-  }).join('');
-
-  // Build weather description row
-  const weatherDescRow = weather.map(day => {
-    return `<div class="forecast-data-cell">${day.shortForecast || 'N/A'}</div>`;
-  }).join('');
-
-  // Build temperature row
-  const tempRow = weather.map(day => {
-    const tempRange = formatTempRange(day.tempHigh, day.tempLow);
-    return `<div class="forecast-data-cell">${tempRange}</div>`;
-  }).join('');
-
-  // Build precipitation row
-  const precipRow = weather.map(day => {
-    const precipStr = formatPrecipProbability(day.precipProbability);
-    return `<div class="forecast-data-cell">${precipStr}</div>`;
-  }).join('');
-
-  // Build wind direction row
-  const windDirRow = weather.map(day => {
-    const windDir = getWindDirectionFromDegrees(convertWindDirectionTodegrees(day.windDirection));
-    return `<div class="forecast-data-cell">${windDir.emoji} ${windDir.text}</div>`;
-  }).join('');
-
-  // Build wind speed row
-  const windSpeedRow = weather.map(day => {
-    const windSpeedStr = formatWindSpeed(day.windSpeed, day.windGust);
-    return `<div class="forecast-data-cell">${windSpeedStr}</div>`;
-  }).join('');
-
-  // Build sunrise row
-  const sunriseRow = sunMoon.map(data => {
-    return `<div class="forecast-data-cell">${data.sunrise || 'N/A'}</div>`;
-  }).join('');
-
-  // Build sunset row
-  const sunsetRow = sunMoon.map(data => {
-    return `<div class="forecast-data-cell">${data.sunset || 'N/A'}</div>`;
-  }).join('');
-
-  // Build moon phase row
-  const moonPhaseRow = sunMoon.map(data => {
-    return `<div class="forecast-data-cell">${data.moonEmoji || '🌙'} ${data.moonPhase || 'N/A'}</div>`;
-  }).join('');
-
-  // Build moonrise row
-  const moonriseRow = sunMoon.map(data => {
-    return `<div class="forecast-data-cell">${data.moonrise || 'N/A'}</div>`;
-  }).join('');
-
-  // Build moonset row
-  const moonsetRow = sunMoon.map(data => {
-    return `<div class="forecast-data-cell">${data.moonset || 'N/A'}</div>`;
+  // Build individual day cards
+  const dayCards = weather.map((day, index) => {
+    const sunMoonData = sunMoon[index] || {};
+    return buildDayCard(day, sunMoonData, index);
   }).join('');
 
   return `
@@ -92,70 +32,72 @@ export function buildForecastPopupContent(forecastData, station) {
       </div>
 
       <div class="forecast-scroll-container">
-        <!-- Date Headers -->
-        <div class="forecast-table-row forecast-header-row">
-          <div class="forecast-row-label"></div>
-          ${dateHeaders}
+        <div class="forecast-cards-grid">
+          ${dayCards}
         </div>
+      </div>
+    </div>
+  `;
+}
 
-        <div class="forecast-chart-container">
-          <canvas id="forecast-tide-chart"></canvas>
-        </div>
+/**
+ * Build a single day card with all forecast information
+ * @param {Object} weather - Weather data for the day
+ * @param {Object} sunMoon - Sun/moon data for the day
+ * @param {number} dayIndex - Day index (0-6)
+ * @returns {string} HTML for day card
+ */
+function buildDayCard(weather, sunMoon, dayIndex) {
+  const dateStr = formatForecastDate(weather.date);
+  const weatherEmoji = getWeatherEmoji(weather.icon);
+  const tempRange = formatTempRange(weather.tempHigh, weather.tempLow);
+  const precipStr = formatPrecipProbability(weather.precipProbability);
+  const windDir = getWindDirectionFromDegrees(convertWindDirectionTodegrees(weather.windDirection));
+  const windSpeedStr = formatWindSpeed(weather.windSpeed, weather.windGust);
 
-        <div class="forecast-table-row">
-          <div class="forecast-row-label">Conditions</div>
-          ${weatherEmojiRow}
-        </div>
+  return `
+    <div class="day-card">
+      <div class="day-card-header">${dateStr}</div>
 
-        <div class="forecast-table-row">
-          <div class="forecast-row-label">Description</div>
-          ${weatherDescRow}
-        </div>
+      <div class="day-card-chart">
+        <canvas id="day-tide-chart-${dayIndex}" width="120" height="60"></canvas>
+      </div>
 
-        <div class="forecast-table-row">
-          <div class="forecast-row-label">Temp Range</div>
-          ${tempRow}
-        </div>
+      <div class="day-card-item">
+        <div class="day-card-icon">${weatherEmoji}</div>
+      </div>
 
-        <div class="forecast-table-row">
-          <div class="forecast-row-label">Precip</div>
-          ${precipRow}
-        </div>
+      <div class="day-card-item">
+        <div class="day-card-label">Conditions</div>
+        <div class="day-card-value">${weather.shortForecast || 'N/A'}</div>
+      </div>
 
-        <div class="forecast-table-row">
-          <div class="forecast-row-label">Direction</div>
-          ${windDirRow}
-        </div>
+      <div class="day-card-item">
+        <div class="day-card-label">Temp</div>
+        <div class="day-card-value">${tempRange}</div>
+      </div>
 
-        <div class="forecast-table-row">
-          <div class="forecast-row-label">Speed/Gusts</div>
-          ${windSpeedRow}
-        </div>
+      <div class="day-card-item">
+        <div class="day-card-label">Precip</div>
+        <div class="day-card-value">${precipStr}</div>
+      </div>
 
-        <div class="forecast-table-row">
-          <div class="forecast-row-label">Sunrise</div>
-          ${sunriseRow}
-        </div>
+      <div class="day-card-item">
+        <div class="day-card-label">Wind</div>
+        <div class="day-card-value">${windDir.emoji} ${windDir.text}</div>
+        <div class="day-card-value-sub">${windSpeedStr}</div>
+      </div>
 
-        <div class="forecast-table-row">
-          <div class="forecast-row-label">Sunset</div>
-          ${sunsetRow}
-        </div>
+      <div class="day-card-item">
+        <div class="day-card-label">Sun</div>
+        <div class="day-card-value">↑ ${sunMoon.sunrise || 'N/A'}</div>
+        <div class="day-card-value-sub">↓ ${sunMoon.sunset || 'N/A'}</div>
+      </div>
 
-        <div class="forecast-table-row">
-          <div class="forecast-row-label">Phase</div>
-          ${moonPhaseRow}
-        </div>
-
-        <div class="forecast-table-row">
-          <div class="forecast-row-label">Moonrise</div>
-          ${moonriseRow}
-        </div>
-
-        <div class="forecast-table-row">
-          <div class="forecast-row-label">Moonset</div>
-          ${moonsetRow}
-        </div>
+      <div class="day-card-item">
+        <div class="day-card-label">Moon</div>
+        <div class="day-card-value">${sunMoon.moonEmoji || '🌙'} ${sunMoon.moonPhase || 'N/A'}</div>
+        <div class="day-card-value-sub">↑ ${sunMoon.moonrise || 'N/A'} ↓ ${sunMoon.moonset || 'N/A'}</div>
       </div>
     </div>
   `;

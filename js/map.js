@@ -6,7 +6,7 @@ import { fetchForecast12h, fetchPressure, fetchWeatherForecast7Day } from './api
 import { fetchSunMoonData, fetchSunMoon7Day } from './api/usno.js';
 import { buildPopupContent } from './ui/popup.js';
 import { buildForecastPopupContent } from './ui/forecastPopup.js';
-import { renderTideChart, renderWaterTempChart, renderWeeklyTideChart } from './ui/chart.js';
+import { renderTideChart, renderWaterTempChart, renderDayTideSparkline } from './ui/chart.js';
 
 let map;
 const markers = new Map(); // stationId -> marker
@@ -271,12 +271,15 @@ async function handleForecastClick(event) {
     // Update popup with content
     popup.setContent(content);
 
-    // Render weekly tide chart after browser paint
+    // Render tide sparklines for each day after browser paint
     requestAnimationFrame(() => {
       if (tidePredictions7Day && tidePredictions7Day.length > 0) {
-        renderWeeklyTideChart(tidePredictions7Day);
+        // Render sparkline for each of the 7 days
+        for (let dayIndex = 0; dayIndex < 7; dayIndex++) {
+          renderDayTideSparkline(dayIndex, tidePredictions7Day);
+        }
       } else {
-        console.warn('No 7-day tide prediction data available for chart');
+        console.warn('No 7-day tide prediction data available for charts');
       }
     });
 

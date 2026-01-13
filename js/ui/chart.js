@@ -683,3 +683,104 @@ export function renderWeeklyTideChart(predictions7Day) {
   console.log('  • Adjust x-axis max: forecastTideChart.options.scales.x.max = Date.now() + (7*24*60*60*1000); forecastTideChart.update();');
   console.log('  • View current settings: forecastTideChart.options.scales.x');
 }
+
+/**
+ * Render mini tide sparkline for a single day (24 hours, midnight to midnight)
+ * @param {number} dayIndex - Day index (0-6)
+ * @param {Array} predictions7Day - Full 7-day prediction array
+ */
+export function renderDayTideSparkline(dayIndex, predictions7Day) {
+  if (!predictions7Day || predictions7Day.length === 0) {
+    console.warn(`No predictions available for day ${dayIndex}`);
+    return;
+  }
+
+  const canvas = document.getElementById(`day-tide-chart-${dayIndex}`);
+  if (!canvas) {
+    console.warn(`Canvas for day ${dayIndex} not found`);
+    return;
+  }
+
+  const ctx = canvas.getContext('2d');
+
+  // Calculate midnight boundaries for this specific day
+  const now = new Date();
+  const midnightToday = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
+  const dayStart = new Date(midnightToday);
+  dayStart.setDate(midnightToday.getDate() + dayIndex);
+  const dayEnd = new Date(dayStart);
+  dayEnd.setDate(dayStart.getDate() + 1);
+
+  // Filter predictions for just this day
+  const dayPredictions = predictions7Day.filter(pred => {
+    const predTime = pred.time;
+    return predTime >= dayStart && predTime < dayEnd;
+  });
+
+  if (dayPredictions.length === 0) {
+    console.warn(`No predictions found for day ${dayIndex}`);
+    return;
+  }
+
+  // Build dataset
+  const tideData = dayPredictions.map(pred => ({
+    x: pred.time,
+    y: pred.ft
+  }));
+
+  // Minimal sparkline options - no axes, no legend, just the curve
+  const chartOptions = {
+    responsive: false,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        enabled: true,
+        mode: 'nearest',
+        intersect: false,
+        callbacks: {
+          title: (context) => {
+            const date = new Date(context[0].parsed.x);
+            return date.toLocaleString('en-US', {
+              hour: 'numeric',
+              minute: '2-digit',
+              hour12: true
+            });
+          },
+          label: (context) => {
+            return `${context.parsed.y.toFixed(2)} ft`;
+          }
+        }
+      }
+    },
+    scales: {
+      x: {
+        type: 'time',
+        display: false, // Hide x-axis
+        min: dayStart.getTime(),
+        max: dayEnd.getTime()
+      },
+      y: {
+        display: false, // Hide y-axis
+        grid: { display: false }
+      }
+    }
+  };
+
+  // Create the sparkline chart
+  new Chart(ctx, {
+    type: 'line',
+    data: {
+      datasets: [{
+        data: tideData,
+        borderColor: '#4A90E2',
+        backgroundColor: 'rgba(74, 144, 226, 0.1)',
+        tension: 0.4,
+        pointRadius: 0,
+        borderWidth: 1.5,
+        fill: true
+      }]
+    },
+    options: chartOptions
+  });
+}
