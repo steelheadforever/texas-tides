@@ -503,7 +503,7 @@ export function renderWeeklyTideChart(predictions7Day) {
 
   if (!dateCell) {
     console.warn('Could not find forecast date cell for measurement, using default width');
-    canvas.width = 743;
+    canvas.width = 635;
     canvas.height = 220;
   } else {
     // Measure actual rendered column width

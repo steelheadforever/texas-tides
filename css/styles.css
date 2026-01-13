@@ -767,17 +767,17 @@ body.dark-mode #status-bar span {
 
 /* Forecast Chart Container - Fixed width to match 7 columns */
 .forecast-chart-container {
-  width: 759px; /* 7 columns (7 × 105px) + 6 gaps (6 × 4px) = 735 + 24 = 759px */
+  width: 651px; /* Canvas (635px) + padding (16px) = 651px */
   background-color: var(--white);
   padding: 0.5rem;
   margin: 0.5rem 0 1rem 0;
-  margin-left: 50px; /* Align with first day column, accounting for label column */
+  margin-left: 35px; /* Align with first day column, accounting for label column */
   border: 1px solid var(--gray-light);
   border-radius: 4px;
 }
 
 #forecast-tide-chart {
-  width: 743px !important; /* Container width (759px) - padding (16px) = 743px */
+  width: 635px !important; /* Canvas width for perfect day column alignment */
   height: 220px !important;
 }
 
@@ -1014,11 +1014,12 @@ body.dark-mode #status-bar span {
   }
 
   .forecast-chart-container {
-    width: 654px; /* 7 columns (7 × 90px) + 6 gaps (6 × 4px) = 630 + 24 = 654px */
+    width: 560px; /* Mobile canvas (544px) + padding (16px) */
+    margin-left: 29px; /* Proportional to desktop margin */
   }
 
   #forecast-tide-chart {
-    width: 638px !important; /* Container width (654px) - padding (16px) = 638px */
+    width: 544px !important; /* Mobile canvas width for alignment */
     height: 180px !important;
   }
 }
