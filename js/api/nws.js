@@ -303,12 +303,15 @@ export async function fetchWeatherForecast7Day(lat, lon) {
     const dayPeriod = periodsByDate[dateKey]?.day;
     const nightPeriod = periodsByDate[dateKey]?.night;
 
-    // Parse wind speed and gusts (from day period if available)
+    // If no day period (e.g., it's evening and today has passed), use night period as fallback
+    const primaryPeriod = dayPeriod || nightPeriod;
+
+    // Parse wind speed and gusts (from primary period if available)
     let windSpeed = 0;
     let windGust = 0;
 
-    if (dayPeriod && dayPeriod.windSpeed) {
-      const windMatch = dayPeriod.windSpeed.match(/(\d+)\s*(?:to\s*(\d+))?\s*mph/);
+    if (primaryPeriod && primaryPeriod.windSpeed) {
+      const windMatch = primaryPeriod.windSpeed.match(/(\d+)\s*(?:to\s*(\d+))?\s*mph/);
       if (windMatch) {
         const speed1 = parseInt(windMatch[1]);
         const speed2 = windMatch[2] ? parseInt(windMatch[2]) : speed1;
@@ -320,15 +323,15 @@ export async function fetchWeatherForecast7Day(lat, lon) {
     dailyForecasts.push({
       date: new Date(targetDate),
       dayOfWeek: targetDate.toLocaleDateString('en-US', { weekday: 'short' }),
-      icon: dayPeriod?.icon || '',
-      shortForecast: dayPeriod?.shortForecast || 'N/A',
-      detailedForecast: dayPeriod?.detailedForecast || '',
+      icon: primaryPeriod?.icon || '',
+      shortForecast: primaryPeriod?.shortForecast || 'N/A',
+      detailedForecast: primaryPeriod?.detailedForecast || '',
       tempHigh: dayPeriod?.temperature || null,
       tempLow: nightPeriod?.temperature || null,
       windSpeed: windSpeed,
       windGust: windGust,
-      windDirection: dayPeriod?.windDirection || 'N',
-      precipProbability: dayPeriod?.probabilityOfPrecipitation?.value || 0
+      windDirection: primaryPeriod?.windDirection || 'N',
+      precipProbability: primaryPeriod?.probabilityOfPrecipitation?.value || 0
     });
   }
 

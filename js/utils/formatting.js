@@ -173,7 +173,7 @@ export function formatWind(wind) {
   }
 
   if (wind.gust !== null && wind.gust !== undefined && wind.gust > (wind.speed || 0)) {
-    parts.push(`gusts ${wind.gust.toFixed(1)}`);
+    parts.push(`gusts ${wind.gust.toFixed(1)} mph`);
   }
 
   return parts.length > 0 ? parts.join(', ') : 'N/A';
@@ -240,12 +240,14 @@ export function formatWindSpeed(speed, gust) {
 
   // If gust is different from speed, show range
   if (gust && gust > speed) {
+    // Only show range if speed and gust are meaningfully different
     parts.push(`${speed}-${gust} mph`);
     // Add separate gust callout if significantly higher
     if (gust > speed * 1.3) {
-      parts.push(`gusts ${gust}`);
+      parts.push(`gusts ${gust} mph`);
     }
   } else {
+    // If speed equals gust (or no gust), just show single speed
     parts.push(`${speed} mph`);
   }
 
