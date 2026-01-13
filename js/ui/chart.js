@@ -703,6 +703,10 @@ export function renderDayTideSparkline(dayIndex, predictions7Day) {
 
   const ctx = canvas.getContext('2d');
 
+  // Explicitly set canvas dimensions to prevent Chart.js from scaling them
+  canvas.width = 120;
+  canvas.height = 60;
+
   // Calculate midnight boundaries for this specific day
   const now = new Date();
   const midnightToday = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
