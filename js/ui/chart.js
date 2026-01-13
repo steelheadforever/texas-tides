@@ -458,6 +458,8 @@ export function renderWeeklyTideChart(predictions7Day) {
   // Calculate exact date boundaries (midnight today to midnight +7 days)
   const now = new Date();
   const midnightToday = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
+  const midnightEnd = new Date(midnightToday);
+  midnightEnd.setDate(midnightEnd.getDate() + 7);
 
   // Create day boundary annotations for vertical lines
   const dayBoundaries = [];
@@ -531,12 +533,6 @@ export function renderWeeklyTideChart(predictions7Day) {
 
     console.log(`CSS-first measurement: columnWidth=${columnWidth}px, gap=${gap}px, chartWidth=${canvasWidth}px`);
   }
-
-  // Calculate exact date range for x-axis (midnight today to midnight 7 days later)
-  const now = new Date();
-  const midnightToday = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
-  const midnightEnd = new Date(midnightToday);
-  midnightEnd.setDate(midnightEnd.getDate() + 7);
 
   // Build chart options with responsive disabled for fixed sizing
   const chartOptions = {
