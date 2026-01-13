@@ -740,6 +740,8 @@ export function renderDayTideSparkline(dayIndex, predictions7Day) {
   const xMin = tideData[0].x;
   const xMax = tideData[tideData.length - 1].x;
 
+  console.log(`Day ${dayIndex} sparkline: ${tideData.length} points, xMin=${new Date(xMin).toLocaleString()}, xMax=${new Date(xMax).toLocaleString()}`);
+
   // Minimal sparkline options - no axes, no legend, just the curve
   const chartOptions = {
     responsive: false,
@@ -770,9 +772,15 @@ export function renderDayTideSparkline(dayIndex, predictions7Day) {
         type: 'time',
         display: false, // Hide x-axis
         offset: false, // Prevent automatic offset
-        bounds: 'ticks', // Don't extend beyond min/max
+        bounds: 'data', // Use data boundaries, not tick boundaries
         min: xMin,
-        max: xMax
+        max: xMax,
+        ticks: {
+          source: 'data' // Use only data points for ticks
+        },
+        time: {
+          tooltipFormat: 'MMM d, h:mm a'
+        }
       },
       y: {
         display: false, // Hide y-axis
