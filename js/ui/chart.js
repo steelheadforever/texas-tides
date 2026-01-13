@@ -455,53 +455,44 @@ export function renderWeeklyTideChart(predictions7Day) {
     y: pred.ft
   }));
 
+  // Calculate exact date boundaries (midnight today to midnight +7 days)
+  const now = new Date();
+  const midnightToday = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
+
   // Create day boundary annotations for vertical lines
   const dayBoundaries = [];
   const noonMarkers = [];
-  const startDate = predictions7Day[0].time;
-  const endDate = predictions7Day[predictions7Day.length - 1].time;
 
   // Create vertical lines at midnight for each day (day separators)
-  let currentDay = new Date(startDate);
-  currentDay.setHours(0, 0, 0, 0);
-  currentDay.setDate(currentDay.getDate() + 1); // Start from next day
+  // Start from day 1 (skip day 0 since that's the left edge)
+  for (let dayOffset = 1; dayOffset < 7; dayOffset++) {
+    const dayBoundary = new Date(midnightToday);
+    dayBoundary.setDate(midnightToday.getDate() + dayOffset);
 
-  while (currentDay < endDate) {
     dayBoundaries.push({
       type: 'line',
-      xMin: currentDay,
-      xMax: currentDay,
+      xMin: dayBoundary,
+      xMax: dayBoundary,
       borderColor: 'rgba(0, 0, 0, 0.15)',
       borderWidth: 1,
       borderDash: [3, 3]
     });
-
-    // Move to next day
-    currentDay = new Date(currentDay);
-    currentDay.setDate(currentDay.getDate() + 1);
   }
 
   // Create transparent dashed lines at noon for each day
-  let noonDay = new Date(startDate);
-  noonDay.setHours(0, 0, 0, 0);
-
-  while (noonDay < endDate) {
-    const noonTime = new Date(noonDay);
+  for (let dayOffset = 0; dayOffset < 7; dayOffset++) {
+    const noonTime = new Date(midnightToday);
+    noonTime.setDate(midnightToday.getDate() + dayOffset);
     noonTime.setHours(12, 0, 0, 0); // Set to 12:00 PM
 
-    if (noonTime > startDate && noonTime < endDate) {
-      noonMarkers.push({
-        type: 'line',
-        xMin: noonTime,
-        xMax: noonTime,
-        borderColor: 'rgba(0, 0, 0, 0.06)', // More transparent
-        borderWidth: 1,
-        borderDash: [2, 4] // Different dash pattern
-      });
-    }
-
-    // Move to next day
-    noonDay.setDate(noonDay.getDate() + 1);
+    noonMarkers.push({
+      type: 'line',
+      xMin: noonTime,
+      xMax: noonTime,
+      borderColor: 'rgba(0, 0, 0, 0.06)', // More transparent
+      borderWidth: 1,
+      borderDash: [2, 4] // Different dash pattern
+    });
   }
 
   // Measure CSS column widths first, then size chart to match
@@ -541,6 +532,12 @@ export function renderWeeklyTideChart(predictions7Day) {
     console.log(`CSS-first measurement: columnWidth=${columnWidth}px, gap=${gap}px, chartWidth=${canvasWidth}px`);
   }
 
+  // Calculate exact date range for x-axis (midnight today to midnight 7 days later)
+  const now = new Date();
+  const midnightToday = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
+  const midnightEnd = new Date(midnightToday);
+  midnightEnd.setDate(midnightEnd.getDate() + 7);
+
   // Build chart options with responsive disabled for fixed sizing
   const chartOptions = {
     responsive: false,
@@ -574,6 +571,8 @@ export function renderWeeklyTideChart(predictions7Day) {
     scales: {
       x: {
         type: 'time',
+        min: midnightToday.getTime(),
+        max: midnightEnd.getTime(),
         time: {
           unit: 'day',
           displayFormats: {

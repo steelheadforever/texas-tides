@@ -196,7 +196,10 @@ export function getMoonEmoji(phaseDescription) {
  */
 export async function fetchSunMoon7Day(lat, lon) {
   const dailyData = [];
-  const today = new Date();
+  const now = new Date();
+
+  // Set to midnight today to ensure we start from the beginning of the day
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
 
   // Fetch data for each of the 7 days
   for (let dayOffset = 0; dayOffset < 7; dayOffset++) {

@@ -658,6 +658,12 @@ body.dark-mode #status-bar span {
   height: 220px !important;
 }
 
+/* Forecast Popup Container - Override Leaflet's default max-width */
+.forecast-popup-container .leaflet-popup-content {
+  max-width: 1000px;
+  min-width: 900px;
+}
+
 /* Forecast Popup Styles */
 .forecast-popup {
   padding: 1rem;

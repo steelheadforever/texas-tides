@@ -250,7 +250,7 @@ export async function fetchNWSTemperature(lat, lon) {
 }
 
 /**
- * Fetch 7-day weather forecast (current day + 6 days forward)
+ * Fetch 7-day weather forecast (starting from midnight today)
  * Returns array of daily forecast objects with weather, temp, wind, precip
  */
 export async function fetchWeatherForecast7Day(lat, lon) {
@@ -269,50 +269,67 @@ export async function fetchWeatherForecast7Day(lat, lon) {
 
   const periods = data.properties.periods;
 
-  // NWS returns day and night periods separately
-  // We need to combine them to get daily high/low temps
+  // Get midnight today to determine which day each period belongs to
+  const now = new Date();
+  const midnightToday = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
+
+  // Create a map of date -> {day: dayPeriod, night: nightPeriod}
+  const periodsByDate = {};
+
+  for (const period of periods) {
+    const periodStart = new Date(period.startTime);
+    const periodDate = new Date(periodStart.getFullYear(), periodStart.getMonth(), periodStart.getDate(), 0, 0, 0, 0);
+    const dateKey = periodDate.toISOString().split('T')[0]; // YYYY-MM-DD
+
+    if (!periodsByDate[dateKey]) {
+      periodsByDate[dateKey] = {};
+    }
+
+    if (period.isDaytime) {
+      periodsByDate[dateKey].day = period;
+    } else {
+      periodsByDate[dateKey].night = period;
+    }
+  }
+
+  // Build 7 days of forecasts starting from today
   const dailyForecasts = [];
 
-  for (let i = 0; i < periods.length && dailyForecasts.length < 7; i++) {
-    const period = periods[i];
-    const nextPeriod = periods[i + 1];
+  for (let dayOffset = 0; dayOffset < 7; dayOffset++) {
+    const targetDate = new Date(midnightToday);
+    targetDate.setDate(midnightToday.getDate() + dayOffset);
+    const dateKey = targetDate.toISOString().split('T')[0];
 
-    // Check if this is a daytime period
-    if (period.isDaytime) {
-      const dayData = period;
-      const nightData = nextPeriod && !nextPeriod.isDaytime ? nextPeriod : null;
+    const dayPeriod = periodsByDate[dateKey]?.day;
+    const nightPeriod = periodsByDate[dateKey]?.night;
 
-      // Parse wind speed and gusts
-      const windMatch = dayData.windSpeed?.match(/(\d+)\s*(?:to\s*(\d+))?\s*mph/);
-      let windSpeed = 0;
-      let windGust = 0;
+    // Parse wind speed and gusts (from day period if available)
+    let windSpeed = 0;
+    let windGust = 0;
 
+    if (dayPeriod && dayPeriod.windSpeed) {
+      const windMatch = dayPeriod.windSpeed.match(/(\d+)\s*(?:to\s*(\d+))?\s*mph/);
       if (windMatch) {
         const speed1 = parseInt(windMatch[1]);
         const speed2 = windMatch[2] ? parseInt(windMatch[2]) : speed1;
         windSpeed = speed1;
         windGust = speed2;
       }
-
-      dailyForecasts.push({
-        date: new Date(dayData.startTime),
-        dayOfWeek: new Date(dayData.startTime).toLocaleDateString('en-US', { weekday: 'short' }),
-        icon: dayData.icon || '',
-        shortForecast: dayData.shortForecast || 'N/A',
-        detailedForecast: dayData.detailedForecast || '',
-        tempHigh: dayData.temperature || null,
-        tempLow: nightData?.temperature || null,
-        windSpeed: windSpeed,
-        windGust: windGust,
-        windDirection: dayData.windDirection || 'N',
-        precipProbability: dayData.probabilityOfPrecipitation?.value || 0
-      });
-
-      // Skip the night period since we already processed it
-      if (nightData) {
-        i++;
-      }
     }
+
+    dailyForecasts.push({
+      date: new Date(targetDate),
+      dayOfWeek: targetDate.toLocaleDateString('en-US', { weekday: 'short' }),
+      icon: dayPeriod?.icon || '',
+      shortForecast: dayPeriod?.shortForecast || 'N/A',
+      detailedForecast: dayPeriod?.detailedForecast || '',
+      tempHigh: dayPeriod?.temperature || null,
+      tempLow: nightPeriod?.temperature || null,
+      windSpeed: windSpeed,
+      windGust: windGust,
+      windDirection: dayPeriod?.windDirection || 'N',
+      precipProbability: dayPeriod?.probabilityOfPrecipitation?.value || 0
+    });
   }
 
   return dailyForecasts;

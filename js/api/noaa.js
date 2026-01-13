@@ -2,7 +2,7 @@
 // Based on fishing_bot4.py:246-484
 // API Documentation: https://api.tidesandcurrents.noaa.gov/api/prod/
 
-import { parseNOAALocalTime, getDateRange } from '../utils/datetime.js';
+import { parseNOAALocalTime, getDateRange, getDateRangeFromMidnightToday } from '../utils/datetime.js';
 import { safeFloat } from '../utils/conversions.js';
 import { determineTrend, getTideDirArrow } from '../utils/formatting.js';
 import { fetchNWSTemperature } from './nws.js';
@@ -501,8 +501,8 @@ export async function fetchStationWind(stationId) {
  * Returns array of {time, ft} prediction objects
  */
 export async function fetchTidePredictions7Day(stationId) {
-  // Get current day + 6 days forward (7 days total)
-  const range = getDateRange(0, 7 * 24);
+  // Get 7 days starting from midnight today
+  const range = getDateRangeFromMidnightToday(7);
 
   const predictions = await fetchPredictions(
     stationId,
