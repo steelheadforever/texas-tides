@@ -726,9 +726,9 @@ export function renderDayTideSparkline(dayIndex, predictions7Day) {
     return;
   }
 
-  // Build dataset
+  // Build dataset - convert Date objects to timestamps for consistency with scale min/max
   const tideData = dayPredictions.map(pred => ({
-    x: pred.time,
+    x: pred.time.getTime(),
     y: pred.ft
   }));
 
@@ -743,6 +743,8 @@ export function renderDayTideSparkline(dayIndex, predictions7Day) {
   // This ensures sparklines always show the complete day regardless of data endpoints
   const xMin = dayStart.getTime();
   const xMax = dayEnd.getTime() - 1; // 23:59:59.999
+
+  console.log(`Day ${dayIndex}: ${tideData.length} points, first=${new Date(tideData[0].x).toLocaleTimeString()}, last=${new Date(tideData[tideData.length-1].x).toLocaleTimeString()}, xMin=${new Date(xMin).toLocaleTimeString()}, xMax=${new Date(xMax).toLocaleTimeString()}`);
 
   // Minimal sparkline options - no axes, no legend, just the curve
   const chartOptions = {
@@ -772,20 +774,29 @@ export function renderDayTideSparkline(dayIndex, predictions7Day) {
     scales: {
       x: {
         type: 'time',
-        display: false, // Hide x-axis
-        offset: false, // Prevent automatic offset
+        display: false,
+        offset: false,
+        bounds: 'ticks',
         min: xMin,
         max: xMax,
+        ticks: {
+          display: false
+        },
         time: {
           tooltipFormat: 'MMM d, h:mm a'
         }
       },
       y: {
-        display: false, // Hide y-axis
+        display: false,
+        offset: false,
+        bounds: 'ticks',
         grid: { display: false },
         min: minY - yPadding,
         max: maxY + yPadding
       }
+    },
+    layout: {
+      padding: 0
     }
   };
 
