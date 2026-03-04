@@ -987,16 +987,31 @@ body.dark-mode #status-bar span {
     height: 180px !important;
   }
 
-  /* Forecast popup responsive */
-  .forecast-popup {
-    max-width: none;
-    padding-bottom: 100px; /* More padding on mobile */
+  /* Forecast popup responsive - fit within screen, scroll inside */
+  .forecast-popup-container {
+    max-width: calc(100vw - 20px) !important;
+  }
+
+  .forecast-popup-container .leaflet-popup-content-wrapper {
+    max-width: calc(100vw - 20px);
   }
 
   .forecast-popup-container .leaflet-popup-content {
-    max-width: 90vw;
-    min-width: 0;
-    overflow: auto;
+    max-width: calc(100vw - 40px) !important;
+    min-width: 0 !important;
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+
+  .forecast-popup {
+    max-width: 100%;
+    padding-bottom: 100px; /* More padding on mobile */
+    overflow: hidden;
+  }
+
+  .forecast-scroll-container {
+    overflow-x: auto;
+    overflow-y: visible;
     -webkit-overflow-scrolling: touch;
   }
 
