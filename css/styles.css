@@ -989,13 +989,15 @@ body.dark-mode #status-bar span {
 
   /* Forecast popup responsive */
   .forecast-popup {
-    max-width: 600px;
+    max-width: none;
     padding-bottom: 100px; /* More padding on mobile */
   }
 
   .forecast-popup-container .leaflet-popup-content {
-    max-width: 640px;
-    min-width: 600px;
+    max-width: 90vw;
+    min-width: 0;
+    overflow: auto;
+    -webkit-overflow-scrolling: touch;
   }
 
   .forecast-cards-grid {

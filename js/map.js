@@ -234,9 +234,10 @@ async function handleForecastClick(event) {
   };
 
   // Create and show loading popup
+  const isMobile = window.innerWidth <= 480;
   const popup = L.popup({
-    maxWidth: 1000,
-    minWidth: 940,
+    maxWidth: isMobile ? window.innerWidth - 40 : 1000,
+    minWidth: isMobile ? window.innerWidth - 40 : 940,
     className: 'forecast-popup-container',
     autoPan: true,
     autoPanPaddingTopLeft: [20, 80],
