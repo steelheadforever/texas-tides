@@ -32,8 +32,12 @@ export function initMap() {
   map = L.map('map', {
     center: [27.5, -96.0],
     zoom: 7,
-    zoomControl: true
+    zoomControl: true,
+    attributionControl: false
   });
+
+  // Add clean attribution without Leaflet's default prefix/flag
+  L.control.attribution({ prefix: false }).addTo(map);
 
   // Add initial tile layer based on dark mode
   const isDarkMode = document.body.classList.contains('dark-mode');
