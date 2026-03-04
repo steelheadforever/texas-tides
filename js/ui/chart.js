@@ -685,11 +685,30 @@ export function renderWeeklyTideChart(predictions7Day) {
 }
 
 /**
+ * Compute shared y-axis range across all 7 days of tide predictions.
+ * Call once before rendering individual sparklines so all charts use the same scale.
+ * @param {Array} predictions7Day - Full 7-day prediction array
+ * @returns {{minY: number, maxY: number}} - Shared y-axis bounds with padding
+ */
+export function computeSharedTideYRange(predictions7Day) {
+  if (!predictions7Day || predictions7Day.length === 0) {
+    return { minY: 0, maxY: 1 };
+  }
+  const allY = predictions7Day.map(p => p.ft);
+  const minY = Math.min(...allY);
+  const maxY = Math.max(...allY);
+  const yRange = maxY - minY;
+  const yPadding = yRange * 0.15;
+  return { minY: minY - yPadding, maxY: maxY + yPadding };
+}
+
+/**
  * Render mini tide sparkline for a single day (24 hours, midnight to midnight)
  * @param {number} dayIndex - Day index (0-6)
  * @param {Array} predictions7Day - Full 7-day prediction array
+ * @param {{minY: number, maxY: number}} sharedYRange - Shared y-axis bounds from computeSharedTideYRange
  */
-export function renderDayTideSparkline(dayIndex, predictions7Day) {
+export function renderDayTideSparkline(dayIndex, predictions7Day, sharedYRange) {
   if (!predictions7Day || predictions7Day.length === 0) {
     console.warn(`No predictions available for day ${dayIndex}`);
     return;
@@ -703,9 +722,12 @@ export function renderDayTideSparkline(dayIndex, predictions7Day) {
 
   const ctx = canvas.getContext('2d');
 
-  // Explicitly set canvas dimensions to prevent Chart.js from scaling them
-  canvas.width = 120;
-  canvas.height = 60;
+  // Size canvas to fit its container so nothing gets clipped by overflow:hidden
+  const container = canvas.parentElement;
+  const displayWidth = container.clientWidth;
+  const displayHeight = container.clientHeight || 60;
+  canvas.width = displayWidth;
+  canvas.height = displayHeight;
 
   // Calculate midnight boundaries for this specific day
   const now = new Date();
@@ -732,30 +754,26 @@ export function renderDayTideSparkline(dayIndex, predictions7Day) {
     y: pred.ft
   }));
 
-  // Calculate y-axis range with padding to prevent curve overflow
-  const yValues = tideData.map(d => d.y);
-  const minY = Math.min(...yValues);
-  const maxY = Math.max(...yValues);
-  const yRange = maxY - minY;
-  const yPadding = yRange * 0.15; // 15% padding top and bottom
-
-  // Use first and last data points for x-axis bounds instead of exact midnight
-  // This ensures the curve starts at the left edge and ends at the right edge
-  const xMin = tideData[0].x;
-  const xMax = tideData[tideData.length - 1].x;
-
-  console.log(`Day ${dayIndex} sparkline: ${tideData.length} points, xMin=${new Date(xMin).toLocaleString()}, xMax=${new Date(xMax).toLocaleString()}`);
+  // Use midnight-to-midnight x-axis so all sparklines cover the full 24h
+  // and curves connect visually across day boundaries
+  const xMin = dayStart;
+  const xMax = dayEnd;
 
   // Minimal sparkline options - no axes, no legend, just the curve
   const chartOptions = {
     responsive: false,
     maintainAspectRatio: false,
+    devicePixelRatio: 1, // Prevent Chart.js from scaling for retina, keeps mouse coords aligned
     plugins: {
       legend: { display: false },
       tooltip: {
         enabled: true,
         mode: 'nearest',
         intersect: false,
+        titleFont: { size: 10 },
+        bodyFont: { size: 10 },
+        padding: 4,
+        displayColors: false,
         callbacks: {
           title: (context) => {
             const date = new Date(context[0].parsed.x);
@@ -766,7 +784,7 @@ export function renderDayTideSparkline(dayIndex, predictions7Day) {
             });
           },
           label: (context) => {
-            return `${context.parsed.y.toFixed(2)} ft`;
+            return `${context.parsed.y.toFixed(1)} ft`;
           }
         }
       }
@@ -774,23 +792,19 @@ export function renderDayTideSparkline(dayIndex, predictions7Day) {
     scales: {
       x: {
         type: 'time',
-        display: false, // Hide x-axis
-        offset: false, // Prevent automatic offset
-        bounds: 'data', // Use data boundaries, not tick boundaries
+        display: false,
+        offset: false,
         min: xMin,
         max: xMax,
-        ticks: {
-          source: 'data' // Use only data points for ticks
-        },
         time: {
           tooltipFormat: 'MMM d, h:mm a'
         }
       },
       y: {
-        display: false, // Hide y-axis
+        display: false,
         grid: { display: false },
-        min: minY - yPadding,
-        max: maxY + yPadding
+        min: sharedYRange.minY,
+        max: sharedYRange.maxY
       }
     }
   };

@@ -660,8 +660,8 @@ body.dark-mode #status-bar span {
 
 /* Forecast Popup Container - Override Leaflet's default max-width */
 .forecast-popup-container .leaflet-popup-content {
-  max-width: 900px;
-  min-width: 860px;
+  max-width: 940px;
+  min-width: 900px;
 }
 
 /* Forecast Popup Styles */
@@ -716,7 +716,7 @@ body.dark-mode #status-bar span {
 /* Forecast Cards Grid - 7 vertical day cards */
 .forecast-cards-grid {
   display: grid;
-  grid-template-columns: repeat(7, 120px);
+  grid-template-columns: repeat(7, minmax(0, 1fr));
   gap: 0.5rem;
   padding: 0.5rem 0;
 }

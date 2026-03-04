@@ -6,7 +6,7 @@ import { fetchForecast12h, fetchPressure, fetchWeatherForecast7Day } from './api
 import { fetchSunMoonData, fetchSunMoon7Day } from './api/usno.js';
 import { buildPopupContent } from './ui/popup.js';
 import { buildForecastPopupContent } from './ui/forecastPopup.js';
-import { renderTideChart, renderWaterTempChart, renderDayTideSparkline } from './ui/chart.js';
+import { renderTideChart, renderWaterTempChart, renderDayTideSparkline, computeSharedTideYRange } from './ui/chart.js';
 
 let map;
 const markers = new Map(); // stationId -> marker
@@ -236,7 +236,7 @@ async function handleForecastClick(event) {
   // Create and show loading popup
   const popup = L.popup({
     maxWidth: 1000,
-    minWidth: 900,
+    minWidth: 940,
     className: 'forecast-popup-container',
     autoPan: true,
     autoPanPaddingTopLeft: [20, 80],
@@ -275,9 +275,10 @@ async function handleForecastClick(event) {
     // Render tide sparklines for each day after browser paint
     requestAnimationFrame(() => {
       if (tidePredictions7Day && tidePredictions7Day.length > 0) {
-        // Render sparkline for each of the 7 days
+        // Compute shared y-axis so all sparklines use the same vertical scale
+        const sharedYRange = computeSharedTideYRange(tidePredictions7Day);
         for (let dayIndex = 0; dayIndex < 7; dayIndex++) {
-          renderDayTideSparkline(dayIndex, tidePredictions7Day);
+          renderDayTideSparkline(dayIndex, tidePredictions7Day, sharedYRange);
         }
       } else {
         console.warn('No 7-day tide prediction data available for charts');
