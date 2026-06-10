@@ -74,6 +74,14 @@ export function buildPopupContent(station, data) {
           Station ID: ${station.id} • Data from NOAA & NWS
         </p>
       </div>
+
+      <button class="forecast-button"
+              data-station-id="${station.id}"
+              data-station-name="${station.name}"
+              data-lat="${station.lat}"
+              data-lon="${station.lon}">
+        Forecast
+      </button>
     </div>
   `;
 }
@@ -221,11 +229,14 @@ function buildWindForecastSection(windForecast) {
   const avg = windForecast.avgSpeed !== null ? windForecast.avgSpeed.toFixed(0) : 'N/A';
   const max = windForecast.maxSpeed !== null ? windForecast.maxSpeed.toFixed(0) : 'N/A';
 
+  // Show single value if avg equals max, otherwise show range
+  const windDisplay = (avg === max) ? `${avg} mph` : `${avg}-${max} mph`;
+
   return `
     <div class="section compact wind-forecast">
       <h3>Wind 12h 🧭 ${dirEmoji}</h3>
       <div class="data-row">
-        <span>${avg}-${max} mph</span>
+        <span>${windDisplay}</span>
         <span>${windForecast.direction || ''}</span>
       </div>
     </div>

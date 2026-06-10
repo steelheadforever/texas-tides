@@ -72,3 +72,44 @@ export function getDateRange(hoursFromNowStart = 0, hoursFromNowEnd = 24) {
     endDate: end
   };
 }
+
+/**
+ * Get date range starting from midnight today for N days
+ * @param {number} numDays - Number of days to include (e.g., 7 for 7-day forecast)
+ * @returns {object} Object with begin, end, beginDate, endDate
+ */
+export function getDateRangeFromMidnightToday(numDays = 7) {
+  const now = new Date();
+
+  // Set to midnight today (00:00:00.000)
+  const midnightToday = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
+
+  // Set to end of last day (midnight of the day after)
+  const endDate = new Date(midnightToday);
+  endDate.setDate(endDate.getDate() + numDays);
+
+  return {
+    begin: formatNOAADate(midnightToday),
+    end: formatNOAADate(endDate),
+    beginDate: midnightToday,
+    endDate: endDate
+  };
+}
+
+/**
+ * Format date for forecast display
+ * Format: "Sun 1/12"
+ * @param {Date} date - Date to format
+ * @returns {string} Formatted date string
+ */
+export function formatForecastDate(date) {
+  if (!date || !(date instanceof Date)) {
+    return 'N/A';
+  }
+
+  const dayOfWeek = date.toLocaleDateString('en-US', { weekday: 'short' });
+  const month = date.getMonth() + 1; // 0-indexed, so add 1
+  const day = date.getDate();
+
+  return `${dayOfWeek} ${month}/${day}`;
+}

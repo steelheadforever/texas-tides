@@ -173,8 +173,113 @@ export function formatWind(wind) {
   }
 
   if (wind.gust !== null && wind.gust !== undefined && wind.gust > (wind.speed || 0)) {
-    parts.push(`gusts ${wind.gust.toFixed(1)}`);
+    parts.push(`gusts ${wind.gust.toFixed(1)} mph`);
   }
 
   return parts.length > 0 ? parts.join(', ') : 'N/A';
+}
+
+/**
+ * Get weather emoji from NWS icon URL or code
+ * NWS provides icon URLs like: https://api.weather.gov/icons/land/day/tsra,40?size=medium
+ */
+export function getWeatherEmoji(iconUrl) {
+  if (!iconUrl) return '❓';
+
+  const lower = iconUrl.toLowerCase();
+
+  // Extract weather code from URL (e.g., "tsra" from "land/day/tsra,40")
+  if (lower.includes('tsra') || lower.includes('thunderstorm')) return '⛈️';
+  if (lower.includes('rain') || lower.includes('rain_showers')) return '🌧️';
+  if (lower.includes('snow') || lower.includes('blizzard')) return '🌨️';
+  if (lower.includes('fog')) return '🌫️';
+  if (lower.includes('wind') || lower.includes('wind_bkn') || lower.includes('wind_few')) return '💨';
+  if (lower.includes('skc') || lower.includes('few') || lower.includes('sunny')) return '☀️';
+  if (lower.includes('sct') || lower.includes('partly')) return '⛅';
+  if (lower.includes('bkn') || lower.includes('mostly')) return '🌥️';
+  if (lower.includes('ovc') || lower.includes('overcast')) return '☁️';
+  if (lower.includes('cold')) return '❄️';
+  if (lower.includes('hot')) return '🔥';
+
+  return '❓';
+}
+
+/**
+ * Convert wind direction degrees to arrow emoji and letters
+ * Returns object with emoji and text (e.g., {emoji: '⬇️', text: 'N'})
+ */
+export function getWindDirectionFromDegrees(degrees) {
+  if (degrees === null || degrees === undefined || isNaN(degrees)) {
+    return { emoji: '🧭', text: 'N/A' };
+  }
+
+  // Normalize to 0-360
+  const normalized = ((degrees % 360) + 360) % 360;
+
+  // Convert degrees to direction
+  const directions = ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE', 'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW'];
+  const index = Math.round(normalized / 22.5) % 16;
+  const directionText = directions[index];
+
+  // Get emoji using existing function
+  const emoji = getWindDirEmoji(directionText);
+
+  return { emoji, text: directionText };
+}
+
+/**
+ * Format wind speed and gust range
+ * Format: "10-15 mph, gusts 20"
+ */
+export function formatWindSpeed(speed, gust) {
+  if (speed === null || speed === undefined || isNaN(speed)) {
+    return 'N/A';
+  }
+
+  const parts = [];
+
+  // If gust is different from speed, show range
+  if (gust && gust > speed) {
+    // Only show range if speed and gust are meaningfully different
+    parts.push(`${speed}-${gust} mph`);
+    // Add separate gust callout if significantly higher
+    if (gust > speed * 1.3) {
+      parts.push(`gusts ${gust} mph`);
+    }
+  } else {
+    // If speed equals gust (or no gust), just show single speed
+    parts.push(`${speed} mph`);
+  }
+
+  return parts.join(', ');
+}
+
+/**
+ * Format temperature range (high/low)
+ * Format: "H: 68° L: 52°"
+ */
+export function formatTempRange(high, low) {
+  const parts = [];
+
+  if (high !== null && high !== undefined && !isNaN(high)) {
+    parts.push(`H: ${Math.round(high)}°`);
+  }
+
+  if (low !== null && low !== undefined && !isNaN(low)) {
+    parts.push(`L: ${Math.round(low)}°`);
+  }
+
+  return parts.length > 0 ? parts.join(' ') : 'N/A';
+}
+
+/**
+ * Format precipitation probability
+ * Format: "🌧️ 20%"
+ */
+export function formatPrecipProbability(percent) {
+  if (percent === null || percent === undefined || isNaN(percent)) {
+    return '🌧️ 0%';
+  }
+
+  return `🌧️ ${Math.round(percent)}%`;
 }
