@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Slackwater Admin Dashboard</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+  <!-- Login Page -->
+  <div id="login-page" class="page active">
+    <div class="login-container">
+      <h1>Slackwater Admin</h1>
+      <form id="login-form">
+        <div class="form-group">
+          <label for="username">Username</label>
+          <input type="text" id="username" name="username" required autocomplete="username">
+        </div>
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input type="password" id="password" name="password" required autocomplete="current-password">
+        </div>
+        <div id="login-error" class="error-message"></div>
+        <button type="submit" class="btn btn-primary">Login</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Dashboard Page -->
+  <div id="dashboard-page" class="page">
+    <header class="dashboard-header">
+      <h1>Slackwater Admin Dashboard</h1>
+      <div class="header-controls">
+        <label class="auto-refresh-toggle">
+          <input type="checkbox" id="auto-refresh">
+          <span>Auto-refresh (30s)</span>
+        </label>
+        <button id="logout-btn" class="btn btn-secondary">Logout</button>
+      </div>
+    </header>
+
+    <!-- Tab Navigation -->
+    <nav class="tab-nav">
+      <button class="tab-btn active" data-tab="system">System Health</button>
+      <button class="tab-btn" data-tab="pipeline">Data Pipeline</button>
+      <button class="tab-btn" data-tab="analytics">User Analytics</button>
+      <button class="tab-btn" data-tab="logs">Request Logs</button>
+    </nav>
+
+    <!-- Tab Contents -->
+    <main class="dashboard-content">
+      <!-- System Health Tab -->
+      <div id="system-tab" class="tab-content active">
+        <div class="stats-grid">
+          <div class="stat-card">
+            <h3>CPU Usage</h3>
+            <div class="stat-value" id="cpu-usage">--</div>
+            <div class="stat-meta" id="cpu-cores">-- cores</div>
+          </div>
+          <div class="stat-card">
+            <h3>Memory</h3>
+            <div class="stat-value" id="memory-usage">--</div>
+            <div class="stat-meta" id="memory-total">--</div>
+          </div>
+          <div class="stat-card">
+            <h3>Disk Space</h3>
+            <div class="stat-value" id="disk-usage">--</div>
+            <div class="stat-meta" id="disk-total">--</div>
+          </div>
+          <div class="stat-card">
+            <h3>Temperature</h3>
+            <div class="stat-value" id="temperature">--</div>
+            <div class="stat-meta">Pi sensor</div>
+          </div>
+        </div>
+        <div class="info-grid">
+          <div class="info-card">
+            <h3>System Information</h3>
+            <table class="info-table">
+              <tr><td>Hostname:</td><td id="hostname">--</td></tr>
+              <tr><td>Platform:</td><td id="platform">--</td></tr>
+              <tr><td>CPU Model:</td><td id="cpu-model">--</td></tr>
+              <tr><td>System Uptime:</td><td id="system-uptime">--</td></tr>
+              <tr><td>Process Uptime:</td><td id="process-uptime">--</td></tr>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Data Pipeline Tab -->
+      <div id="pipeline-tab" class="tab-content">
+        <div class="stats-grid">
+          <div class="stat-card">
+            <h3>Cache Entries</h3>
+            <div class="stat-value" id="cache-entries">--</div>
+            <div class="stat-meta" id="cache-valid">-- valid</div>
+          </div>
+          <div class="stat-card">
+            <h3>Cache Hit Rate</h3>
+            <div class="stat-value" id="cache-hit-rate">--</div>
+            <div class="stat-meta">Last 24h</div>
+          </div>
+          <div class="stat-card">
+            <h3>Total Fetches</h3>
+            <div class="stat-value" id="total-fetches">--</div>
+            <div class="stat-meta" id="fetch-errors">-- errors</div>
+          </div>
+          <div class="stat-card">
+            <h3>Avg Response Time</h3>
+            <div class="stat-value" id="avg-response-time">--</div>
+            <div class="stat-meta">milliseconds</div>
+          </div>
+        </div>
+
+        <div class="section">
+          <h2>Station Health</h2>
+          <div class="table-container">
+            <table id="station-health-table" class="data-table">
+              <thead>
+                <tr>
+                  <th>Station ID</th>
+                  <th>Status</th>
+                  <th>Consecutive Failures</th>
+                  <th>Success Rate</th>
+                  <th>Last Success</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="section">
+          <h2>Recent Fetch Logs</h2>
+          <div class="table-container">
+            <table id="fetch-logs-table" class="data-table">
+              <thead>
+                <tr>
+                  <th>Time</th>
+                  <th>Endpoint</th>
+                  <th>Station</th>
+                  <th>API</th>
+                  <th>Status</th>
+                  <th>Response Time</th>
+                  <th>Cache Hit</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- User Analytics Tab -->
+      <div id="analytics-tab" class="tab-content">
+        <div class="stats-grid">
+          <div class="stat-card">
+            <h3>Total Pageviews</h3>
+            <div class="stat-value" id="total-pageviews">--</div>
+            <div class="stat-meta">Last 7 days</div>
+          </div>
+          <div class="stat-card">
+            <h3>Unique Sessions</h3>
+            <div class="stat-value" id="total-sessions">--</div>
+            <div class="stat-meta">Last 7 days</div>
+          </div>
+          <div class="stat-card">
+            <h3>Avg Response Time</h3>
+            <div class="stat-value" id="analytics-response-time">--</div>
+            <div class="stat-meta">milliseconds</div>
+          </div>
+          <div class="stat-card">
+            <h3>Errors</h3>
+            <div class="stat-value" id="total-errors">--</div>
+            <div class="stat-meta">Last 7 days</div>
+          </div>
+        </div>
+
+        <div class="charts-grid">
+          <div class="chart-card">
+            <h3>Traffic Over Time</h3>
+            <canvas id="traffic-chart"></canvas>
+          </div>
+          <div class="chart-card">
+            <h3>Device Breakdown</h3>
+            <canvas id="device-chart"></canvas>
+          </div>
+        </div>
+
+        <div class="section">
+          <h2>Popular Stations</h2>
+          <div class="chart-card">
+            <canvas id="stations-chart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Request Logs Tab -->
+      <div id="logs-tab" class="tab-content">
+        <div class="section">
+          <div class="logs-controls">
+            <input type="text" id="log-search" placeholder="Search by endpoint or station..." class="search-input">
+            <button id="search-btn" class="btn btn-primary">Search</button>
+            <button id="clear-search-btn" class="btn btn-secondary">Clear</button>
+          </div>
+          <div class="table-container">
+            <table id="request-logs-table" class="data-table">
+              <thead>
+                <tr>
+                  <th>Time</th>
+                  <th>Endpoint</th>
+                  <th>Station</th>
+                  <th>Feature</th>
+                  <th>Device</th>
+                  <th>Response Time</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+          <div class="pagination">
+            <button id="prev-page-btn" class="btn btn-secondary" disabled>Previous</button>
+            <span id="page-info">Page 1</span>
+            <button id="next-page-btn" class="btn btn-secondary">Next</button>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <footer class="dashboard-footer">
+      <div>Last updated: <span id="last-updated">--</span></div>
+      <div>Slackwater Backend v1.1.0</div>
+    </footer>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
