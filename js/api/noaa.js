@@ -1,14 +1,14 @@
 // NOAA CO-OPS API functions
 // Based on fishing_bot4.py:246-484
-// API Documentation: https://api.tidesandcurrents.noaa.gov/api/prod/
+// Now proxied through Raspberry Pi backend for caching and analytics
 
 import { parseNOAALocalTime, getDateRange } from '../utils/datetime.js';
 import { safeFloat } from '../utils/conversions.js';
 import { determineTrend, getTideDirArrow } from '../utils/formatting.js';
 import { fetchNWSTemperature } from './nws.js';
+import { API_BASE_URL, REQUEST_TIMEOUT } from './config.js';
 
-const NOAA_BASE_URL = 'https://api.tidesandcurrents.noaa.gov/api/prod/datagetter';
-const REQUEST_TIMEOUT = 10000; // 10 seconds
+const NOAA_API_URL = `${API_BASE_URL}/noaa/query`;
 
 /**
  * Base NOAA API request function
@@ -23,7 +23,7 @@ async function noaaGet(params) {
   };
 
   const allParams = { ...baseParams, ...params };
-  const url = new URL(NOAA_BASE_URL);
+  const url = new URL(NOAA_API_URL);
   Object.keys(allParams).forEach(key => {
     if (allParams[key] !== null && allParams[key] !== undefined) {
       url.searchParams.append(key, allParams[key]);

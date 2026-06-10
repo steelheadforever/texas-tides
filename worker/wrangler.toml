@@ -1,0 +1,26 @@
+name = "slackwater-api"
+main = "src/index.js"
+compatibility_date = "2024-11-01"
+workers_dev = true
+
+# Serve the API from api.slackwater.app (slackwater.app is on Cloudflare DNS).
+# Cloudflare auto-creates the proxied DNS record for this custom domain.
+# (Top-level key — must appear before any [table] sections below.)
+routes = [
+  { pattern = "api.slackwater.app", custom_domain = true }
+]
+
+# Cron warmer: refresh tide predictions every 15 minutes. Each tick warms only
+# stations whose cached predictions are missing or near expiry, capped by
+# WARM_FETCH_BUDGET to stay under the free-tier subrequest limit.
+[triggers]
+crons = ["*/15 * * * *"]
+
+[vars]
+WARM_FETCH_BUDGET = "40"
+
+# KV namespace for the response cache. Created with:
+#   wrangler kv namespace create CACHE
+[[kv_namespaces]]
+binding = "CACHE"
+id = "ec118fbff21d4bdaaa19dd596107eccc"

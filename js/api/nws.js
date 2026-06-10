@@ -1,17 +1,14 @@
 // NWS Weather API functions
 // Based on fishing_bot4.py:488-590
-// API Documentation: https://www.weather.gov/documentation/services-web-api
+// Now proxied through Raspberry Pi backend for caching and analytics
 
-import { inHgFromPascals, safeFloat } from '../utils/conversions.js';
-import { calculatePressureTrend } from '../utils/formatting.js';
+import { API_BASE_URL, REQUEST_TIMEOUT } from './config.js';
 
-const REQUEST_TIMEOUT = 10000; // 10 seconds
-const USER_AGENT = 'texas-tides-web (github.com/user/texas-tides)';
+const NWS_API_URL = `${API_BASE_URL}/nws`;
 
 /**
  * Base NWS API request function
- * NWS requires User-Agent header
- * Based on fishing_bot4.py:488-503
+ * Proxied through Pi backend (User-Agent handled server-side)
  */
 async function nwsGet(url) {
   try {
@@ -19,10 +16,6 @@ async function nwsGet(url) {
     const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT);
 
     const response = await fetch(url, {
-      headers: {
-        'User-Agent': USER_AGENT,
-        'Accept': 'application/geo+json'
-      },
       signal: controller.signal
     });
 
@@ -47,7 +40,7 @@ async function nwsGet(url) {
  * Based on fishing_bot4.py:505-518
  */
 async function fetchNWSPoints(lat, lon) {
-  const url = `https://api.weather.gov/points/${lat.toFixed(4)},${lon.toFixed(4)}`;
+  const url = `${NWS_API_URL}/points?lat=${lat}&lon=${lon}`;
   const data = await nwsGet(url);
 
   if (!data || !data.properties) {
@@ -62,188 +55,35 @@ async function fetchNWSPoints(lat, lon) {
 
 /**
  * Fetch 12-hour wind forecast from NWS
- * Based on fishing_bot4.py:520-553
+ * Now proxied through Pi backend
  */
 export async function fetchForecast12h(lat, lon) {
-  const points = await fetchNWSPoints(lat, lon);
-
-  if (!points || !points.forecastHourly) {
-    return null;
-  }
-
-  const data = await nwsGet(points.forecastHourly);
-
-  if (!data || !data.properties || !data.properties.periods) {
-    return null;
-  }
-
-  const periods = data.properties.periods.slice(0, 12); // First 12 hours
-
-  if (periods.length === 0) {
-    return null;
-  }
-
-  // Extract wind speeds and directions
-  const windSpeeds = [];
-  const windDirections = [];
-  let condition = 'N/A';
-
-  periods.forEach((period, idx) => {
-    // Parse wind speed (e.g., "10 mph" or "5 to 10 mph")
-    const windSpeedMatch = period.windSpeed?.match(/(\d+)\s*(?:to\s*(\d+))?\s*mph/);
-    if (windSpeedMatch) {
-      const speed1 = parseInt(windSpeedMatch[1]);
-      const speed2 = windSpeedMatch[2] ? parseInt(windSpeedMatch[2]) : speed1;
-      windSpeeds.push((speed1 + speed2) / 2);
-    }
-
-    // Wind direction
-    if (period.windDirection) {
-      windDirections.push(period.windDirection);
-    }
-
-    // Get sky condition from first period
-    if (idx === 0 && period.shortForecast) {
-      condition = period.shortForecast;
-    }
-  });
-
-  // Calculate average and max wind speed
-  const avgSpeed = windSpeeds.length > 0
-    ? windSpeeds.reduce((a, b) => a + b, 0) / windSpeeds.length
-    : null;
-  const maxSpeed = windSpeeds.length > 0
-    ? Math.max(...windSpeeds)
-    : null;
-
-  // Find most common wind direction
-  const dirCounts = {};
-  windDirections.forEach(dir => {
-    dirCounts[dir] = (dirCounts[dir] || 0) + 1;
-  });
-  const predominantDir = Object.keys(dirCounts).length > 0
-    ? Object.keys(dirCounts).reduce((a, b) => dirCounts[a] > dirCounts[b] ? a : b)
-    : 'N/A';
-
-  return {
-    avgSpeed,
-    maxSpeed,
-    direction: predominantDir,
-    condition
-  };
+  const url = `${NWS_API_URL}/forecast-12h?lat=${lat}&lon=${lon}`;
+  const data = await nwsGet(url);
+  return data;
 }
 
 /**
  * Fetch barometric pressure and calculate trend
- * Based on fishing_bot4.py:555-590
+ * Now proxied through Pi backend
  */
 export async function fetchPressure(lat, lon) {
-  const points = await fetchNWSPoints(lat, lon);
-
-  if (!points || !points.observationStations) {
-    return null;
-  }
-
-  // Get observation stations
-  const stationsData = await nwsGet(points.observationStations);
-
-  if (!stationsData || !stationsData.features || stationsData.features.length === 0) {
-    return null;
-  }
-
-  // Use first station
-  const stationId = stationsData.features[0]?.properties?.stationIdentifier;
-
-  if (!stationId) {
-    return null;
-  }
-
-  // Fetch recent observations
-  const obsUrl = `https://api.weather.gov/stations/${stationId}/observations?limit=6`;
-  const obsData = await nwsGet(obsUrl);
-
-  if (!obsData || !obsData.features || obsData.features.length === 0) {
-    return null;
-  }
-
-  const observations = [];
-
-  obsData.features.forEach(obs => {
-    const props = obs.properties;
-    let pressurePa = null;
-
-    // Try seaLevelPressure first, then barometricPressure
-    if (props.seaLevelPressure && props.seaLevelPressure.value !== null) {
-      pressurePa = props.seaLevelPressure.value;
-    } else if (props.barometricPressure && props.barometricPressure.value !== null) {
-      pressurePa = props.barometricPressure.value;
-    }
-
-    if (pressurePa !== null) {
-      observations.push({
-        time: new Date(props.timestamp),
-        value: inHgFromPascals(pressurePa)
-      });
-    }
-  });
-
-  if (observations.length === 0) {
-    return null;
-  }
-
-  // Sort by time (newest first)
-  observations.sort((a, b) => b.time - a.time);
-
-  const currentPressure = observations[0].value;
-  const trend = calculatePressureTrend(observations);
-
-  return {
-    value: currentPressure,
-    trend
-  };
+  const url = `${NWS_API_URL}/pressure?lat=${lat}&lon=${lon}`;
+  const data = await nwsGet(url);
+  return data;
 }
 
 /**
  * Fetch air temperature from NWS observation station
- * Uses nearest observation station to the given coordinates
+ * Now proxied through Pi backend
  */
 export async function fetchNWSTemperature(lat, lon) {
-  const points = await fetchNWSPoints(lat, lon);
+  const url = `${NWS_API_URL}/temperature?lat=${lat}&lon=${lon}`;
+  const data = await nwsGet(url);
 
-  if (!points || !points.observationStations) {
+  if (!data || data.error) {
     return null;
   }
 
-  // Get observation stations
-  const stationsData = await nwsGet(points.observationStations);
-
-  if (!stationsData || !stationsData.features || stationsData.features.length === 0) {
-    return null;
-  }
-
-  // Use first station (closest)
-  const stationId = stationsData.features[0]?.properties?.stationIdentifier;
-
-  if (!stationId) {
-    return null;
-  }
-
-  // Fetch latest observation
-  const obsUrl = `https://api.weather.gov/stations/${stationId}/observations/latest`;
-  const obsData = await nwsGet(obsUrl);
-
-  if (!obsData || !obsData.properties) {
-    return null;
-  }
-
-  const props = obsData.properties;
-
-  // Temperature is in Celsius, convert to Fahrenheit
-  if (props.temperature && props.temperature.value !== null) {
-    const tempC = props.temperature.value;
-    const tempF = (tempC * 9/5) + 32;
-    return tempF;
-  }
-
-  return null;
+  return data.temperature;
 }
