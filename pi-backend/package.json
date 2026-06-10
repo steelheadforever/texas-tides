@@ -1,0 +1,50 @@
+{
+  "name": "slackwater-backend",
+  "version": "1.1.0",
+  "description": "Backend server for Slackwater tide tracking app with admin dashboard",
+  "main": "src/server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js",
+    "dashboard": "node src/dashboard/server.js",
+    "dev:dashboard": "nodemon src/dashboard/server.js",
+    "db:migrate": "node -e \"import('./src/utils/migrations.js').then(m => m.runMigrations())\"",
+    "db:status": "node -e \"import('./src/utils/migrations.js').then(m => console.log(JSON.stringify(m.getMigrationStatus(), null, 2)))\"",
+    "pm2:start": "pm2 start ecosystem.config.cjs",
+    "pm2:stop": "pm2 stop all",
+    "pm2:restart": "pm2 restart all",
+    "pm2:logs": "pm2 logs",
+    "pm2:delete": "pm2 delete all"
+  },
+  "keywords": [
+    "tide",
+    "noaa",
+    "weather",
+    "api",
+    "dashboard",
+    "analytics"
+  ],
+  "author": "Andrew Pope",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "helmet": "^7.1.0",
+    "dotenv": "^16.3.1",
+    "node-fetch": "^3.3.2",
+    "morgan": "^1.10.0",
+    "express-rate-limit": "^7.1.5",
+    "sql.js": "^1.10.3",
+    "bcrypt": "^5.1.1",
+    "geoip-lite": "^1.4.10",
+    "cookie-parser": "^1.4.6",
+    "express-session": "^1.18.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

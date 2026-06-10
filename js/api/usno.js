@@ -1,37 +1,10 @@
 // USNO (US Naval Observatory) API functions
-// API Documentation: https://aa.usno.navy.mil/data/api
+// Now proxied through Raspberry Pi backend for caching and analytics
 // Provides sun/moon rise/set times and moon phase data
 
-const USNO_BASE_URL = 'https://aa.usno.navy.mil/api';
-const REQUEST_TIMEOUT = 10000; // 10 seconds
+import { API_BASE_URL, REQUEST_TIMEOUT } from './config.js';
 
-/**
- * Calculate timezone offset for Central Time (all Texas coastal stations)
- * Returns -6 for CST (winter) or -5 for CDT (summer/DST)
- */
-function getTimezoneOffset(date) {
-  const year = date.getFullYear();
-
-  // DST in US: Second Sunday in March to First Sunday in November
-  // Find second Sunday in March
-  const marchFirst = new Date(year, 2, 1); // March 1st
-  const marchFirstDay = marchFirst.getDay(); // Day of week (0 = Sunday)
-  const secondSundayMarch = 8 + (7 - marchFirstDay) % 7; // Second Sunday
-  const dstStart = new Date(year, 2, secondSundayMarch, 2, 0, 0); // 2:00 AM
-
-  // Find first Sunday in November
-  const novFirst = new Date(year, 10, 1); // November 1st
-  const novFirstDay = novFirst.getDay();
-  const firstSundayNov = 1 + (7 - novFirstDay) % 7; // First Sunday
-  const dstEnd = new Date(year, 10, firstSundayNov, 2, 0, 0); // 2:00 AM
-
-  // Check if date is within DST period
-  if (date >= dstStart && date < dstEnd) {
-    return -5; // CDT (Central Daylight Time)
-  } else {
-    return -6; // CST (Central Standard Time)
-  }
-}
+const USNO_API_URL = `${API_BASE_URL}/usno`;
 
 /**
  * Fetch sun and moon data for a specific location and date
@@ -48,25 +21,14 @@ export async function fetchSunMoonData(lat, lon, date = new Date()) {
   const day = String(date.getDate()).padStart(2, '0');
   const dateStr = `${year}-${month}-${day}`;
 
-  // Calculate timezone offset for Central Time (Texas coastal stations)
-  // CST = UTC-6, CDT = UTC-5
-  // Check if date is in DST (second Sunday in March to first Sunday in November)
-  const tzOffset = getTimezoneOffset(date);
-
-  // Build URL - using rstt/oneday endpoint
-  // This gives us sun rise/set, moon rise/set, and moon phase in one call
-  const url = `${USNO_BASE_URL}/rstt/oneday`;
-  const params = new URLSearchParams({
-    date: dateStr,
-    coords: `${lat.toFixed(4)},${lon.toFixed(4)}`,
-    tz: tzOffset // Use Central Time offset
-  });
+  // Build URL - now proxied through Pi backend
+  const url = `${USNO_API_URL}/sun-moon?lat=${lat}&lon=${lon}&date=${dateStr}`;
 
   try {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT);
 
-    const response = await fetch(`${url}?${params.toString()}`, {
+    const response = await fetch(url, {
       signal: controller.signal
     });
 
@@ -85,7 +47,7 @@ export async function fetchSunMoonData(lat, lon, date = new Date()) {
       return null;
     }
 
-    return parseSunMoonData(data);
+    return data;
   } catch (err) {
     console.error('USNO fetch failed:', err.message);
     return null;
