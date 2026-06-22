@@ -2,10 +2,12 @@
 // precipitation over a Texas-coast lattice. Shared by the wind + radar layers
 // and the scrubber. Mirrors the iOS WeatherGridService. Free, keyless.
 
+// Generous lattice so the wind layer fills the whole initial map view, not
+// just the coastal band (the initial fit shows Gulf + inland on wide screens).
 const LATS = [];
-for (let v = 24.8; v <= 31.2 + 1e-9; v += 0.4) LATS.push(+v.toFixed(2));
+for (let v = 24.0; v <= 31.5 + 1e-9; v += 0.5) LATS.push(+v.toFixed(2));
 const LONS = [];
-for (let v = -99.0; v <= -92.2 + 1e-9; v += 0.4) LONS.push(+v.toFixed(2));
+for (let v = -100.5; v <= -90.5 + 1e-9; v += 0.5) LONS.push(+v.toFixed(2));
 
 export const COAST_BOUNDS = {
   minLat: LATS[0], maxLat: LATS[LATS.length - 1],

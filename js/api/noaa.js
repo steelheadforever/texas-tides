@@ -519,3 +519,34 @@ export async function fetchTidePredictions7Day(stationId) {
   return predictions;
 }
 
+/**
+ * Fetch 7 days of actual high/low tide events (NOAA interval=hilo) starting
+ * from midnight today. The proper source of highs/lows — far more reliable
+ * than scanning the dense curve for local extrema.
+ * Returns array of {time, ft, kind: 'High'|'Low'}.
+ */
+export async function fetchTideHilo7Day(stationId) {
+  const range = getDateRangeFromMidnightToday(7);
+
+  const params = {
+    station: stationId,
+    product: 'predictions',
+    datum: 'MLLW',
+    begin_date: range.begin,
+    end_date: range.end,
+    interval: 'hilo'
+  };
+
+  const data = await noaaGet(params);
+
+  if (!data || !data.predictions || data.predictions.length === 0) {
+    return [];
+  }
+
+  return data.predictions.map(pred => ({
+    time: parseNOAALocalTime(pred.t),
+    ft: safeFloat(pred.v),
+    kind: pred.type === 'H' ? 'High' : 'Low'
+  }));
+}
+

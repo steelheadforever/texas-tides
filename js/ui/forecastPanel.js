@@ -1,7 +1,7 @@
-// 7-day forecast panel — swipeable day cards with continuous tide sparklines
-// (shared y-scale, midnight→midnight x-domain) matching the iOS forecast view.
+// 7-day forecast panel — day cards stacked vertically (matching the other
+// panels), each with a tide sparkline + real NOAA high/low events.
 
-import { fetchTidePredictions7Day } from '../api/noaa.js';
+import { fetchTidePredictions7Day, fetchTideHilo7Day } from '../api/noaa.js';
 import { fetchWeatherForecast7Day } from '../api/nws.js';
 import { fetchSunMoon7Day } from '../api/usno.js';
 import { renderSparkline } from './charts.js';
@@ -13,17 +13,6 @@ function centralDayKey(date) {
   return date.toLocaleDateString('en-CA', { timeZone: 'America/Chicago' }); // YYYY-MM-DD
 }
 
-// Local maxima/minima of the dense prediction curve → hi/lo events for a day.
-function findExtrema(points) {
-  const events = [];
-  for (let i = 1; i < points.length - 1; i++) {
-    const prev = points[i - 1].ft, cur = points[i].ft, next = points[i + 1].ft;
-    if (cur >= prev && cur > next) events.push({ time: points[i].time, ft: cur, kind: 'High' });
-    else if (cur <= prev && cur < next) events.push({ time: points[i].time, ft: cur, kind: 'Low' });
-  }
-  return events;
-}
-
 export async function openForecast(station) {
   document.getElementById('forecast-title').textContent = `7-Day · ${station.name}`;
   const body = document.getElementById('forecast-body');
@@ -31,8 +20,9 @@ export async function openForecast(station) {
   openPanel('forecast-panel');
 
   try {
-    const [predictions, weather, sunMoon] = await Promise.all([
+    const [predictions, hilo, weather, sunMoon] = await Promise.all([
       fetchTidePredictions7Day(station.id),
+      fetchTideHilo7Day(station.id),
       fetchWeatherForecast7Day(station.lat, station.lon),
       fetchSunMoon7Day(station.lat, station.lon),
     ]);
@@ -53,21 +43,26 @@ export async function openForecast(station) {
       yMin = lo - pad; yMax = hi + pad;
     }
 
+    // Bucket the real high/low events by Central-time day.
+    const hiloByDay = {};
+    for (const e of (hilo || [])) {
+      const k = centralDayKey(e.time);
+      (hiloByDay[k] ||= []).push(e);
+    }
+
     const unit = getSettings().windUnit;
     const days = weather && weather.length ? weather : [];
     const cards = days.map((day, idx) => {
       const key = centralDayKey(day.date);
       const dayPts = (predictions || []).filter((p) => centralDayKey(p.time) === key);
-      const events = findExtrema(dayPts);
+      const events = hiloByDay[key] || [];
       const sm = sunMoon?.[idx];
       const ci = conditionIcon(day.shortForecast);
-      const start = new Date(day.date); start.setHours(0, 0, 0, 0);
-      const end = new Date(start); end.setDate(start.getDate() + 1);
 
       const eventsHtml = events.map((e) => {
         const high = e.kind === 'High';
         return `<div class="tide-event" style="font-size:0.82rem;padding:0.1rem 0;border:none;">
-          <i class="ph-bold ${high ? 'ph-arrow-line-up' : 'ph-arrow-line-down'} ${high ? '' : ''}" style="color:var(--${high ? 'high' : 'low'})"></i>
+          <i class="ph-bold ${high ? 'ph-arrow-line-up' : 'ph-arrow-line-down'}" style="color:var(--${high ? 'high' : 'low'})"></i>
           <span>${e.kind} ${fmtTime(e.time)}</span>
           <span class="te-height">${fmtFeet(e.ft)}</span>
         </div>`;
@@ -77,7 +72,7 @@ export async function openForecast(station) {
         ? `${escapeHtml(day.windDirection)} ${fmtWind(day.windSpeed, unit)}–${fmtWind(day.windGust, unit)}`
         : `${escapeHtml(day.windDirection)} ${fmtWind(day.windSpeed, unit)}`;
 
-      return `<div class="day-card" data-idx="${idx}">
+      return `<div class="card day-card" data-idx="${idx}">
         <div class="day-card-title">${fmtDay(day.date)}</div>
         ${dayPts.length ? `<div class="chart-wrap" style="height:84px"><canvas class="fc-spark" data-idx="${idx}"></canvas></div>` : ''}
         ${eventsHtml ? `<div>${eventsHtml}</div>` : ''}
@@ -98,10 +93,7 @@ export async function openForecast(station) {
       </div>`;
     }).join('');
 
-    body.innerHTML = `
-      <div class="forecast-scroll" id="fc-scroll">${cards}</div>
-      <div class="page-dots" id="fc-dots">${days.map((_, i) => `<span class="dot ${i === 0 ? 'active' : ''}"></span>`).join('')}</div>
-      <div class="scroll-hint"><i class="ph-bold ph-arrows-left-right"></i> Swipe for more days</div>`;
+    body.innerHTML = cards;
 
     requestAnimationFrame(() => {
       document.querySelectorAll('#forecast-body .fc-spark').forEach((canvas) => {
@@ -111,9 +103,8 @@ export async function openForecast(station) {
         const dayPts = (predictions || []).filter((p) => centralDayKey(p.time) === key);
         const start = new Date(day.date); start.setHours(0, 0, 0, 0);
         const end = new Date(start); end.setDate(start.getDate() + 1);
-        renderSparkline(canvas, dayPts, { yMin, yMax, xMin: start, xMax: end, events: findExtrema(dayPts) });
+        renderSparkline(canvas, dayPts, { yMin, yMax, xMin: start, xMax: end, events: hiloByDay[key] || [] });
       });
-      wireDots();
     });
   } catch (err) {
     console.error('Forecast load failed:', err);
@@ -121,17 +112,6 @@ export async function openForecast(station) {
     const r = document.getElementById('fc-retry');
     if (r) r.addEventListener('click', () => openForecast(station));
   }
-}
-
-function wireDots() {
-  const scroll = document.getElementById('fc-scroll');
-  const dots = [...document.querySelectorAll('#fc-dots .dot')];
-  if (!scroll || !dots.length) return;
-  scroll.addEventListener('scroll', () => {
-    const cardW = scroll.scrollWidth / dots.length;
-    const active = Math.round(scroll.scrollLeft / cardW);
-    dots.forEach((d, i) => d.classList.toggle('active', i === active));
-  });
 }
 
 function emptyState() {

@@ -463,22 +463,8 @@ main {
 }
 .panel-empty .ph { font-size: 2rem; display: block; margin-bottom: 0.5rem; color: var(--text-tertiary); }
 
-/* ---- Forecast cards ------------------------------------------------------ */
-.forecast-scroll {
-  display: flex;
-  gap: 0.7rem;
-  overflow-x: auto;
-  scroll-snap-type: x mandatory;
-  padding-bottom: 0.4rem;
-  -webkit-overflow-scrolling: touch;
-}
+/* ---- Forecast cards (stacked vertically) --------------------------------- */
 .day-card {
-  scroll-snap-align: start;
-  flex: 0 0 78%;
-  background: var(--card);
-  border-radius: var(--radius-card);
-  padding: 0.8rem;
-  box-shadow: var(--shadow-card);
   display: flex;
   flex-direction: column;
   gap: 0.6rem;
@@ -611,7 +597,6 @@ main {
   }
   .panel.active { transform: translateY(0); }
   .panel-header { border-radius: var(--radius-panel) var(--radius-panel) 0 0; }
-  .day-card { flex-basis: 84%; }
   .control-cluster { top: 0.75rem; right: 0.75rem; }
   .legend { bottom: 5rem; }
 }
