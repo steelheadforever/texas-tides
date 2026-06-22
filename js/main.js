@@ -1,83 +1,182 @@
-// Main application entry point
-// Texas Coastal Tides Web Application
+// Slackwater web — application entry point.
 
-import { initMap } from './map.js';
-import { initDarkMode } from './utils/dark-mode.js';
-import { initMenu } from './utils/menu.js';
+import { applyAppearance, onSettingsChange, getSettings, isDark } from './settings.js';
+import { initMap, switchMapTiles, panToStation } from './map.js';
+import { openStation, initStationPanel } from './ui/stationPanel.js';
+import { openForecast } from './ui/forecastPanel.js';
+import { openSolunar, initSolunarPanel } from './ui/solunarPanel.js';
+import { openFavorites, initFavoritesPanel } from './ui/favoritesPanel.js';
+import { openSettings } from './ui/settingsPanel.js';
+import { refreshChartsTheme } from './ui/charts.js';
+import { fetchTimeline, windColor, precipColor } from './layers/weather.js';
+import { WindLayer } from './layers/wind.js';
+import { RadarLayer } from './layers/radar.js';
+import { fmtHour } from './format.js';
 
-/**
- * Wait for external libraries (Leaflet, Chart.js) to load
- */
 function waitForLibraries() {
   return new Promise((resolve) => {
-    const checkLibraries = () => {
-      if (typeof L !== 'undefined' && typeof Chart !== 'undefined') {
-        console.log('External libraries loaded successfully');
-        resolve();
-      } else {
-        console.log('Waiting for libraries...');
-        setTimeout(checkLibraries, 100);
-      }
-    };
-    checkLibraries();
+    const check = () => (typeof L !== 'undefined' && typeof Chart !== 'undefined') ? resolve() : setTimeout(check, 60);
+    check();
   });
 }
 
-/**
- * Initialize the application when DOM is loaded
- */
+// ---- Weather layer + scrubber controller ----------------------------------
+
+const weather = {
+  windOn: false, radarOn: false, hour: 0, playing: false, playTimer: null,
+  timeline: null, windLayer: null, radarLayer: null, map: null,
+
+  async ensureTimeline() {
+    if (this.timeline) return this.timeline;
+    try { this.timeline = await fetchTimeline(); } catch (e) { console.warn('Wind/precip timeline failed', e); }
+    return this.timeline;
+  },
+
+  async setWind(on) {
+    this.windOn = on;
+    document.getElementById('wind-btn').classList.toggle('active', on);
+    if (on) {
+      await this.ensureTimeline();
+      if (!this.windLayer) this.windLayer = new WindLayer(this.map);
+      this.windLayer.start();
+      this.applyHour();
+    } else if (this.windLayer) {
+      this.windLayer.stop();
+    }
+    this.updateChrome();
+  },
+
+  async setRadar(on) {
+    this.radarOn = on;
+    document.getElementById('radar-btn').classList.toggle('active', on);
+    if (on) {
+      if (!this.radarLayer) this.radarLayer = new RadarLayer(this.map);
+      if (this.hour > 0) await this.ensureTimeline();
+      this.applyHour();
+    } else if (this.radarLayer) {
+      this.radarLayer.hide();
+    }
+    this.updateChrome();
+  },
+
+  applyHour() {
+    const tl = this.timeline;
+    if (this.windOn && this.windLayer && tl) {
+      this.windLayer.setGrid(tl.windGrids[Math.min(this.hour, tl.windGrids.length - 1)]);
+    }
+    if (this.radarOn && this.radarLayer) {
+      if (this.hour === 0) this.radarLayer.showLive();
+      else if (tl) this.radarLayer.showForecast(tl.precipGrids[Math.min(this.hour, tl.precipGrids.length - 1)]);
+    }
+    this.updateLabel();
+  },
+
+  async setHour(h) {
+    this.hour = h;
+    if (h > 0) await this.ensureTimeline();
+    this.applyHour();
+  },
+
+  updateLabel() {
+    const label = document.getElementById('timeline-label');
+    if (this.hour === 0 || !this.timeline) {
+      label.textContent = 'Live';
+      label.classList.add('live');
+    } else {
+      label.textContent = fmtHour(this.timeline.hours[Math.min(this.hour, this.timeline.hours.length - 1)]);
+      label.classList.remove('live');
+    }
+  },
+
+  togglePlay() {
+    this.playing = !this.playing;
+    const icon = document.querySelector('#timeline-play i');
+    icon.className = this.playing ? 'ph-fill ph-pause' : 'ph-fill ph-play';
+    if (this.playing) {
+      this.playTimer = setInterval(() => {
+        const max = this.timeline ? this.timeline.stepCount - 1 : 12;
+        const range = document.getElementById('timeline-range');
+        this.hour = this.hour >= max ? 0 : this.hour + 1;
+        range.value = this.hour;
+        this.applyHour();
+      }, 900);
+    } else {
+      clearInterval(this.playTimer);
+    }
+  },
+
+  updateChrome() {
+    const anyOn = this.windOn || this.radarOn;
+    document.getElementById('timeline-bar').classList.toggle('active', anyOn);
+    if (!anyOn && this.playing) this.togglePlay();
+    renderLegend(this.windOn, this.radarOn);
+  },
+};
+
+function renderLegend(windOn, radarOn) {
+  const legend = document.getElementById('legend');
+  const show = (windOn || radarOn) && getSettings().showLegend;
+  legend.classList.toggle('active', show);
+  if (!show) return;
+  const content = document.getElementById('legend-content');
+  const windStops = [[1, '0'], [5, '7'], [11, '18'], [18, '34'], [26, '49'], [35, '67+']];
+  const precipStops = [[0.3, 'Light'], [1, ''], [2.5, 'Mod'], [6, ''], [12, 'Heavy'], [20, '']];
+  let html = '';
+  if (windOn) {
+    html += `<div class="legend-group"><div class="legend-group-title">Wind (mph)</div>
+      <div class="legend-ramp">${windStops.map(([s]) => `<span style="background:${windColor(s).replace('ALPHA', '1')}"></span>`).join('')}</div>
+      <div class="legend-scale">${windStops.map(([, l]) => `<span>${l}</span>`).join('')}</div></div>`;
+  }
+  if (radarOn) {
+    html += `<div class="legend-group"><div class="legend-group-title">Rain</div>
+      <div class="legend-ramp">${precipStops.map(([mm]) => { const c = precipColor(mm); return `<span style="background:rgba(${c[0]},${c[1]},${c[2]},${c[3]})"></span>`; }).join('')}</div>
+      <div class="legend-scale">${precipStops.map(([, l]) => `<span>${l}</span>`).join('')}</div></div>`;
+  }
+  content.innerHTML = html;
+}
+
+// ---- Boot -----------------------------------------------------------------
+
 async function init() {
-  console.log('Texas Coastal Tides - Initializing...');
-
-  // Initialize dark mode first (before anything renders)
-  initDarkMode();
-
-  // Initialize menu
-  initMenu();
-
-  // Wait for external libraries to load
+  applyAppearance();
   await waitForLibraries();
 
-  // Initialize the map
-  try {
-    initMap();
-    console.log('Map initialized successfully');
-  } catch (err) {
-    console.error('Error initializing map:', err);
-  }
+  const map = initMap(openStation);
+  weather.map = map;
 
-  // Update status bar
-  updateStatusBar();
+  initStationPanel({ onForecast: openForecast, onSolunar: openSolunar });
+  initSolunarPanel();
+  initFavoritesPanel({ onSelect: (station) => { panToStation(station); openStation(station); } });
 
-  console.log('Application initialized successfully');
-}
+  // Control cluster
+  document.getElementById('wind-btn').addEventListener('click', () => weather.setWind(!weather.windOn));
+  document.getElementById('radar-btn').addEventListener('click', () => weather.setRadar(!weather.radarOn));
+  document.getElementById('favorites-btn').addEventListener('click', openFavorites);
+  document.getElementById('settings-btn').addEventListener('click', openSettings);
 
-/**
- * Update status bar with last update time
- */
-function updateStatusBar() {
-  const now = new Date();
-  const timeString = now.toLocaleTimeString('en-US', {
-    hour: 'numeric',
-    minute: '2-digit',
-    hour12: true
+  // Timeline scrubber
+  document.getElementById('timeline-range').addEventListener('input', (e) => {
+    if (weather.playing) weather.togglePlay();
+    weather.setHour(+e.target.value);
+  });
+  document.getElementById('timeline-play').addEventListener('click', () => weather.togglePlay());
+
+  // Legend collapse
+  document.getElementById('legend-collapse').addEventListener('click', () => {
+    const legend = document.getElementById('legend');
+    legend.classList.toggle('collapsed');
+    document.getElementById('legend-content').style.display = legend.classList.contains('collapsed') ? 'none' : 'block';
   });
 
-  const lastUpdateElement = document.querySelector('#last-update .time');
-  if (lastUpdateElement) {
-    lastUpdateElement.textContent = timeString;
-  }
+  // React to settings changes
+  let wasDark = isDark();
+  onSettingsChange(() => {
+    if (isDark() !== wasDark) { wasDark = isDark(); switchMapTiles(wasDark); refreshChartsTheme(); }
+    renderLegend(weather.windOn, weather.radarOn);
+  });
 
-  const nextUpdateElement = document.querySelector('#next-update .time');
-  if (nextUpdateElement) {
-    nextUpdateElement.textContent = 'on station click';
-  }
+  console.log('Slackwater web initialized');
 }
 
-// Wait for DOM to be fully loaded
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', init);
-} else {
-  // DOM already loaded
-  init();
-}
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+else init();

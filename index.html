@@ -2,20 +2,24 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>slackwater.app - Texas Coast Tides</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Slackwater — Texas Coast Tides & Weather</title>
 
-  <!-- Google Fonts -->
+  <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Yellowtail&display=swap" rel="stylesheet">
 
-  <!-- Leaflet CSS -->
+  <!-- Phosphor icons (SF Symbols–alike) -->
+  <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
+  <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css">
+  <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/bold/style.css">
+
+  <!-- Leaflet -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
     integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
     crossorigin=""/>
 
-  <!-- Custom CSS -->
   <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
@@ -23,69 +27,91 @@
     <div class="header-content">
       <div class="header-text">
         <h1>Slackwater</h1>
-        <p class="subtitle">Tides and weather for the Texas Coast</p>
+        <p class="subtitle">Tides &amp; weather for the Texas Coast</p>
       </div>
-      <button id="menu-toggle" class="menu-toggle" aria-label="Toggle menu">
-        <span class="menu-icon"></span>
-        <span class="menu-icon"></span>
-        <span class="menu-icon"></span>
-      </button>
     </div>
   </header>
 
   <main>
     <div id="map"></div>
-    <div id="status-bar">
-      <div class="status-bar-left">
-        <div class="status-bar-updates">
-          <span id="last-update">Next update on station click. Last Updated: <span class="time">--</span></span>
-        </div>
-        <span class="status-bar-credit">Data from NOAA CO-OPS & National Weather Service</span>
+
+    <!-- Control cluster -->
+    <div class="control-cluster">
+      <button class="control-btn" id="wind-btn" aria-label="Wind layer" title="Wind"><i class="ph ph-wind"></i></button>
+      <button class="control-btn" id="radar-btn" aria-label="Radar layer" title="Radar"><i class="ph ph-cloud-rain"></i></button>
+      <button class="control-btn" id="favorites-btn" aria-label="Favorites" title="Favorites"><i class="ph ph-star"></i></button>
+      <button class="control-btn" id="settings-btn" aria-label="Settings" title="Settings"><i class="ph ph-gear"></i></button>
+    </div>
+
+    <!-- Layer legend -->
+    <div class="legend" id="legend">
+      <div class="legend-head">
+        <span class="legend-title">Legend</span>
+        <button id="legend-collapse" aria-label="Collapse legend"><i class="ph-bold ph-caret-down"></i></button>
       </div>
+      <div class="legend-content" id="legend-content"></div>
+    </div>
+
+    <!-- 12h timeline scrubber -->
+    <div class="timeline-bar" id="timeline-bar">
+      <button class="play-btn" id="timeline-play" aria-label="Play"><i class="ph-fill ph-play"></i></button>
+      <input type="range" id="timeline-range" min="0" max="12" step="1" value="0">
+      <span class="time-label live" id="timeline-label">Live</span>
+    </div>
+
+    <div id="status-bar">
+      <span class="status-bar-credit">Data from NOAA CO-OPS &amp; National Weather Service</span>
     </div>
   </main>
 
-  <!-- Menu Backdrop -->
-  <div id="menu-backdrop" class="menu-backdrop"></div>
+  <!-- Panels -->
+  <div class="panel-backdrop" id="panel-backdrop"></div>
 
-  <!-- Side Menu -->
-  <div id="side-menu" class="side-menu">
-    <div class="menu-content">
-      <div class="menu-item">
-        <label class="menu-label">
-          <span>Winds</span>
-          <div class="toggle-switch">
-            <input type="checkbox" id="winds-toggle" disabled>
-            <span class="toggle-slider"></span>
-          </div>
-        </label>
-      </div>
-      <div class="menu-item">
-        <label class="menu-label">
-          <span>Precip</span>
-          <div class="toggle-switch">
-            <input type="checkbox" id="precip-toggle" disabled>
-            <span class="toggle-slider"></span>
-          </div>
-        </label>
-      </div>
-      <div class="menu-item">
-        <label class="menu-label">
-          <span>Dark Mode</span>
-          <div class="toggle-switch">
-            <input type="checkbox" id="dark-mode-toggle">
-            <span class="toggle-slider"></span>
-          </div>
-        </label>
-      </div>
-      <div class="menu-divider"></div>
-      <div class="menu-item">
-        <button id="compare-button" class="compare-button" disabled>Compare</button>
-      </div>
+  <aside class="panel" id="station-panel" aria-hidden="true">
+    <div class="panel-header">
+      <button class="panel-action" id="station-fav" title="Add to favorites"><i class="ph ph-plus-circle"></i></button>
+      <span class="panel-title" id="station-title">Station</span>
+      <button class="panel-action" id="station-solunar" title="Solunar"><i class="ph ph-calendar-blank"></i></button>
+      <button class="panel-action" id="station-forecast" title="7-day forecast"><i class="ph-fill ph-cloud-sun"></i></button>
+      <button class="panel-action panel-close" data-close title="Close"><i class="ph ph-x"></i></button>
     </div>
-  </div>
+    <div class="panel-body" id="station-body"></div>
+  </aside>
 
-  <!-- Leaflet JS -->
+  <aside class="panel wide" id="forecast-panel" aria-hidden="true">
+    <div class="panel-header">
+      <span class="panel-title" id="forecast-title">7-Day Forecast</span>
+      <button class="panel-action panel-close" data-close title="Close"><i class="ph ph-x"></i></button>
+    </div>
+    <div class="panel-body" id="forecast-body"></div>
+  </aside>
+
+  <aside class="panel" id="solunar-panel" aria-hidden="true">
+    <div class="panel-header">
+      <span class="panel-title" id="solunar-title">Solunar</span>
+      <button class="panel-action" id="solunar-info" title="About solunar"><i class="ph ph-info"></i></button>
+      <button class="panel-action panel-close" data-close title="Close"><i class="ph ph-x"></i></button>
+    </div>
+    <div class="panel-body" id="solunar-body"></div>
+  </aside>
+
+  <aside class="panel" id="favorites-panel" aria-hidden="true">
+    <div class="panel-header">
+      <span class="panel-title">Favorites</span>
+      <button class="panel-action panel-close" data-close title="Close"><i class="ph ph-x"></i></button>
+    </div>
+    <div class="panel-body" id="favorites-body"></div>
+  </aside>
+
+  <aside class="panel" id="settings-panel" aria-hidden="true">
+    <div class="panel-header">
+      <span class="panel-title">Settings</span>
+      <button class="panel-action panel-close" data-close title="Close"><i class="ph ph-x"></i></button>
+    </div>
+    <div class="panel-body" id="settings-body"></div>
+  </aside>
+
+  <!-- Leaflet -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
     integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
     crossorigin=""></script>
@@ -95,7 +121,6 @@
   <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.0.1/dist/chartjs-plugin-annotation.min.js"></script>
 
-  <!-- App modules (ES6 modules) -->
   <script type="module" src="js/main.js"></script>
 </body>
 </html>
