@@ -47,7 +47,8 @@ export async function openForecast(station) {
     const hiloByDay = {};
     for (const e of (hilo || [])) {
       const k = centralDayKey(e.time);
-      (hiloByDay[k] ||= []).push(e);
+      if (!hiloByDay[k]) hiloByDay[k] = [];
+      hiloByDay[k].push(e);
     }
 
     const unit = getSettings().windUnit;

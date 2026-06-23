@@ -167,6 +167,7 @@ main {
 }
 .leaflet-control-zoom a {
   background: var(--material) !important;
+  -webkit-backdrop-filter: blur(12px);
   backdrop-filter: blur(12px);
   color: var(--text) !important;
   border-color: var(--hairline) !important;
@@ -196,6 +197,7 @@ main {
   display: flex;
   flex-direction: column;
   background: var(--material);
+  -webkit-backdrop-filter: blur(14px);
   backdrop-filter: blur(14px);
   border: 1px solid var(--hairline);
   border-radius: var(--radius-control);
@@ -229,6 +231,7 @@ main {
   font-size: 0.62rem;
   color: var(--text-secondary);
   background: var(--material);
+  -webkit-backdrop-filter: blur(10px);
   backdrop-filter: blur(10px);
   border-top-right-radius: 10px;
   border: 1px solid var(--hairline);
@@ -521,6 +524,7 @@ main {
   z-index: 550;
   width: 150px;
   background: var(--material);
+  -webkit-backdrop-filter: blur(12px);
   backdrop-filter: blur(12px);
   border: 1px solid var(--hairline);
   border-radius: 10px;
@@ -552,6 +556,7 @@ main {
   width: min(520px, calc(100% - 2rem));
   padding: 0.45rem 0.8rem;
   background: var(--material);
+  -webkit-backdrop-filter: blur(14px);
   backdrop-filter: blur(14px);
   border: 1px solid var(--hairline);
   border-radius: 999px;

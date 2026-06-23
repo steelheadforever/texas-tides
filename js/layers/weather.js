@@ -41,10 +41,26 @@ export function makePrecipGrid(values) {
 
 let cache = null;
 let cachedAt = 0;
+let inflight = null;
 
+// Dedup concurrent callers (wind + radar may both request at once) and retry
+// once on a transient failure, so the wind layer reliably gets its grid
+// instead of silently staying blank.
 export async function fetchTimeline() {
   if (cache && Date.now() - cachedAt < 15 * 60 * 1000) return cache;
+  if (inflight) return inflight;
+  inflight = (async () => {
+    let lastErr;
+    for (let attempt = 0; attempt < 2; attempt++) {
+      try { return await buildTimeline(); }
+      catch (e) { lastErr = e; await new Promise((r) => setTimeout(r, 800)); }
+    }
+    throw lastErr;
+  })();
+  try { return await inflight; } finally { inflight = null; }
+}
 
+async function buildTimeline() {
   const points = [];
   for (const la of LATS) for (const lo of LONS) points.push([la, lo]);
   const url = new URL('https://api.open-meteo.com/v1/forecast');

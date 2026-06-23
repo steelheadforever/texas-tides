@@ -14,6 +14,11 @@ function ensureBackdrop() {
   document.querySelectorAll('.panel [data-close]').forEach((btn) => {
     btn.addEventListener('click', () => closePanel());
   });
+  // Wire [data-back-to] buttons — swap back to a prior panel (its content
+  // persists in the DOM, so this is instant).
+  document.querySelectorAll('.panel [data-back-to]').forEach((btn) => {
+    btn.addEventListener('click', () => openPanel(btn.getAttribute('data-back-to')));
+  });
 }
 
 export function openPanel(id, onClose) {
