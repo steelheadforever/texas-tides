@@ -35,15 +35,19 @@ const weather = {
   async setWind(on) {
     this.windOn = on;
     document.getElementById('wind-btn').classList.toggle('active', on);
-    if (on) {
-      await this.ensureTimeline();
-      if (!this.windLayer) this.windLayer = new WindLayer(this.map);
-      this.windLayer.start();
-      this.applyHour();
-    } else if (this.windLayer) {
-      this.windLayer.stop();
-    }
     this.updateChrome();
+    if (!on) {
+      if (this.windLayer) this.windLayer.stop();
+      return;
+    }
+    // Start the canvas immediately so the layer is responsive, then apply the
+    // grid as soon as the (possibly slow) timeline fetch resolves.
+    if (!this.windLayer) this.windLayer = new WindLayer(this.map);
+    this.windLayer.start();
+    const tl = await this.ensureTimeline();
+    if (this.windOn && tl && this.windLayer) {
+      this.windLayer.setGrid(tl.windGrids[Math.min(this.hour, tl.windGrids.length - 1)]);
+    }
   },
 
   async setRadar(on) {
@@ -147,6 +151,10 @@ async function init() {
   initStationPanel({ onForecast: openForecast, onSolunar: openSolunar });
   initSolunarPanel();
   initFavoritesPanel({ onSelect: (station) => { panToStation(station); openStation(station); } });
+
+  // Warm the wind/precip grid a couple seconds after load so the wind layer
+  // appears instantly on first click instead of waiting on a cold fetch.
+  setTimeout(() => { weather.ensureTimeline(); }, 2000);
 
   // Control cluster
   document.getElementById('wind-btn').addEventListener('click', () => weather.setWind(!weather.windOn));
