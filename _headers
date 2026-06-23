@@ -1,0 +1,14 @@
+# Cloudflare Pages headers. Force browsers to revalidate HTML/JS/CSS on every
+# load (cheap ETag check) so an old cached module never breaks the app after a
+# deploy — e.g. a stale js/api/noaa.js missing an export that a newer module
+# imports. Safari in particular over-caches ES modules; this prevents the
+# "header shows but no map" import failure.
+
+/*.html
+  Cache-Control: no-cache
+
+/js/*
+  Cache-Control: no-cache
+
+/css/*
+  Cache-Control: no-cache
