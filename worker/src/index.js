@@ -3,7 +3,7 @@
 // and USNO, plus a cron warmer that pre-fetches deterministic tide predictions
 // for all Texas stations. The app only ever talks to this Worker.
 
-import { cacheKey, noaaTtl, TTL, getCached, setCached } from './cache.js';
+import { cacheKey, canonicalizeNoaa, noaaTtl, TTL, getCached, setCached } from './cache.js';
 import { noaaGet, fetchSunMoon, parseSunMoon, fetchPoints } from './upstream.js';
 import { forecast12h, pressure, temperature } from './nws.js';
 import { STATIONS } from './stations.js';
@@ -60,8 +60,11 @@ async function handleRequest(request, env) {
 
   // NOAA generic passthrough — /api/noaa/query?station=...&product=...
   if (path === '/api/noaa/query') {
-    const params = Object.fromEntries(url.searchParams.entries());
-    if (!params.station && !params.product) return json({ error: 'station and product are required' }, { status: 400 });
+    const raw = Object.fromEntries(url.searchParams.entries());
+    if (!raw.station && !raw.product) return json({ error: 'station and product are required' }, { status: 400 });
+    // Widen deterministic prediction windows to whole days so the key (and the
+    // upstream fetch) is shared across the day instead of rolling every hour.
+    const params = canonicalizeNoaa(raw);
     const key = cacheKey('noaa:query', params);
     return cached(env, key, noaaTtl(params), () => noaaGet(params));
   }
@@ -142,13 +145,16 @@ function centralRange(hoursStart, hoursEnd) {
 // Warm a single NOAA prediction request if it's missing or within 25% of expiry.
 // Returns true if it issued an upstream fetch (counts against the budget).
 async function warmOne(env, params) {
-  const key = cacheKey('noaa:query', params);
+  // Use the same day-aligned canonical window the request handler uses, so the
+  // warmer pre-populates the exact key clients will read.
+  const cp = canonicalizeNoaa(params);
+  const key = cacheKey('noaa:query', cp);
   const hit = await getCached(env, key);
   const ttl = TTL.predictions;
   const fresh = hit && hit.expiresAt - Date.now() > ttl * 0.25 * 1000;
   if (fresh) return false;
 
-  const data = await noaaGet(params);
+  const data = await noaaGet(cp);
   if (!data.error) await setCached(env, key, data, ttl);
   return true;
 }

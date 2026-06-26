@@ -17,6 +17,36 @@ function snapHour(value) {
   return m ? `${m[1]} ${m[2]}:00` : value;
 }
 
+// Snap a NOAA "YYYYMMDD HH:MM" date to a whole day. dir 'floor' → 00:00 of that
+// day; 'ceil' → 00:00 of the next day (unless already at midnight). The wall-clock
+// string is treated as UTC purely for calendar arithmetic — we only move the date
+// part, never convert zones — so a Central-local string stays Central-local.
+function snapDay(value, dir) {
+  const m = /^(\d{4})(\d{2})(\d{2})\s+(\d{2}):(\d{2})$/.exec(value);
+  if (!m) return value;
+  const [, y, mo, d, hh, mm] = m;
+  let ms = Date.UTC(+y, +mo - 1, +d, 0, 0);
+  if (dir === 'ceil' && (hh !== '00' || mm !== '00')) ms += 24 * 3600 * 1000;
+  const out = new Date(ms);
+  const p = (n) => String(n).padStart(2, '0');
+  return `${out.getUTCFullYear()}${p(out.getUTCMonth() + 1)}${p(out.getUTCDate())} 00:00`;
+}
+
+// Tide predictions are deterministic, so we widen any predictions request to
+// whole days for BOTH the cache key and the upstream fetch. Clients (and the
+// warmer) send now-relative windows that previously rolled to a fresh key every
+// clock-hour — minting 2 writes/station/hour and blowing past the KV daily write
+// cap. Snapping to day boundaries collapses all of an day's requests onto ~one
+// shared key. Clients get a slightly wider window and clip it to what they render.
+// Non-prediction (live/observed) data must stay fresh and narrow, so it's untouched.
+export function canonicalizeNoaa(params) {
+  if (params.product !== 'predictions') return params;
+  const out = { ...params };
+  if (out.begin_date) out.begin_date = snapDay(String(out.begin_date), 'floor');
+  if (out.end_date) out.end_date = snapDay(String(out.end_date), 'ceil');
+  return out;
+}
+
 // Build a stable cache key from an endpoint label + params object.
 export function cacheKey(endpoint, params = {}) {
   const parts = [];

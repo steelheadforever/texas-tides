@@ -246,7 +246,7 @@ export async function fetch24HourCurve(stationId) {
   const range = getDateRange(-6, 24);
 
   // Fetch both observed and predicted data in parallel
-  const [predictions, observed] = await Promise.all([
+  const [predictionsRaw, observed] = await Promise.all([
     fetchPredictions(
       stationId,
       range.begin,
@@ -255,6 +255,15 @@ export async function fetch24HourCurve(stationId) {
     ),
     fetchObservedWaterLevels(stationId, 6) // Past 6 hours of observations
   ]);
+
+  // The backend widens prediction windows to whole days (to share one cache key
+  // across the day instead of minting a new one every hour), so it may return
+  // more than our [-6h, +24h] render window. Clip to the requested range so the
+  // sparkline looks exactly as it did before.
+  const predictions = (predictionsRaw || []).filter((p) => {
+    const t = p.time instanceof Date ? p.time.getTime() : +p.time;
+    return t >= range.beginDate.getTime() && t <= range.endDate.getTime();
+  });
 
   // If no predictions available, fetch 24 hours of water level history instead
   if (!predictions || predictions.length === 0) {
