@@ -109,7 +109,7 @@ export function renderTideCurve(canvas, curve, events = []) {
  * Minimal sparkline (forecast day cards + favorites). `points` = [{time, ft}].
  * yDomain pins a shared scale; events draw hi/lo dots.
  */
-export function renderSparkline(canvas, points, { yMin, yMax, events = [], xMin, xMax, showNow = true } = {}) {
+export function renderSparkline(canvas, points, { yMin, yMax, events = [], xMin, xMax, showNow = true, showTimeAxis = false } = {}) {
   destroyFor(canvas);
   const tide = cssVar('--tide');
   const high = cssVar('--high');
@@ -135,7 +135,14 @@ export function renderSparkline(canvas, points, { yMin, yMax, events = [], xMin,
     options: {
       responsive: true, maintainAspectRatio: false,
       scales: {
-        x: { type: 'time', display: false, min: xMin, max: xMax },
+        x: showTimeAxis
+          ? {
+              type: 'time', min: xMin, max: xMax,
+              time: { unit: 'hour', displayFormats: { hour: 'ha' } },
+              grid: { display: false }, border: { display: false },
+              ticks: { color: cssVar('--text-secondary'), maxTicksLimit: 5, font: { size: 9 }, autoSkipPadding: 8 },
+            }
+          : { type: 'time', display: false, min: xMin, max: xMax },
         y: { display: false, min: yMin, max: yMax },
       },
       plugins: { legend: { display: false }, tooltip: { enabled: false } },

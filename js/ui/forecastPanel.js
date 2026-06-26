@@ -75,7 +75,7 @@ export async function openForecast(station) {
 
       return `<div class="card day-card" data-idx="${idx}">
         <div class="day-card-title">${fmtDay(day.date)}</div>
-        ${dayPts.length ? `<div class="chart-wrap" style="height:84px"><canvas class="fc-spark" data-idx="${idx}"></canvas></div>` : ''}
+        ${dayPts.length ? `<div class="chart-wrap" style="height:96px"><canvas class="fc-spark" data-idx="${idx}"></canvas></div>` : ''}
         ${eventsHtml ? `<div>${eventsHtml}</div>` : ''}
         <div class="divider"></div>
         <div class="sub"><i class="${ci.icon}" style="color:${ci.color}"></i><span>${escapeHtml(day.shortForecast || 'N/A')}</span></div>
@@ -104,7 +104,7 @@ export async function openForecast(station) {
         const dayPts = (predictions || []).filter((p) => centralDayKey(p.time) === key);
         const start = new Date(day.date); start.setHours(0, 0, 0, 0);
         const end = new Date(start); end.setDate(start.getDate() + 1);
-        renderSparkline(canvas, dayPts, { yMin, yMax, xMin: start, xMax: end, events: hiloByDay[key] || [] });
+        renderSparkline(canvas, dayPts, { yMin, yMax, xMin: start, xMax: end, events: hiloByDay[key] || [], showTimeAxis: true });
       });
     });
   } catch (err) {
