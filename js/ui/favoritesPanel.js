@@ -69,7 +69,7 @@ async function loadSummary(station) {
       const pts = curve.predicted
         ? curve.predicted.times.map((t, i) => ({ time: t, ft: curve.predicted.heights[i] }))
         : (curve.observed ? curve.observed.times.map((t, i) => ({ time: t, ft: curve.observed.heights[i] })) : []);
-      if (pts.length) renderSparkline(canvas, pts);
+      if (pts.length) renderSparkline(canvas, pts, { showTimeAxis: true });
     }
   } catch (err) {
     const statsEl = document.getElementById(`fav-stats-${station.id}`);

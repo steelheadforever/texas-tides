@@ -140,7 +140,13 @@ export function renderSparkline(canvas, points, { yMin, yMax, events = [], xMin,
               type: 'time', min: xMin, max: xMax,
               time: { unit: 'hour', displayFormats: { hour: 'ha' } },
               grid: { display: false }, border: { display: false },
-              ticks: { color: cssVar('--text-secondary'), maxTicksLimit: 5, font: { size: 9 }, autoSkipPadding: 8 },
+              ticks: { color: cssVar('--text-secondary'), font: { size: 9 }, maxRotation: 0, autoSkip: false },
+              // Chart.js ignores time.stepSize here, so pin the markers to a
+              // fixed 6-hour set (12AM/6AM/12PM/6PM) for consistency everywhere.
+              afterTickToLabelConversion(scale) {
+                const keep = new Set(['12AM', '6AM', '12PM', '6PM']);
+                scale.ticks = scale.ticks.filter((t) => keep.has(t.label));
+              },
             }
           : { type: 'time', display: false, min: xMin, max: xMax },
         y: { display: false, min: yMin, max: yMax },

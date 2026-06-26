@@ -512,7 +512,7 @@ main {
 .fav-row .fav-stats { display: flex; gap: 0.8rem; font-size: 0.82rem; flex-wrap: wrap; align-items: center; }
 .fav-row .fav-stats .stat-tide { display: flex; align-items: center; gap: 0.25rem; font-variant-numeric: tabular-nums; }
 .fav-row .chev { color: var(--text-tertiary); }
-.fav-spark { height: 56px; }
+.fav-spark { height: 78px; }
 .fav-handle { color: var(--text-tertiary); cursor: grab; font-size: 1.1rem; }
 .fav-row.dragging { opacity: 0.5; }
 
