@@ -51,13 +51,21 @@ export function noaaTtl(params) {
 // Read a cached entry. Returns the parsed body or null on miss/expiry.
 // KV TTL handles expiry, but we also store expires_at so the warmer can do
 // write-on-near-expiry and so we can serve stale-on-error if upstream fails.
+// Best-effort: a KV failure reads as a miss, never an error.
 export async function getCached(env, key) {
-  const raw = await env.CACHE.get(key, { type: 'json' });
-  if (!raw) return null;
-  return raw; // { body, cachedAt, expiresAt }
+  try {
+    const raw = await env.CACHE.get(key, { type: 'json' });
+    if (!raw) return null;
+    return raw; // { body, cachedAt, expiresAt }
+  } catch (err) {
+    console.warn(`[cache] read failed for ${key}: ${err.message}`);
+    return null;
+  }
 }
 
 // Store a value with a TTL. KV enforces a 60s minimum expiration_ttl.
+// Best-effort: caching is an optimization — a failed write (e.g. the KV
+// daily write cap) must never fail a request that has data in hand.
 export async function setCached(env, key, body, ttlSeconds) {
   const now = Date.now();
   const entry = {
@@ -65,8 +73,12 @@ export async function setCached(env, key, body, ttlSeconds) {
     cachedAt: now,
     expiresAt: now + ttlSeconds * 1000,
   };
-  await env.CACHE.put(key, JSON.stringify(entry), {
-    expirationTtl: Math.max(60, ttlSeconds),
-  });
+  try {
+    await env.CACHE.put(key, JSON.stringify(entry), {
+      expirationTtl: Math.max(60, ttlSeconds),
+    });
+  } catch (err) {
+    console.warn(`[cache] write failed for ${key}: ${err.message}`);
+  }
   return entry;
 }
