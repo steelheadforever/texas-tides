@@ -41,8 +41,22 @@ function render() {
         <label class="switch"><input type="checkbox" id="set-legend" ${s.showLegend ? 'checked' : ''}><span class="slider"></span></label>
       </div>
     </div>
+    <div class="card">
+      <div class="card-label"><i class="ph ph-scroll"></i>About &amp; Legal</div>
+      <a class="setting-row link-row" href="https://workingmodel.cc/slackwater-privacy.html" target="_blank" rel="noopener">
+        <span class="label">Privacy Policy</span>
+        <i class="ph ph-arrow-up-right"></i>
+      </a>
+      <a class="setting-row link-row" href="https://workingmodel.cc/slackwater-terms.html" target="_blank" rel="noopener">
+        <span class="label">Terms of Use</span>
+        <i class="ph ph-arrow-up-right"></i>
+      </a>
+    </div>
     <p style="font-size:0.72rem;color:var(--text-secondary);padding:0 0.3rem;">
       Tides &amp; conditions from NOAA CO-OPS. Weather from the National Weather Service. Sun &amp; moon from the U.S. Naval Observatory. Radar via RainViewer. Forecast grids from Open-Meteo.
+    </p>
+    <p style="font-size:0.72rem;color:var(--text-secondary);padding:0 0.3rem;">
+      Slackwater is a <a href="https://workingmodel.cc/" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:none;">Working Model</a> project.
     </p>`;
 
   body.querySelectorAll('.segmented').forEach((seg) => {

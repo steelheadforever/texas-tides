@@ -574,6 +574,47 @@ main {
 /* ---- Settings ------------------------------------------------------------ */
 .setting-row { display: flex; align-items: center; justify-content: space-between; padding: 0.3rem 0; }
 .setting-row .label { font-weight: 500; }
+.link-row { text-decoration: none; color: var(--text); cursor: pointer; }
+.link-row .ph-arrow-up-right { color: var(--text-secondary); font-size: 0.95rem; }
+.link-row:hover .label { color: var(--accent); }
+.link-row:hover .ph-arrow-up-right { color: var(--accent); }
+
+/* Persistent "predictions — verify before relying" caption in the station panel */
+.sp-tide-note {
+  display: flex; align-items: flex-start; gap: 0.4rem;
+  font-size: 0.72rem; color: var(--text-tertiary); line-height: 1.4;
+  padding: 0 0.3rem; margin: -0.3rem 0 0.1rem;
+}
+.sp-tide-note .ph { font-size: 0.85rem; flex-shrink: 0; margin-top: 0.06rem; }
+
+/* First-run safety notice */
+.safety-overlay {
+  position: fixed; inset: 0; z-index: 1100;
+  display: flex; align-items: center; justify-content: center; padding: 1.5rem;
+  background: rgba(0, 0, 0, 0.45);
+  -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px);
+  opacity: 0; visibility: hidden; transition: opacity 0.25s ease, visibility 0.25s ease;
+}
+.safety-overlay.active { opacity: 1; visibility: visible; }
+.safety-card {
+  background: var(--card); border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card); padding: 1.6rem 1.4rem 1.3rem;
+  max-width: 380px; width: 100%; text-align: center;
+  transform: translateY(10px) scale(0.98); transition: transform 0.25s ease;
+}
+.safety-overlay.active .safety-card { transform: none; }
+.safety-icon { font-size: 2.3rem; color: var(--accent); line-height: 1; margin-bottom: 0.55rem; }
+.safety-card h2 { font-size: 1.15rem; font-weight: 700; margin-bottom: 0.7rem; }
+.safety-card p {
+  font-size: 0.88rem; color: var(--text-secondary); line-height: 1.55;
+  margin-bottom: 0.8rem; text-align: left;
+}
+.safety-card .btn { margin-top: 0.4rem; }
+.safety-terms {
+  display: inline-block; margin-top: 0.9rem;
+  font-size: 0.8rem; color: var(--accent); text-decoration: none;
+}
+.safety-terms:hover { text-decoration: underline; }
 .segmented { display: inline-flex; background: var(--bg); border-radius: 9px; padding: 2px; }
 .segmented button {
   border: none; background: transparent; color: var(--text-secondary);

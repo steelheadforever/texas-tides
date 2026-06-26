@@ -74,6 +74,7 @@ export async function openStation(station) {
       tideStatusCard(tideNow),
       nextTidesCard(events),
       curveCard(curve),
+      tideNote(curve),
       conditionsGrid({ waterTemp, airTemp, wind, windForecast, pressure }),
       sunMoonCard(sunMoon),
       waterTempCard(waterTempHistory),
@@ -138,6 +139,14 @@ function nextTidesCard(events) {
     </div>`;
   }).join('');
   return card('Next Tides', 'ph ph-clock', rows);
+}
+
+// Small persistent reminder that the curve is predicted, not a guarantee.
+// People plan on-the-water activities from this, so we keep it in view next to
+// the readout (in addition to the first-run notice and the Terms).
+function tideNote(curve) {
+  if (!curve || curve.noPredictions) return '';
+  return `<div class="sp-tide-note"><i class="ph ph-info"></i><span>Tide values are predictions — verify before relying on them for safety.</span></div>`;
 }
 
 function curveCard(curve) {

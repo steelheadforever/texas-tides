@@ -7,6 +7,7 @@ import { openForecast } from './ui/forecastPanel.js';
 import { openSolunar, initSolunarPanel } from './ui/solunarPanel.js';
 import { openFavorites, initFavoritesPanel } from './ui/favoritesPanel.js';
 import { openSettings } from './ui/settingsPanel.js';
+import { maybeShowSafetyNotice } from './ui/safetyNotice.js';
 import { refreshChartsTheme } from './ui/charts.js';
 import { fetchTimeline, windColor, precipColor } from './layers/weather.js';
 import { WindLayer } from './layers/wind.js';
@@ -182,6 +183,9 @@ async function init() {
     if (isDark() !== wasDark) { wasDark = isDark(); switchMapTiles(wasDark); refreshChartsTheme(); }
     renderLegend(weather.windOn, weather.radarOn);
   });
+
+  // One-time safety notice (first launch only).
+  maybeShowSafetyNotice();
 
   console.log('Slackwater web initialized');
 }
