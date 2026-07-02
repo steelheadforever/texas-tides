@@ -2,6 +2,8 @@
 // Truncated-Meeus sun/moon position, altitude sampling for transit/rise/set,
 // illumination from elongation. Pure + offline.
 
+import { tzMidnight } from './format.js';
+
 const RAD = Math.PI / 180;
 const DEG = 180 / Math.PI;
 const norm360 = (d) => { const x = d % 360; return x < 0 ? x + 360 : x; };
@@ -84,21 +86,10 @@ export function moonIllumination(jd) {
   return (1 - Math.cos(elong)) / 2;
 }
 
-// ---- Central-time day boundaries -----------------------------------------
+// ---- Station-local day boundaries ------------------------------------------
 
-function centralOffsetHours(utcDate) {
-  const s = utcDate.toLocaleString('en-US', { timeZone: 'America/Chicago', timeZoneName: 'short' });
-  return s.includes('CDT') ? -5 : -6;
-}
-
-function centralMidnight(y, mo, d) {
-  const probe = new Date(Date.UTC(y, mo, d, 18, 0, 0)); // ~noon Central
-  const off = centralOffsetHours(probe);
-  return new Date(Date.UTC(y, mo, d) - off * 3600000);
-}
-
-function todayCentralYMD(now) {
-  const [y, mo, d] = now.toLocaleDateString('en-CA', { timeZone: 'America/Chicago' }).split('-').map(Number);
+function todayYMD(now, tz) {
+  const [y, mo, d] = now.toLocaleDateString('en-CA', { timeZone: tz }).split('-').map(Number);
   return [y, mo - 1, d];
 }
 
@@ -159,12 +150,14 @@ function makePeriod(kind, center, halfMin) {
   return { kind, start: new Date(center.getTime() - halfMin * 60000), end: new Date(center.getTime() + halfMin * 60000) };
 }
 
-/** `count` consecutive Central-time days of solunar data for a location. */
-export function solunarDays(latitude, longitude, count = 30, now = new Date()) {
-  const [y, mo, d] = todayCentralYMD(now);
+/** `count` consecutive station-local days of solunar data for a location.
+ * `tz` is the station's IANA timezone; defaults to Central for the legacy
+ * Texas station list. */
+export function solunarDays(latitude, longitude, count = 30, now = new Date(), tz = 'America/Chicago') {
+  const [y, mo, d] = todayYMD(now, tz);
   const out = [];
   for (let offset = 0; offset < count; offset++) {
-    const dayStart = centralMidnight(y, mo, d + offset);
+    const dayStart = tzMidnight(y, mo, d + offset, tz);
     out.push(computeDay(dayStart, latitude, longitude));
   }
   return out;

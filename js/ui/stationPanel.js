@@ -9,7 +9,7 @@ import { openPanel } from '../panels.js';
 import { getSettings } from '../settings.js';
 import { isFavorite, toggleFavorite } from '../favorites.js';
 import {
-  fmtTime, fmtFeet, fmtDegrees, fmtWind, knotsToMph,
+  fmtTime, fmtFeet, fmtDegrees, fmtWind, knotsToMph, setDisplayTz,
   conditionIcon, trendIcon, pressureTrendIcon, moonIcon, escapeHtml,
 } from '../format.js';
 
@@ -46,6 +46,9 @@ function updateFavButton() {
 
 export async function openStation(station) {
   currentStation = station;
+  // All times app-wide render in the selected station's local zone (falls
+  // back to Central when the station has no tz, i.e. the legacy TX list).
+  setDisplayTz(station.tz);
   document.getElementById('station-title').textContent = station.name;
   updateFavButton();
   const body = document.getElementById('station-body');
@@ -60,7 +63,7 @@ export async function openStation(station) {
         fetchWaterTemp(station.id), fetchWaterTempHistory(station.id, 24),
         fetchAirTemp(station.id, station.lat, station.lon), fetchStationWind(station.id),
         fetchForecast12h(station.lat, station.lon), fetchPressure(station.lat, station.lon),
-        fetchSunMoonData(station.lat, station.lon),
+        fetchSunMoonData(station.lat, station.lon, new Date(), station.tz),
       ]);
 
     // Station changed while loading — drop stale render.

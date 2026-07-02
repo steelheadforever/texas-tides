@@ -1,0 +1,12 @@
+{
+  "name": "texas-tides",
+  "private": true,
+  "type": "module",
+  "description": "Slackwater web frontend + tooling (Cloudflare Worker API lives in worker/)",
+  "scripts": {
+    "generate:stations": "node scripts/generate-stations.mjs"
+  },
+  "devDependencies": {
+    "tz-lookup": "^6.1.25"
+  }
+}

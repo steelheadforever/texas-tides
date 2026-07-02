@@ -7,13 +7,11 @@ import { fetchSunMoon7Day } from '../api/usno.js';
 import { renderSparkline } from './charts.js';
 import { openPanel } from '../panels.js';
 import { getSettings } from '../settings.js';
-import { fmtDay, fmtTime, fmtFeet, fmtWind, conditionIcon, moonIcon, escapeHtml } from '../format.js';
-
-function centralDayKey(date) {
-  return date.toLocaleDateString('en-CA', { timeZone: 'America/Chicago' }); // YYYY-MM-DD
-}
+import { fmtDay, fmtTime, fmtFeet, fmtWind, dayKey, tzMidnight, conditionIcon, moonIcon, escapeHtml } from '../format.js';
 
 export async function openForecast(station) {
+  // Bucket everything into the station's local calendar days.
+  const dkey = (date) => dayKey(date, station.tz);
   document.getElementById('forecast-title').textContent = `7-Day · ${station.name}`;
   const body = document.getElementById('forecast-body');
   body.innerHTML = '<div class="loading">Loading forecast</div>';
@@ -24,7 +22,7 @@ export async function openForecast(station) {
       fetchTidePredictions7Day(station.id),
       fetchTideHilo7Day(station.id),
       fetchWeatherForecast7Day(station.lat, station.lon),
-      fetchSunMoon7Day(station.lat, station.lon),
+      fetchSunMoon7Day(station.lat, station.lon, station.tz),
     ]);
 
     const allWeatherMissing = !weather || weather.every((d) => !d.shortForecast || d.shortForecast === 'N/A');
@@ -43,10 +41,10 @@ export async function openForecast(station) {
       yMin = lo - pad; yMax = hi + pad;
     }
 
-    // Bucket the real high/low events by Central-time day.
+    // Bucket the real high/low events by station-local day.
     const hiloByDay = {};
     for (const e of (hilo || [])) {
-      const k = centralDayKey(e.time);
+      const k = dkey(e.time);
       if (!hiloByDay[k]) hiloByDay[k] = [];
       hiloByDay[k].push(e);
     }
@@ -54,8 +52,8 @@ export async function openForecast(station) {
     const unit = getSettings().windUnit;
     const days = weather && weather.length ? weather : [];
     const cards = days.map((day, idx) => {
-      const key = centralDayKey(day.date);
-      const dayPts = (predictions || []).filter((p) => centralDayKey(p.time) === key);
+      const key = dkey(day.date);
+      const dayPts = (predictions || []).filter((p) => dkey(p.time) === key);
       const events = hiloByDay[key] || [];
       const sm = sunMoon?.[idx];
       const ci = conditionIcon(day.shortForecast);
@@ -100,10 +98,12 @@ export async function openForecast(station) {
       document.querySelectorAll('#forecast-body .fc-spark').forEach((canvas) => {
         const idx = +canvas.dataset.idx;
         const day = days[idx];
-        const key = centralDayKey(day.date);
-        const dayPts = (predictions || []).filter((p) => centralDayKey(p.time) === key);
-        const start = new Date(day.date); start.setHours(0, 0, 0, 0);
-        const end = new Date(start); end.setDate(start.getDate() + 1);
+        const key = dkey(day.date);
+        const dayPts = (predictions || []).filter((p) => dkey(p.time) === key);
+        // Sparkline x-range: the station-local day, not the viewer-local one.
+        const [yy, mm, dd] = key.split('-').map(Number);
+        const start = tzMidnight(yy, mm - 1, dd, station.tz);
+        const end = new Date(start.getTime() + 24 * 3600000);
         renderSparkline(canvas, dayPts, { yMin, yMax, xMin: start, xMax: end, events: hiloByDay[key] || [], showTimeAxis: true });
       });
     });

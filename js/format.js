@@ -1,19 +1,62 @@
 // Display formatting + Phosphor icon mapping (mirrors the iOS Format/Theme).
-// Times render in Central — every Texas station lives there.
+// Times render in the selected station's timezone (see setDisplayTz).
 
-const CENTRAL = 'America/Chicago';
+// Display timezone — set from the selected station's IANA tz (the catalog's
+// `tz` field) whenever a station opens. Defaults to Central so stations
+// without a tz (the legacy Texas list) render exactly as before.
+const DEFAULT_TZ = 'America/Chicago';
+let displayTz = DEFAULT_TZ;
 
-export function fmtTime(date) {
+export function setDisplayTz(tz) {
+  displayTz = tz || DEFAULT_TZ;
+}
+
+export function getDisplayTz() {
+  return displayTz;
+}
+
+export function fmtTime(date, tz) {
   if (!(date instanceof Date) || isNaN(date)) return '—';
-  return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true, timeZone: CENTRAL });
+  return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true, timeZone: tz || displayTz });
 }
 
-export function fmtHour(date) {
-  return date.toLocaleTimeString('en-US', { hour: 'numeric', hour12: true, timeZone: CENTRAL });
+export function fmtHour(date, tz) {
+  return date.toLocaleTimeString('en-US', { hour: 'numeric', hour12: true, timeZone: tz || displayTz });
 }
 
-export function fmtDay(date) {
-  return date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', timeZone: CENTRAL });
+export function fmtDay(date, tz) {
+  return date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', timeZone: tz || displayTz });
+}
+
+// YYYY-MM-DD key for a Date in a station's timezone — for bucketing tide
+// events and forecast rows into station-local calendar days.
+export function dayKey(date, tz) {
+  return date.toLocaleDateString('en-CA', { timeZone: tz || displayTz });
+}
+
+// UTC offset (hours) of `tz` at `date`, via Intl so DST and the odd zones
+// (Adak, Puerto Rico, Guam) come out right without a zone table.
+export function tzOffsetHours(date, tz) {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: tz || displayTz, hour12: false,
+    year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit',
+  }).formatToParts(date);
+  const o = {};
+  for (const p of parts) o[p.type] = p.value;
+  const wallUTC = Date.UTC(+o.year, o.month - 1, +o.day, o.hour === '24' ? 0 : +o.hour, +o.minute, +o.second);
+  // Sub-second remainder would leak into the offset — Intl only reports whole
+  // seconds — so compare against the date floored to the second.
+  return (wallUTC - Math.floor(date.getTime() / 1000) * 1000) / 3600000;
+}
+
+// Absolute instant of local midnight starting calendar day (y, mo, d) in `tz`.
+// Probes the zone's offset near local noon, so a DST jump at 2am doesn't skew
+// which day the midnight lands on. Day overflow (d = 32, …) is fine — Date.UTC
+// normalizes it.
+export function tzMidnight(y, mo, d, tz) {
+  const probe = new Date(Date.UTC(y, mo, d, 12));
+  const off = tzOffsetHours(probe, tz);
+  return new Date(Date.UTC(y, mo, d) - off * 3600000);
 }
 
 export function fmtFeet(v) {

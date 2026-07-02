@@ -72,26 +72,30 @@ export function fetchObservations(stationId, limit = 6) {
 
 // ---- USNO ----------------------------------------------------------------
 
-// Central Time offset (-6 CST / -5 CDT) for Texas coastal stations.
-function getTimezoneOffset(date) {
-  const year = date.getUTCFullYear();
-  const marchFirst = new Date(Date.UTC(year, 2, 1));
-  const secondSundayMarch = 8 + ((7 - marchFirst.getUTCDay()) % 7);
-  const dstStart = Date.UTC(year, 2, secondSundayMarch, 8); // 2am local ~ 8am UTC
-  const novFirst = new Date(Date.UTC(year, 10, 1));
-  const firstSundayNov = 1 + ((7 - novFirst.getUTCDay()) % 7);
-  const dstEnd = Date.UTC(year, 10, firstSundayNov, 7);
-  const t = date.getTime();
-  return t >= dstStart && t < dstEnd ? -5 : -6;
+// UTC offset (hours) of an IANA zone at `date`, via Intl — handles DST and
+// the odd zones (Adak, Puerto Rico, Guam) without a hand-rolled rule table.
+// Defaults to US Central for legacy clients that don't send a tz.
+function tzOffsetHours(date, tz = 'America/Chicago') {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: tz, hour12: false,
+    year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit',
+  }).formatToParts(date);
+  const o = {};
+  for (const p of parts) o[p.type] = p.value;
+  const wallUTC = Date.UTC(+o.year, o.month - 1, +o.day, o.hour === '24' ? 0 : +o.hour, +o.minute, +o.second);
+  // Sub-second remainder would leak into the offset — Intl only reports whole
+  // seconds — so compare against the date floored to the second.
+  return (wallUTC - Math.floor(date.getTime() / 1000) * 1000) / 3600000;
 }
 
 // Fetch raw USNO sun/moon data for a location + date (defaults to today).
-export async function fetchSunMoon(lat, lon, date = new Date()) {
+// `tzName` is the station's IANA timezone; rise/set times come back in it.
+export async function fetchSunMoon(lat, lon, date = new Date(), tzName) {
   const y = date.getFullYear();
   const m = String(date.getMonth() + 1).padStart(2, '0');
   const d = String(date.getDate()).padStart(2, '0');
   const dateStr = `${y}-${m}-${d}`;
-  const tz = getTimezoneOffset(date);
+  const tz = tzOffsetHours(date, tzName);
 
   const url = new URL(`${USNO_BASE_URL}/rstt/oneday`);
   url.searchParams.set('date', dateStr);

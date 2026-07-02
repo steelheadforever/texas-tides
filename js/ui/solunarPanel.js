@@ -2,7 +2,7 @@
 
 import { solunarDays } from '../solunar.js';
 import { openPanel } from '../panels.js';
-import { fmtDay, fmtTime, moonIcon, escapeHtml } from '../format.js';
+import { fmtDay, fmtTime, dayKey, moonIcon, escapeHtml } from '../format.js';
 
 let aboutVisible = false;
 
@@ -22,9 +22,10 @@ export function openSolunar(station) {
 
   // Defer the heavy math one frame so the panel paints first.
   setTimeout(() => {
-    const days = solunarDays(station.lat, station.lon, 30);
-    const todayKey = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Chicago' });
-    body.innerHTML = aboutCard() + days.map((d) => dayCard(d, todayKey)).join('');
+    const tz = station.tz;
+    const days = solunarDays(station.lat, station.lon, 30, new Date(), tz || 'America/Chicago');
+    const todayKey = dayKey(new Date(), tz);
+    body.innerHTML = aboutCard() + days.map((d) => dayCard(d, todayKey, tz)).join('');
     const aboutEl = document.getElementById('solunar-about');
     if (aboutEl) aboutEl.style.display = aboutVisible ? 'block' : 'none';
   }, 30);
@@ -54,9 +55,8 @@ function periodRow(kind, periods) {
   return `<div class="period-row"><span class="period-kind ${cls}">${kind}</span><span class="times">${times}</span></div>`;
 }
 
-function dayCard(d, todayKey) {
-  const dayKey = d.date.toLocaleDateString('en-CA', { timeZone: 'America/Chicago' });
-  const isToday = dayKey === todayKey;
+function dayCard(d, todayKey, tz) {
+  const isToday = dayKey(d.date, tz) === todayKey;
   return `<div class="card solunar-day ${isToday ? 'today' : ''}">
     <div class="solunar-head">
       <span class="day-card-title">${fmtDay(d.date)}</span>

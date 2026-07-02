@@ -12,17 +12,18 @@ const USNO_API_URL = `${API_BASE_URL}/usno`;
  * @param {number} lat - Latitude
  * @param {number} lon - Longitude
  * @param {Date} date - Date to fetch data for (defaults to today)
+ * @param {string} [tz] - Station IANA timezone; omitted = US Central (legacy)
  * @returns {Object} Sun and moon rise/set times, moon phase
  */
-export async function fetchSunMoonData(lat, lon, date = new Date()) {
+export async function fetchSunMoonData(lat, lon, date = new Date(), tz) {
   // Format date as YYYY-MM-DD
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, '0');
   const day = String(date.getDate()).padStart(2, '0');
   const dateStr = `${year}-${month}-${day}`;
 
-  // Build URL - now proxied through Pi backend
-  const url = `${USNO_API_URL}/sun-moon?lat=${lat}&lon=${lon}&date=${dateStr}`;
+  const tzParam = tz ? `&tz=${encodeURIComponent(tz)}` : '';
+  const url = `${USNO_API_URL}/sun-moon?lat=${lat}&lon=${lon}&date=${dateStr}${tzParam}`;
 
   try {
     const controller = new AbortController();
@@ -155,20 +156,24 @@ export function getMoonEmoji(phaseDescription) {
 /**
  * Fetch 7 days of sun/moon data (current day + 6 days forward)
  * Returns array of daily sun/moon rise/set times and moon phase
+ * `tz` (optional IANA zone) anchors "today" to the station's calendar, not
+ * the viewer's — a viewer in NY at 11pm should still get the current day for
+ * a California station.
  */
-export async function fetchSunMoon7Day(lat, lon) {
+export async function fetchSunMoon7Day(lat, lon, tz) {
   const dailyData = [];
   const now = new Date();
 
-  // Set to midnight today to ensure we start from the beginning of the day
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
+  // Midnight of the station-local (or viewer-local, if no tz) current day.
+  const [y, m, d] = now.toLocaleDateString('en-CA', tz ? { timeZone: tz } : {}).split('-').map(Number);
+  const today = new Date(y, m - 1, d, 0, 0, 0, 0);
 
   // Fetch data for each of the 7 days
   for (let dayOffset = 0; dayOffset < 7; dayOffset++) {
     const targetDate = new Date(today);
     targetDate.setDate(today.getDate() + dayOffset);
 
-    const data = await fetchSunMoonData(lat, lon, targetDate);
+    const data = await fetchSunMoonData(lat, lon, targetDate, tz);
 
     if (data) {
       dailyData.push({

@@ -21,7 +21,8 @@ Base URL: `https://api.slackwater.app/api`
 
 | Endpoint | Notes | Cache TTL |
 |---|---|---|
-| `GET /api/noaa/query?station=&product=&...` | Generic NOAA CO-OPS passthrough | predictions 6h · latest 6m · observed 10m |
+| `GET /api/stations` | National station catalog (id, name, lat/lon, IANA tz, products, harmonic/subordinate) | 24h + ETag/304 |
+| `GET /api/noaa/query?station=&product=&...` | Generic NOAA CO-OPS passthrough | predictions 24h · latest 6m · observed 10m |
 | `GET /api/nws/points?lat=&lon=` | Raw NWS points | 15m |
 | `GET /api/nws/forecast-12h?lat=&lon=` | 12h wind summary | 15m |
 | `GET /api/nws/pressure?lat=&lon=` | Barometric pressure + trend | 15m |
@@ -76,5 +77,7 @@ src/
   cache.js      KV cache, key normalization, TTL policy
   upstream.js   NOAA / NWS / USNO fetch clients
   nws.js        derived NWS endpoints (forecast-12h, pressure, temperature)
-  stations.js   44 Texas stations (generated from ../js/data/stations.js)
+  stations.js   44 Texas stations — the cron warmer's warm list
+  catalog.json  national station catalog served at /api/stations
+                (regenerate: `npm run generate:stations` at the repo root)
 ```
