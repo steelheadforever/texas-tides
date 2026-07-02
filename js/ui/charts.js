@@ -1,7 +1,15 @@
 // Chart.js helpers styled to match the iOS TideCurveChart. Colors are read
 // from CSS variables so charts follow light/dark automatically.
 
+import { fmtHour } from '../format.js';
+
 const charts = new Map(); // canvas element -> Chart instance
+
+// Compact station-local hour label ("6AM") for time-axis ticks — Chart.js's
+// adapter would otherwise label ticks in the viewer's zone.
+function hourLabel(value, tz) {
+  return fmtHour(new Date(value), tz).replace(' ', '');
+}
 
 function cssVar(name) {
   return getComputedStyle(document.body).getPropertyValue(name).trim();
@@ -47,7 +55,7 @@ function pts(arr) {
  * @param curve { predicted:{times,heights}|null, observed:{times,heights}|null, noPredictions }
  * @param events [{time, ft, kind}]
  */
-export function renderTideCurve(canvas, curve, events = []) {
+export function renderTideCurve(canvas, curve, events = [], { tz } = {}) {
   destroyFor(canvas);
   const tide = cssVar('--tide');
   const observed = cssVar('--observed');
@@ -93,7 +101,8 @@ export function renderTideCurve(canvas, curve, events = []) {
       interaction: { mode: 'index', intersect: false },
       scales: {
         x: { type: 'time', time: { unit: 'hour' }, grid: { display: false },
-             ticks: { color: cssVar('--text-secondary'), maxTicksLimit: 5, font: { size: 10 } } },
+             ticks: { color: cssVar('--text-secondary'), maxTicksLimit: 5, font: { size: 10 },
+                      callback: (v) => hourLabel(v, tz) } },
         y: { grid: { color: cssVar('--hairline') },
              ticks: { color: cssVar('--text-secondary'), font: { size: 10 } } },
       },
@@ -109,7 +118,7 @@ export function renderTideCurve(canvas, curve, events = []) {
  * Minimal sparkline (forecast day cards + favorites). `points` = [{time, ft}].
  * yDomain pins a shared scale; events draw hi/lo dots.
  */
-export function renderSparkline(canvas, points, { yMin, yMax, events = [], xMin, xMax, showNow = true, showTimeAxis = false } = {}) {
+export function renderSparkline(canvas, points, { yMin, yMax, events = [], xMin, xMax, showNow = true, showTimeAxis = false, tz } = {}) {
   destroyFor(canvas);
   const tide = cssVar('--tide');
   const high = cssVar('--high');
@@ -140,7 +149,8 @@ export function renderSparkline(canvas, points, { yMin, yMax, events = [], xMin,
               type: 'time', min: xMin, max: xMax,
               time: { unit: 'hour', displayFormats: { hour: 'ha' } },
               grid: { display: false }, border: { display: false },
-              ticks: { color: cssVar('--text-secondary'), font: { size: 9 }, maxRotation: 0, autoSkip: false },
+              ticks: { color: cssVar('--text-secondary'), font: { size: 9 }, maxRotation: 0, autoSkip: false,
+                       callback: (v) => hourLabel(v, tz) },
               // Chart.js ignores time.stepSize here, so pin the markers to a
               // fixed 6-hour set (12AM/6AM/12PM/6PM) for consistency everywhere.
               afterTickToLabelConversion(scale) {
@@ -160,7 +170,7 @@ export function renderSparkline(canvas, points, { yMin, yMax, events = [], xMin,
 }
 
 /** 24h water-temperature trend (teal). `history` = [{time, temp}]. */
-export function renderWaterTemp(canvas, history) {
+export function renderWaterTemp(canvas, history, { tz } = {}) {
   destroyFor(canvas);
   const teal = cssVar('--water-temp');
   const data = history.map((h) => ({ x: h.time, y: h.temp }));
@@ -171,7 +181,8 @@ export function renderWaterTemp(canvas, history) {
       responsive: true, maintainAspectRatio: false,
       scales: {
         x: { type: 'time', time: { unit: 'hour' }, grid: { display: false },
-             ticks: { color: cssVar('--text-secondary'), maxTicksLimit: 5, font: { size: 10 } } },
+             ticks: { color: cssVar('--text-secondary'), maxTicksLimit: 5, font: { size: 10 },
+                      callback: (v) => hourLabel(v, tz) } },
         y: { grid: { color: cssVar('--hairline') }, ticks: { color: cssVar('--text-secondary'), font: { size: 10 } } },
       },
       plugins: { legend: { display: false }, tooltip: { enabled: true } },

@@ -59,8 +59,9 @@ export async function openStation(station) {
   try {
     const [tideNow, nextTide, curve, waterTemp, waterTempHistory, airTemp, wind, windForecast, pressure, sunMoon] =
       await Promise.all([
-        fetchTideNow(station.id), fetchNextTide(station.id), fetch24HourCurve(station.id),
-        fetchWaterTemp(station.id), fetchWaterTempHistory(station.id, 24),
+        fetchTideNow(station.id, station.tz), fetchNextTide(station.id, station.tz),
+        fetch24HourCurve(station.id, { hiloOnly: station.predType === 'S', tz: station.tz }),
+        fetchWaterTemp(station.id), fetchWaterTempHistory(station.id, 24, station.tz),
         fetchAirTemp(station.id, station.lat, station.lon), fetchStationWind(station.id),
         fetchForecast12h(station.lat, station.lon), fetchPressure(station.lat, station.lon),
         fetchSunMoonData(station.lat, station.lon, new Date(), station.tz),
@@ -86,9 +87,9 @@ export async function openStation(station) {
 
     requestAnimationFrame(() => {
       const curveCanvas = document.getElementById('sp-curve');
-      if (curveCanvas && curve) renderTideCurve(curveCanvas, curve, events);
+      if (curveCanvas && curve) renderTideCurve(curveCanvas, curve, events, { tz: station.tz });
       const tempCanvas = document.getElementById('sp-temp');
-      if (tempCanvas && waterTempHistory?.length >= 2) renderWaterTemp(tempCanvas, waterTempHistory);
+      if (tempCanvas && waterTempHistory?.length >= 2) renderWaterTemp(tempCanvas, waterTempHistory, { tz: station.tz });
     });
   } catch (err) {
     console.error('Station load failed:', err);

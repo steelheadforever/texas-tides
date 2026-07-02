@@ -19,8 +19,8 @@ export async function openForecast(station) {
 
   try {
     const [predictions, hilo, weather, sunMoon] = await Promise.all([
-      fetchTidePredictions7Day(station.id),
-      fetchTideHilo7Day(station.id),
+      fetchTidePredictions7Day(station.id, station.tz),
+      fetchTideHilo7Day(station.id, station.tz),
       fetchWeatherForecast7Day(station.lat, station.lon),
       fetchSunMoon7Day(station.lat, station.lon, station.tz),
     ]);
@@ -104,7 +104,7 @@ export async function openForecast(station) {
         const [yy, mm, dd] = key.split('-').map(Number);
         const start = tzMidnight(yy, mm - 1, dd, station.tz);
         const end = new Date(start.getTime() + 24 * 3600000);
-        renderSparkline(canvas, dayPts, { yMin, yMax, xMin: start, xMax: end, events: hiloByDay[key] || [], showTimeAxis: true });
+        renderSparkline(canvas, dayPts, { yMin, yMax, xMin: start, xMax: end, events: hiloByDay[key] || [], showTimeAxis: true, tz: station.tz });
       });
     });
   } catch (err) {

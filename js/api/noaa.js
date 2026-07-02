@@ -118,8 +118,8 @@ export async function fetchAirTemp(stationId, lat, lon) {
  * Returns array of {time, temp} objects for the past 3 hours
  * (3 hours to account for NOAA data reporting lag)
  */
-export async function fetchWaterTempHistory(stationId, hoursBack = 3) {
-  const range = getDateRange(-hoursBack, 0);
+export async function fetchWaterTempHistory(stationId, hoursBack = 3, tz) {
+  const range = getDateRange(-hoursBack, 0, tz);
 
   console.log(`[Water Temp] Requesting ${hoursBack} hours back`);
   console.log(`[Water Temp] Date range: ${range.begin} to ${range.end}`);
@@ -141,7 +141,7 @@ export async function fetchWaterTempHistory(stationId, hoursBack = 3) {
   }
 
   const result = data.data.map(obs => ({
-    time: parseNOAALocalTime(obs.t),
+    time: parseNOAALocalTime(obs.t, tz),
     temp: safeFloat(obs.v)
   }));
 
@@ -154,7 +154,7 @@ export async function fetchWaterTempHistory(stationId, hoursBack = 3) {
  * Fetch predictions over a time range
  * Based on fishing_bot4.py:291-312
  */
-async function fetchPredictions(stationId, beginDate, endDate, interval = '6') {
+async function fetchPredictions(stationId, beginDate, endDate, interval = '6', tz) {
   const params = {
     station: stationId,
     product: 'predictions',
@@ -171,7 +171,7 @@ async function fetchPredictions(stationId, beginDate, endDate, interval = '6') {
   }
 
   return data.predictions.map(pred => ({
-    time: parseNOAALocalTime(pred.t),
+    time: parseNOAALocalTime(pred.t, tz),
     ft: safeFloat(pred.v)
   }));
 }
@@ -180,8 +180,8 @@ async function fetchPredictions(stationId, beginDate, endDate, interval = '6') {
  * Fetch observed water levels over a time range
  * Uses water_level product to get actual measured tide heights
  */
-async function fetchObservedWaterLevels(stationId, hoursBack = 6, datum = 'MLLW') {
-  const range = getDateRange(-hoursBack, 0);
+async function fetchObservedWaterLevels(stationId, hoursBack = 6, datum = 'MLLW', tz) {
+  const range = getDateRange(-hoursBack, 0, tz);
 
   const params = {
     station: stationId,
@@ -199,7 +199,7 @@ async function fetchObservedWaterLevels(stationId, hoursBack = 6, datum = 'MLLW'
   }
 
   return data.data.map(obs => ({
-    time: parseNOAALocalTime(obs.t),
+    time: parseNOAALocalTime(obs.t, tz),
     ft: safeFloat(obs.v)
   }));
 }
@@ -208,23 +208,23 @@ async function fetchObservedWaterLevels(stationId, hoursBack = 6, datum = 'MLLW'
  * Fetch observed water levels with fallback datums
  * Some stations don't support MLLW, so try MSL and NAVD as fallbacks
  */
-async function fetchObservedWaterLevelsWithFallback(stationId, hoursBack = 6) {
+async function fetchObservedWaterLevelsWithFallback(stationId, hoursBack = 6, tz) {
   // Try MLLW first (most common)
-  let result = await fetchObservedWaterLevels(stationId, hoursBack, 'MLLW');
+  let result = await fetchObservedWaterLevels(stationId, hoursBack, 'MLLW', tz);
   if (result && result.length > 0) {
     return result;
   }
 
   // Try MSL
   console.log(`MLLW failed, trying MSL datum for station ${stationId}`);
-  result = await fetchObservedWaterLevels(stationId, hoursBack, 'MSL');
+  result = await fetchObservedWaterLevels(stationId, hoursBack, 'MSL', tz);
   if (result && result.length > 0) {
     return result;
   }
 
   // Try NAVD
   console.log(`MSL failed, trying NAVD datum for station ${stationId}`);
-  result = await fetchObservedWaterLevels(stationId, hoursBack, 'NAVD');
+  result = await fetchObservedWaterLevels(stationId, hoursBack, 'NAVD', tz);
   if (result && result.length > 0) {
     return result;
   }
@@ -239,21 +239,24 @@ async function fetchObservedWaterLevelsWithFallback(stationId, hoursBack = 6) {
  * Predicted: next 24 hours of predictions
  * If predictions unavailable: past 24 hours of water level observations
  */
-export async function fetch24HourCurve(stationId) {
+export async function fetch24HourCurve(stationId, { hiloOnly = false, tz } = {}) {
   // Fetch predictions from 6 hours ago to 24 hours ahead
   // This ensures the predicted curve covers the same timeframe as observed data (past 6 hours)
   // plus the next 24 hours, allowing comparison of predicted vs actual for the past period
-  const range = getDateRange(-6, 24);
+  const range = getDateRange(-6, 24, tz);
 
-  // Fetch both observed and predicted data in parallel
+  // Fetch both observed and predicted data in parallel. Subordinate stations
+  // (catalog predType 'S') publish only high/low events — NOAA errors on the
+  // 6-minute interval — so skip that request instead of letting it fail.
   const [predictionsRaw, observed] = await Promise.all([
-    fetchPredictions(
+    hiloOnly ? Promise.resolve(null) : fetchPredictions(
       stationId,
       range.begin,
       range.end,
-      '6' // 6-minute intervals for smooth curve
+      '6', // 6-minute intervals for smooth curve
+      tz
     ),
-    fetchObservedWaterLevels(stationId, 6) // Past 6 hours of observations
+    fetchObservedWaterLevels(stationId, 6, 'MLLW', tz) // Past 6 hours of observations
   ]);
 
   // The backend widens prediction windows to whole days (to share one cache key
@@ -268,7 +271,7 @@ export async function fetch24HourCurve(stationId) {
   // If no predictions available, fetch 24 hours of water level history instead
   if (!predictions || predictions.length === 0) {
     console.log(`No predictions available for station ${stationId}, fetching 24h water level history`);
-    const waterLevelHistory = await fetchObservedWaterLevelsWithFallback(stationId, 24);
+    const waterLevelHistory = await fetchObservedWaterLevelsWithFallback(stationId, 24, tz);
 
     if (!waterLevelHistory || waterLevelHistory.length === 0) {
       return null;
@@ -331,8 +334,8 @@ export async function fetch24HourCurve(stationId) {
  * Fetch high/low tide events
  * Based on fishing_bot4.py:327-349
  */
-async function fetchHiloEvents(stationId, days = 1) {
-  const range = getDateRange(0, days * 24);
+async function fetchHiloEvents(stationId, days = 1, tz) {
+  const range = getDateRange(0, days * 24, tz);
 
   const params = {
     station: stationId,
@@ -350,7 +353,7 @@ async function fetchHiloEvents(stationId, days = 1) {
   }
 
   return data.predictions.map(pred => ({
-    time: parseNOAALocalTime(pred.t),
+    time: parseNOAALocalTime(pred.t, tz),
     ft: safeFloat(pred.v),
     kind: pred.type === 'H' ? 'High' : 'Low'
   }));
@@ -360,8 +363,8 @@ async function fetchHiloEvents(stationId, days = 1) {
  * Fetch next two tide events (high/low)
  * Based on fishing_bot4.py:351-369
  */
-export async function fetchNextTide(stationId) {
-  const events = await fetchHiloEvents(stationId, 2);
+export async function fetchNextTide(stationId, tz) {
+  const events = await fetchHiloEvents(stationId, 2, tz);
 
   if (!events || events.length === 0) {
     return null;
@@ -423,14 +426,14 @@ function computePhaseFromHilo(events, now = new Date()) {
  * Fetch current tide status (observed vs predicted)
  * Based on fishing_bot4.py:371-409
  */
-export async function fetchTideNow(stationId) {
+export async function fetchTideNow(stationId, tz) {
   // Fetch observed water level
   const observed = await fetchWaterLevel(stationId);
 
   // Fetch current prediction
   const now = new Date();
-  const range = getDateRange(0, 1);
-  const predictions = await fetchPredictions(stationId, range.begin, range.end, '6');
+  const range = getDateRange(0, 1, tz);
+  const predictions = await fetchPredictions(stationId, range.begin, range.end, '6', tz);
 
   let predicted = null;
   if (predictions && predictions.length > 0) {
@@ -465,7 +468,7 @@ export async function fetchTideNow(stationId) {
   }
 
   // Fetch high/low events for phase calculation
-  const events = await fetchHiloEvents(stationId, 2);
+  const events = await fetchHiloEvents(stationId, 2, tz);
   const phase = computePhaseFromHilo(events, now);
 
   return {
@@ -509,15 +512,16 @@ export async function fetchStationWind(stationId) {
  * Used for weekly forecast tide chart
  * Returns array of {time, ft} prediction objects
  */
-export async function fetchTidePredictions7Day(stationId) {
-  // Get 7 days starting from midnight today
-  const range = getDateRangeFromMidnightToday(7);
+export async function fetchTidePredictions7Day(stationId, tz) {
+  // Get 7 days starting from the station's midnight today
+  const range = getDateRangeFromMidnightToday(7, tz);
 
   const predictions = await fetchPredictions(
     stationId,
     range.begin,
     range.end,
-    '6' // 6-minute intervals for smooth curve
+    '6', // 6-minute intervals for smooth curve
+    tz
   );
 
   if (!predictions || predictions.length === 0) {
@@ -534,8 +538,8 @@ export async function fetchTidePredictions7Day(stationId) {
  * than scanning the dense curve for local extrema.
  * Returns array of {time, ft, kind: 'High'|'Low'}.
  */
-export async function fetchTideHilo7Day(stationId) {
-  const range = getDateRangeFromMidnightToday(7);
+export async function fetchTideHilo7Day(stationId, tz) {
+  const range = getDateRangeFromMidnightToday(7, tz);
 
   const params = {
     station: stationId,
@@ -553,7 +557,7 @@ export async function fetchTideHilo7Day(stationId) {
   }
 
   return data.predictions.map(pred => ({
-    time: parseNOAALocalTime(pred.t),
+    time: parseNOAALocalTime(pred.t, tz),
     ft: safeFloat(pred.v),
     kind: pred.type === 'H' ? 'High' : 'Low'
   }));

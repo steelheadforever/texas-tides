@@ -6,6 +6,7 @@ import { openStation, initStationPanel } from './ui/stationPanel.js';
 import { openForecast } from './ui/forecastPanel.js';
 import { openSolunar, initSolunarPanel } from './ui/solunarPanel.js';
 import { openFavorites, initFavoritesPanel } from './ui/favoritesPanel.js';
+import { initSearch } from './ui/search.js';
 import { openSettings } from './ui/settingsPanel.js';
 import { maybeShowSafetyNotice } from './ui/safetyNotice.js';
 import { refreshChartsTheme } from './ui/charts.js';
@@ -152,6 +153,7 @@ async function init() {
   initStationPanel({ onForecast: openForecast, onSolunar: openSolunar });
   initSolunarPanel();
   initFavoritesPanel({ onSelect: (station) => { panToStation(station); openStation(station); } });
+  initSearch({ onSelect: (station) => { panToStation(station); openStation(station); } });
 
   // Warm the wind/precip grid a couple seconds after load so the wind layer
   // appears instantly on first click instead of waiting on a cold fetch.

@@ -1,7 +1,7 @@
 // Favorites panel — reorderable rows with at-a-glance conditions + mini tide
 // curve. Tapping a row pans the map and opens the station panel.
 
-import { TEXAS_STATIONS } from '../data/stations.js';
+import { stationById } from '../data/stationStore.js';
 import { getFavoriteIds, moveFavorite, removeFavorite } from '../favorites.js';
 import { fetchTideNow, fetch24HourCurve, fetchWaterTemp, fetchStationWind } from '../api/noaa.js';
 import { renderSparkline } from './charts.js';
@@ -13,10 +13,6 @@ let onPick = null;
 
 export function initFavoritesPanel({ onSelect } = {}) {
   onPick = onSelect;
-}
-
-function stationById(id) {
-  return TEXAS_STATIONS.find((s) => s.id === id);
 }
 
 export function openFavorites() {
@@ -50,7 +46,8 @@ async function loadSummary(station) {
   const unit = getSettings().windUnit;
   try {
     const [tideNow, curve, waterTemp, wind] = await Promise.all([
-      fetchTideNow(station.id), fetch24HourCurve(station.id),
+      fetchTideNow(station.id, station.tz),
+      fetch24HourCurve(station.id, { hiloOnly: station.predType === 'S', tz: station.tz }),
       fetchWaterTemp(station.id), fetchStationWind(station.id),
     ]);
     const statsEl = document.getElementById(`fav-stats-${station.id}`);
@@ -69,7 +66,7 @@ async function loadSummary(station) {
       const pts = curve.predicted
         ? curve.predicted.times.map((t, i) => ({ time: t, ft: curve.predicted.heights[i] }))
         : (curve.observed ? curve.observed.times.map((t, i) => ({ time: t, ft: curve.observed.heights[i] })) : []);
-      if (pts.length) renderSparkline(canvas, pts, { showTimeAxis: true });
+      if (pts.length) renderSparkline(canvas, pts, { showTimeAxis: true, tz: station.tz });
     }
   } catch (err) {
     const statsEl = document.getElementById(`fav-stats-${station.id}`);
