@@ -128,3 +128,8 @@ temp/
 
 # Playwright MCP scratch output (screenshots, snapshots, console logs)
 .playwright-mcp/
+# npm tooling (catalog generator deps)
+node_modules/
+
+# iOS app lives in the private slackwater-ios repo — never commit here
+ios/

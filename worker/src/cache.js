@@ -63,7 +63,11 @@ export function cacheKey(endpoint, params = {}) {
 // TTL (seconds) per logical data type. Deterministic predictions live long;
 // live observations stay short so the app sees fresh conditions.
 export const TTL = {
-  predictions: 6 * 60 * 60, // tide curve / hi-lo — deterministic, refresh occasionally
+  predictions: 24 * 60 * 60, // tide curve / hi-lo — deterministic astronomical data.
+                             // The day-aligned cache key already forces a fresh fetch
+                             // each new day, so a long TTL costs no freshness; it only
+                             // stops pointless intra-day rewrites (6h TTL + 25%-early
+                             // rewarm was minting ~5 writes/key/day → ~496/day; 24h ≈ 192/day).
   live: 6 * 60,             // latest water level / wind / temp
   observed: 10 * 60,        // recent observed water-level / temp history
   nws: 15 * 60,             // weather forecast / pressure / air temp
