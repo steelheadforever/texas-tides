@@ -28,10 +28,28 @@ const weather = {
   windOn: false, radarOn: false, hour: 0, playing: false, playTimer: null,
   timeline: null, windLayer: null, radarLayer: null, map: null,
 
+  viewRegion() {
+    if (!this.map) return null;
+    const b = this.map.getBounds();
+    return { minLat: b.getSouth(), maxLat: b.getNorth(), minLon: b.getWest(), maxLon: b.getEast() };
+  },
+
   async ensureTimeline() {
-    if (this.timeline) return this.timeline;
-    try { this.timeline = await fetchTimeline(); } catch (e) { console.warn('Wind/precip timeline failed', e); }
+    // fetchTimeline caches per region + step, so this is a no-op while the
+    // viewport stays inside the fetched lattice and the cache is fresh.
+    try { this.timeline = await fetchTimeline(this.viewRegion()); }
+    catch (e) { console.warn('Wind/precip timeline failed', e); }
     return this.timeline;
+  },
+
+  // Map settled somewhere new: refetch the grids for the visible region, but
+  // only while a grid-driven layer is showing (live radar is global tiles and
+  // needs nothing; idle panning must not fetch in the background).
+  async onViewChanged() {
+    if (!(this.windOn || (this.radarOn && this.hour > 0))) return;
+    const prev = this.timeline;
+    const tl = await this.ensureTimeline();
+    if (tl && tl !== prev) this.applyHour();
   },
 
   async setWind(on) {
@@ -158,6 +176,14 @@ async function init() {
   // Warm the wind/precip grid a couple seconds after load so the wind layer
   // appears instantly on first click instead of waiting on a cold fetch.
   setTimeout(() => { weather.ensureTimeline(); }, 2000);
+
+  // Refetch weather grids for the new region once the map settles (debounced;
+  // onViewChanged bails immediately unless a grid-driven layer is active).
+  let settleTimer = null;
+  map.on('moveend zoomend', () => {
+    clearTimeout(settleTimer);
+    settleTimer = setTimeout(() => weather.onViewChanged(), 600);
+  });
 
   // Control cluster
   document.getElementById('wind-btn').addEventListener('click', () => weather.setWind(!weather.windOn));

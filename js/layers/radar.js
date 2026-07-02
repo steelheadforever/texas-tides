@@ -1,12 +1,12 @@
-// Precipitation: live RainViewer radar (clipped to the coast, overzoomed past
-// their z7 ceiling via Leaflet's maxNativeZoom) + forecast precip heatmap
-// frames rendered from the Open-Meteo grid. Mirrors the iOS radar layer.
+// Precipitation: live RainViewer radar (global tiles, overzoomed past their
+// z7 ceiling via Leaflet's maxNativeZoom) + forecast precip heatmap frames
+// rendered from the Open-Meteo viewport grid. Mirrors the iOS radar layer.
 
-import { COAST_BOUNDS, precipColor } from './weather.js';
+import { precipColor } from './weather.js';
 
-const coastLatLngBounds = () => L.latLngBounds(
-  [COAST_BOUNDS.minLat, COAST_BOUNDS.minLon],
-  [COAST_BOUNDS.maxLat, COAST_BOUNDS.maxLon]
+const gridLatLngBounds = (ext) => L.latLngBounds(
+  [ext.minLat, ext.minLon],
+  [ext.maxLat, ext.maxLon]
 );
 
 async function latestFrame() {
@@ -23,7 +23,7 @@ function renderPrecipImage(grid) {
   canvas.width = W; canvas.height = H;
   const ctx = canvas.getContext('2d');
   const img = ctx.createImageData(W, H);
-  const { minLat, maxLat, minLon, maxLon } = COAST_BOUNDS;
+  const { minLat, maxLat, minLon, maxLon } = grid.ext;
   for (let r = 0; r < H; r++) {
     const lat = maxLat - (r / H) * (maxLat - minLat);
     for (let c = 0; c < W; c++) {
@@ -62,7 +62,6 @@ export class RadarLayer {
     const template = await this.ensureLiveTemplate();
     if (!template) return;
     this.tileLayer = L.tileLayer(template, {
-      bounds: coastLatLngBounds(),
       maxNativeZoom: 7,   // RainViewer free tier caps at z7; Leaflet overzooms
       maxZoom: 19,
       opacity: 0.65,
@@ -80,7 +79,7 @@ export class RadarLayer {
     this.hideForecast();
     if (!grid || !grid.hasAny) return;
     const url = renderPrecipImage(grid);
-    this.imageOverlay = L.imageOverlay(url, coastLatLngBounds(), { opacity: 0.85, zIndex: 440, interactive: false }).addTo(this.map);
+    this.imageOverlay = L.imageOverlay(url, gridLatLngBounds(grid.ext), { opacity: 0.85, zIndex: 440, interactive: false }).addTo(this.map);
   }
 
   hideForecast() {

@@ -22,6 +22,8 @@ export class WindLayer {
     this._onMove = () => {}; // projection is recomputed per frame
   }
 
+  // Grids carry their own extent (viewport-driven fetches); sampling outside
+  // it returns null, which respawns the particle inside the current view.
   setGrid(grid) { this.grid = grid; }
 
   start() {
