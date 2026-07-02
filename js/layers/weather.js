@@ -1,7 +1,8 @@
 // Open-Meteo weather timeline: current + 12 hourly steps of wind (u/v) and
 // precipitation over a lattice covering the current map viewport. Shared by
 // the wind + radar layers and the scrubber. Mirrors the iOS WeatherGridService
-// (which is Texas-boxed; here the lattice follows the map). Free, keyless.
+// (same viewport-lattice algorithm; iOS budgets 400 points for portrait
+// aspect, web 350). Free, keyless.
 
 // Lattice sizing: pad the viewport ~20% per side, then pick the finest step
 // from the ladder that keeps the grid within ~350 points per request — city
