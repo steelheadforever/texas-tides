@@ -19,7 +19,7 @@ async function noaaGet(params) {
     units: 'english',
     time_zone: 'lst_ldt',
     format: 'json',
-    application: 'texas_tides_web'
+    application: 'slackwater_web'
   };
 
   const allParams = { ...baseParams, ...params };

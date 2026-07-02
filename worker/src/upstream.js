@@ -6,7 +6,7 @@ const NOAA_BASE_URL = 'https://api.tidesandcurrents.noaa.gov/api/prod/datagetter
 const NWS_BASE_URL = 'https://api.weather.gov';
 const USNO_BASE_URL = 'https://aa.usno.navy.mil/api';
 const TIMEOUT_MS = 10000;
-const NWS_USER_AGENT = 'slackwater (github.com/steelheadforever/texas-tides)';
+const NWS_USER_AGENT = 'slackwater (slackwater.app; contact: steelheadforever@gmail.com)';
 
 function timeout() {
   return AbortSignal.timeout(TIMEOUT_MS);

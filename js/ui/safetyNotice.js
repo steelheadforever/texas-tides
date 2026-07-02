@@ -20,7 +20,7 @@ export function maybeShowSafetyNotice() {
     <div class="safety-card" role="dialog" aria-modal="true" aria-labelledby="safety-title">
       <div class="safety-icon"><i class="ph-fill ph-warning"></i></div>
       <h2 id="safety-title">Before you rely on Slackwater</h2>
-      <p>Slackwater shows tide <strong>predictions</strong> and weather for the Texas coast, for general information and recreation. Data can be delayed, estimated, or wrong, and real conditions can differ.</p>
+      <p>Slackwater shows tide <strong>predictions</strong> and weather for US coastal waters, for general information and recreation. Data can be delayed, estimated, or wrong, and real conditions can differ.</p>
       <p><strong>Don't use it as your only source for navigation or safety.</strong> For boating, wading, fishing, or any on-the-water decision, also check official NOAA tide tables, NWS marine forecasts, and the U.S. Coast Guard.</p>
       <button class="btn btn-primary btn-block" id="safety-ack"><i class="ph-bold ph-check"></i> I understand</button>
       <a class="safety-terms" href="${TERMS_URL}" target="_blank" rel="noopener">Read the full Terms of Use</a>

@@ -1,13 +1,13 @@
-# Texas Coastal Tides
+# Slackwater — US Coastal Tides
 
-A web application that displays real-time tide and weather data for Texas coastal stations on an interactive map. The frontend is a static site on Cloudflare Pages; all external data is served through a Cloudflare Worker that caches NOAA/NWS/USNO responses.
+A web application that displays real-time tide and weather data for US coastal stations on an interactive map. The frontend is a static site on Cloudflare Pages; all external data is served through a Cloudflare Worker that caches NOAA/NWS/USNO responses.
 
 **Live site:** [slackwater.app](https://slackwater.app) · **API:** [api.slackwater.app](https://api.slackwater.app/health)
 
 ## Features
 
 ### Interactive Map & Station Data
-- Grayscale map showing ~45 Texas coastal tide stations
+- Grayscale map with the full NOAA CO-OPS network (~3,500 stations, clustered), station search, and GPS "near me"
 - Click any station to view comprehensive current conditions:
   - Current tide status (observed vs predicted water levels)
   - 24-hour tide curve with current position
@@ -110,18 +110,17 @@ texas-tides/
 
 ## Current Stations
 
-The application includes **44 verified NOAA CO-OPS tide stations** along the Texas coast (38 with tide predictions), covering:
+The station catalog covers the **entire NOAA CO-OPS network** — ~3,450 tide-prediction
+stations (1,212 harmonic with full curves, 2,238 subordinate with high/low times only)
+plus ~300 real-time water-level gauges, every US coastal state and territory, each with
+its own IANA timezone. It's generated from NOAA's metadata API:
 
-- Sabine Pass Region (Northeast Texas Coast)
-- Galveston Bay & Houston Ship Channel Region
-- Freeport Region
-- Matagorda Bay Region
-- Aransas & Rockport Region
-- Corpus Christi & Port Aransas Region
-- Laguna Madre & Port Mansfield Region
-- South Padre Island & Port Isabel Region (South Texas Coast)
+```bash
+npm run generate:stations   # rebuilds worker/src/catalog.json from NOAA MDAPI
+```
 
-*Station data verified against the NOAA database as of 2026-01-03.*
+Clients fetch it from `GET /api/stations` (ETag-cached); the bundled 44-station Texas
+list remains as the offline fallback.
 
 ## Deployment
 
@@ -149,7 +148,7 @@ Config (KV binding, cron schedule, custom domain) lives in `worker/wrangler.toml
 
 ## Caching
 
-- **Lazy cache:** any request the Worker hasn't seen is fetched upstream, stored in KV with a per-type TTL (predictions ~6h, live data ~6–10m, weather ~15m, sun/moon ~12h), and served from cache thereafter.
+- **Lazy cache:** any request the Worker hasn't seen is fetched upstream, stored in KV with a per-type TTL (predictions ~24h, live data ~6–10m, weather ~15m, sun/moon ~12h), and served from cache thereafter.
 - **Cron warmer:** every 15 minutes the Worker pre-fetches tide predictions + hi/lo for the 38 prediction stations, so the most-requested data is always warm.
 - **Serve-stale-on-error:** if an upstream API fails, the last good cached value is returned.
 
@@ -159,14 +158,14 @@ Runs on the Cloudflare Workers Free plan as configured; aggressively warming liv
 
 - Some stations don't report all data types (wind, water temp, etc.)
 - The NWS API can occasionally be slow or unavailable
-- Tide-prediction warming targets Central-time clients (Texas); requests from other time zones fall back to lazy caching
+- The cron warmer covers the Texas warm list; other stations are cached lazily on first request
 
 ## Future Enhancements
 
 - [x] Server-side caching for API requests ✅ (Cloudflare Worker + KV)
-- [ ] Native iOS app
-- [ ] Station search/filter functionality
-- [ ] Save favorite stations (localStorage)
+- [x] Native iOS app ✅ (private repo, in App Store review)
+- [x] Station search/filter functionality ✅
+- [x] Save favorite stations (localStorage) ✅
 - [ ] Historical tide data view
 - [ ] Progressive Web App (PWA) support
 - [ ] Push notifications for tide alerts
