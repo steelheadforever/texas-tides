@@ -12,8 +12,8 @@ import { maybeShowSafetyNotice } from './ui/safetyNotice.js';
 import { refreshChartsTheme } from './ui/charts.js';
 import { fetchTimeline, windColor, precipColor } from './layers/weather.js';
 import { WindLayer } from './layers/wind.js';
-import { RadarLayer } from './layers/radar.js';
-import { fmtHour } from './format.js';
+import { RadarLayer, getRadarFrames } from './layers/radar.js';
+import { fmtHour, fmtTime } from './format.js';
 
 function waitForLibraries() {
   return new Promise((resolve) => {
@@ -23,10 +23,61 @@ function waitForLibraries() {
 }
 
 // ---- Weather layer + scrubber controller ----------------------------------
+//
+// The scrubber spans one combined index space: RainViewer's past radar
+// frames (10-minute steps, ~2h) on the left, "now" at the notch, then the
+// 12 Open-Meteo forecast hours on the right.
+//   idx < liveIndex  → a past radar frame (real observed radar)
+//   idx = liveIndex  → live (latest radar frame)
+//   idx > liveIndex  → forecast hour (idx - liveIndex) precip heatmap
+// Wind only has forecast data, so it holds current conditions across the
+// whole past segment. The past/future buttons pick which segment plays.
+
+const FORECAST_STEPS = 12;
 
 const weather = {
-  windOn: false, radarOn: false, hour: 0, playing: false, playTimer: null,
+  windOn: false, radarOn: false, idx: 0, liveIndex: 0, frames: [],
+  segment: 'future', playing: false, playTimer: null,
   timeline: null, windLayer: null, radarLayer: null, map: null,
+
+  forecastHour() { return Math.max(0, this.idx - this.liveIndex); },
+  isPast() { return this.idx < this.liveIndex; },
+
+  // Load/refresh the past radar frame list and remap the thumb so it keeps
+  // pointing at the same logical spot (live stays live, +3h stays +3h).
+  async ensureFrames() {
+    let frames = this.frames;
+    try { frames = await getRadarFrames(); } catch { /* keep what we have */ }
+    const wasLive = this.idx === this.liveIndex;
+    const futureHour = this.idx > this.liveIndex ? this.idx - this.liveIndex : null;
+    this.frames = frames || [];
+    this.liveIndex = Math.max(0, this.frames.length - 1);
+    this.idx = futureHour != null ? this.liveIndex + futureHour
+      : wasLive ? this.liveIndex
+      : Math.min(this.idx, this.liveIndex);
+    this.syncSlider();
+  },
+
+  // Reflect the combined index space in the DOM: slider bounds/position, the
+  // "now" notch, and the past button's availability.
+  syncSlider() {
+    const range = document.getElementById('timeline-range');
+    const max = this.liveIndex + FORECAST_STEPS;
+    range.max = max;
+    range.value = this.idx;
+    const notch = document.getElementById('timeline-notch');
+    const frac = this.liveIndex / max;
+    notch.style.left = `calc(8px + (100% - 16px) * ${frac})`; // 16px ≈ thumb width
+    notch.classList.toggle('hidden', this.liveIndex === 0);
+    document.getElementById('past-btn').disabled = this.liveIndex === 0;
+    this.updateSegmentButtons();
+    this.updateLabel();
+  },
+
+  updateSegmentButtons() {
+    document.getElementById('past-btn').classList.toggle('active', this.segment === 'past');
+    document.getElementById('future-btn').classList.toggle('active', this.segment === 'future');
+  },
 
   viewRegion() {
     if (!this.map) return null;
@@ -52,13 +103,13 @@ const weather = {
   },
 
   // Map settled somewhere new: refetch the grids for the visible region, but
-  // only while a grid-driven layer is showing (live radar is global tiles and
-  // needs nothing; idle panning must not fetch in the background).
+  // only while a grid-driven layer is showing (live + past radar are global
+  // tiles and need nothing; idle panning must not fetch in the background).
   async onViewChanged() {
-    if (!(this.windOn || (this.radarOn && this.hour > 0))) return;
+    if (!(this.windOn || (this.radarOn && this.idx > this.liveIndex))) return;
     const prev = this.timeline;
     const tl = await this.ensureTimeline();
-    if (tl && tl !== prev) this.applyHour();
+    if (tl && tl !== prev) this.applyIdx();
   },
 
   async setWind(on) {
@@ -73,9 +124,10 @@ const weather = {
     // grid as soon as the (possibly slow) timeline fetch resolves.
     if (!this.windLayer) this.windLayer = new WindLayer(this.map);
     this.windLayer.start();
+    this.ensureFrames(); // cheap JSON; gives the scrubber its past segment
     const tl = await this.ensureTimeline();
     if (this.windOn && tl && this.windLayer) {
-      this.windLayer.setGrid(tl.windGrids[Math.min(this.hour, tl.windGrids.length - 1)]);
+      this.windLayer.setGrid(tl.windGrids[Math.min(this.forecastHour(), tl.windGrids.length - 1)]);
     }
   },
 
@@ -84,41 +136,59 @@ const weather = {
     document.getElementById('radar-btn').classList.toggle('active', on);
     if (on) {
       if (!this.radarLayer) this.radarLayer = new RadarLayer(this.map);
-      if (this.hour > 0) await this.ensureTimeline();
-      this.applyHour();
+      await this.ensureFrames();
+      if (this.idx > this.liveIndex) await this.ensureTimeline();
+      this.applyIdx();
     } else if (this.radarLayer) {
       this.radarLayer.hide();
     }
     this.updateChrome();
   },
 
-  applyHour() {
+  applyIdx() {
     const tl = this.timeline;
+    const fh = this.forecastHour(); // 0 across the whole past segment
     if (this.windOn && this.windLayer && tl) {
-      this.windLayer.setGrid(tl.windGrids[Math.min(this.hour, tl.windGrids.length - 1)]);
+      this.windLayer.setGrid(tl.windGrids[Math.min(fh, tl.windGrids.length - 1)]);
     }
     if (this.radarOn && this.radarLayer) {
-      if (this.hour === 0) this.radarLayer.showLive();
-      else if (tl) this.radarLayer.showForecast(tl.precipGrids[Math.min(this.hour, tl.precipGrids.length - 1)]);
+      if (this.idx <= this.liveIndex) {
+        this.radarLayer.showFrame(this.frames[this.idx]?.template || null);
+      } else if (tl) {
+        this.radarLayer.showForecast(tl.precipGrids[Math.min(fh, tl.precipGrids.length - 1)]);
+      }
     }
     this.updateLabel();
   },
 
-  async setHour(h) {
-    this.hour = h;
-    if (h > 0) await this.ensureTimeline();
-    this.applyHour();
+  async setIdx(i) {
+    this.idx = i;
+    this.segment = i < this.liveIndex ? 'past' : 'future';
+    this.updateSegmentButtons();
+    if (i > this.liveIndex) await this.ensureTimeline();
+    this.applyIdx();
   },
 
   updateLabel() {
     const label = document.getElementById('timeline-label');
-    if (this.hour === 0 || !this.timeline) {
+    if (this.isPast() && this.frames[this.idx]) {
+      label.textContent = fmtTime(this.frames[this.idx].time);
+      label.classList.remove('live');
+    } else if (this.idx <= this.liveIndex || !this.timeline) {
       label.textContent = 'Live';
       label.classList.add('live');
     } else {
-      label.textContent = fmtHour(this.timeline.hours[Math.min(this.hour, this.timeline.hours.length - 1)]);
+      label.textContent = fmtHour(this.timeline.hours[Math.min(this.forecastHour(), this.timeline.hours.length - 1)]);
       label.classList.remove('live');
     }
+  },
+
+  // Play loops within the selected segment: past = real radar history up to
+  // live, future = live plus the forecast hours.
+  playBounds() {
+    return this.segment === 'past'
+      ? [0, this.liveIndex]
+      : [this.liveIndex, this.liveIndex + FORECAST_STEPS];
   },
 
   togglePlay() {
@@ -127,21 +197,34 @@ const weather = {
     icon.className = this.playing ? 'ph-fill ph-pause' : 'ph-fill ph-play';
     if (this.playing) {
       this.playTimer = setInterval(() => {
-        const max = this.timeline ? this.timeline.stepCount - 1 : 12;
+        const [lo, hi] = this.playBounds();
         const range = document.getElementById('timeline-range');
-        this.hour = this.hour >= max ? 0 : this.hour + 1;
-        range.value = this.hour;
-        this.applyHour();
+        this.idx = (this.idx >= hi || this.idx < lo) ? lo : this.idx + 1;
+        range.value = this.idx;
+        this.applyIdx();
       }, 900);
     } else {
       clearInterval(this.playTimer);
     }
   },
 
+  // The past/future buttons: pick a segment, rewind to its start, and play.
+  async playSegment(seg) {
+    this.segment = seg;
+    this.updateSegmentButtons();
+    if (seg === 'past') await this.ensureFrames();
+    else await this.ensureTimeline();
+    this.idx = this.playBounds()[0];
+    document.getElementById('timeline-range').value = this.idx;
+    this.applyIdx();
+    if (!this.playing) this.togglePlay();
+  },
+
   updateChrome() {
     const anyOn = this.windOn || this.radarOn;
     document.getElementById('timeline-bar').classList.toggle('active', anyOn);
     if (!anyOn && this.playing) this.togglePlay();
+    this.syncSlider();
     renderLegend(this.windOn, this.radarOn);
   },
 };
@@ -203,9 +286,11 @@ async function init() {
   // Timeline scrubber
   document.getElementById('timeline-range').addEventListener('input', (e) => {
     if (weather.playing) weather.togglePlay();
-    weather.setHour(+e.target.value);
+    weather.setIdx(+e.target.value);
   });
   document.getElementById('timeline-play').addEventListener('click', () => weather.togglePlay());
+  document.getElementById('past-btn').addEventListener('click', () => weather.playSegment('past'));
+  document.getElementById('future-btn').addEventListener('click', () => weather.playSegment('future'));
 
   // Legend collapse
   document.getElementById('legend-collapse').addEventListener('click', () => {

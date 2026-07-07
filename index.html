@@ -61,10 +61,15 @@
       <div class="legend-content" id="legend-content"></div>
     </div>
 
-    <!-- 12h timeline scrubber -->
+    <!-- Radar/precip timeline: past radar frames | now | 12h forecast -->
     <div class="timeline-bar" id="timeline-bar">
       <button class="play-btn" id="timeline-play" aria-label="Play"><i class="ph-fill ph-play"></i></button>
-      <input type="range" id="timeline-range" min="0" max="12" step="1" value="0">
+      <button class="seg-btn" id="past-btn" aria-label="Play past radar" title="Play past radar"><i class="ph-bold ph-clock-counter-clockwise"></i></button>
+      <div class="tl-track">
+        <input type="range" id="timeline-range" min="0" max="12" step="1" value="0">
+        <div class="tl-notch hidden" id="timeline-notch" title="Now"></div>
+      </div>
+      <button class="seg-btn" id="future-btn" aria-label="Play precip forecast" title="Play precip forecast"><i class="ph-bold ph-clock-clockwise"></i></button>
       <span class="time-label live" id="timeline-label">Live</span>
     </div>
 

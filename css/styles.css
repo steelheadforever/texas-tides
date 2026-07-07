@@ -758,3 +758,31 @@ main {
 @media (max-width: 640px) {
   .station-search { top: 0.75rem; width: min(300px, calc(100vw - 6.5rem)); }
 }
+
+/* ---- Timeline past/future segments ---------------------------------------- */
+
+.timeline-bar .seg-btn {
+  background: none; border: none; color: var(--text-secondary); font-size: 1rem; cursor: pointer;
+  width: 26px; height: 26px; display: flex; align-items: center; justify-content: center;
+  border-radius: 50%;
+  flex: none;
+}
+.timeline-bar .seg-btn:hover { color: var(--accent); background: var(--accent-soft); }
+.timeline-bar .seg-btn.active { color: var(--accent); background: var(--accent-soft); }
+.timeline-bar .seg-btn:disabled { opacity: 0.35; cursor: default; background: none; }
+
+.timeline-bar .tl-track { position: relative; flex: 1; display: flex; align-items: center; }
+.timeline-bar .tl-track input[type="range"] { width: 100%; flex: 1; accent-color: var(--accent); }
+
+/* "Now" marker dividing past radar from forecast precip */
+.tl-notch {
+  position: absolute;
+  top: -3px;
+  bottom: -3px;
+  width: 2px;
+  border-radius: 1px;
+  background: var(--observed);
+  opacity: 0.7;
+  pointer-events: none;
+}
+.tl-notch.hidden { display: none; }

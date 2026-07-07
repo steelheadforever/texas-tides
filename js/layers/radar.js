@@ -9,12 +9,24 @@ const gridLatLngBounds = (ext) => L.latLngBounds(
   [ext.maxLat, ext.maxLon]
 );
 
-async function latestFrame() {
+// RainViewer publishes ~2h of past radar as 10-minute frames; the newest
+// frame is "live". Cached briefly — frames roll forward every ~10 minutes.
+const FRAMES_TTL_MS = 5 * 60 * 1000;
+let framesCache = null;
+let framesAt = 0;
+
+async function fetchRadarFrames() {
+  if (framesCache && Date.now() - framesAt < FRAMES_TTL_MS) return framesCache;
   const res = await fetch('https://api.rainviewer.com/public/weather-maps.json');
   const data = await res.json();
-  const frame = data?.radar?.past?.[data.radar.past.length - 1];
-  if (!frame) return null;
-  return `${data.host}${frame.path}/256/{z}/{x}/{y}/2/1_1.png`;
+  const past = data?.radar?.past;
+  if (!Array.isArray(past) || !past.length) return framesCache || [];
+  framesCache = past.map((f) => ({
+    time: new Date(f.time * 1000),
+    template: `${data.host}${f.path}/256/{z}/{x}/{y}/2/1_1.png`,
+  }));
+  framesAt = Date.now();
+  return framesCache;
 }
 
 function renderPrecipImage(grid) {
@@ -43,35 +55,53 @@ function renderPrecipImage(grid) {
   return canvas.toDataURL();
 }
 
+/** Standalone access for the scrubber (frames exist before any RadarLayer). */
+export function getRadarFrames() {
+  return fetchRadarFrames();
+}
+
 export class RadarLayer {
   constructor(map) {
     this.map = map;
     this.tileLayer = null;
     this.imageOverlay = null;
-    this.liveTemplate = null;
+    this.currentTemplate = null;
   }
 
-  async ensureLiveTemplate() {
-    if (!this.liveTemplate) this.liveTemplate = await latestFrame();
-    return this.liveTemplate;
+  /** Past radar frames, oldest → newest (newest = live). May be []. */
+  getFrames() {
+    return fetchRadarFrames();
   }
 
-  async showLive() {
+  /** Show one past-radar tile frame; the newest frame is "live". */
+  async showFrame(template) {
     this.hideForecast();
-    if (this.tileLayer) return;
-    const template = await this.ensureLiveTemplate();
-    if (!template) return;
-    this.tileLayer = L.tileLayer(template, {
-      maxNativeZoom: 7,   // RainViewer free tier caps at z7; Leaflet overzooms
-      maxZoom: 19,
-      opacity: 0.65,
-      tileSize: 256,
-      zIndex: 440,
-    }).addTo(this.map);
+    if (!template) {
+      const frames = await fetchRadarFrames();
+      template = frames[frames.length - 1]?.template;
+      if (!template) return;
+    }
+    if (this.tileLayer) {
+      if (this.currentTemplate !== template) this.tileLayer.setUrl(template);
+    } else {
+      this.tileLayer = L.tileLayer(template, {
+        maxNativeZoom: 7,   // RainViewer free tier caps at z7; Leaflet overzooms
+        maxZoom: 19,
+        opacity: 0.65,
+        tileSize: 256,
+        zIndex: 440,
+      }).addTo(this.map);
+    }
+    this.currentTemplate = template;
+  }
+
+  /** Latest radar frame (kept for compatibility with the live default). */
+  showLive() {
+    return this.showFrame(null);
   }
 
   hideLive() {
-    if (this.tileLayer) { this.map.removeLayer(this.tileLayer); this.tileLayer = null; }
+    if (this.tileLayer) { this.map.removeLayer(this.tileLayer); this.tileLayer = null; this.currentTemplate = null; }
   }
 
   showForecast(grid) {
