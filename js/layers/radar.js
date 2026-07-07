@@ -60,12 +60,16 @@ export function getRadarFrames() {
   return fetchRadarFrames();
 }
 
+const RADAR_OPACITY = 0.65;
+
 export class RadarLayer {
   constructor(map) {
     this.map = map;
-    this.tileLayer = null;
+    this.tileLayer = null;     // the visible frame
+    this.pendingLayer = null;  // the next frame, loading invisibly
     this.imageOverlay = null;
     this.currentTemplate = null;
+    this.frameSeq = 0;
   }
 
   /** Past radar frames, oldest → newest (newest = live). May be []. */
@@ -73,7 +77,21 @@ export class RadarLayer {
     return fetchRadarFrames();
   }
 
-  /** Show one past-radar tile frame; the newest frame is "live". */
+  makeTileLayer(template, opacity) {
+    return L.tileLayer(template, {
+      maxNativeZoom: 7,   // RainViewer free tier caps at z7; Leaflet overzooms
+      maxZoom: 19,
+      opacity,
+      tileSize: 256,
+      zIndex: 440,
+    });
+  }
+
+  /** Show one past-radar tile frame; the newest frame is "live".
+   * Double-buffered: the next frame loads invisibly on a second layer and
+   * only swaps in once its tiles are ready — swapping the URL in place
+   * blanks the layer while tiles reload, making playback "blink". After the
+   * first full loop the browser cache makes swaps effectively instant. */
   async showFrame(template) {
     this.hideForecast();
     if (!template) {
@@ -81,18 +99,29 @@ export class RadarLayer {
       template = frames[frames.length - 1]?.template;
       if (!template) return;
     }
-    if (this.tileLayer) {
-      if (this.currentTemplate !== template) this.tileLayer.setUrl(template);
-    } else {
-      this.tileLayer = L.tileLayer(template, {
-        maxNativeZoom: 7,   // RainViewer free tier caps at z7; Leaflet overzooms
-        maxZoom: 19,
-        opacity: 0.65,
-        tileSize: 256,
-        zIndex: 440,
-      }).addTo(this.map);
+    if (this.currentTemplate === template && this.tileLayer) return;
+    const seq = ++this.frameSeq;
+
+    if (!this.tileLayer) {
+      this.tileLayer = this.makeTileLayer(template, RADAR_OPACITY).addTo(this.map);
+      this.currentTemplate = template;
+      return;
     }
-    this.currentTemplate = template;
+
+    if (this.pendingLayer) { this.map.removeLayer(this.pendingLayer); this.pendingLayer = null; }
+    const next = this.makeTileLayer(template, 0).addTo(this.map);
+    this.pendingLayer = next;
+    const swap = () => {
+      if (seq !== this.frameSeq) { this.map.removeLayer(next); return; } // superseded
+      next.setOpacity(RADAR_OPACITY);
+      if (this.tileLayer) this.map.removeLayer(this.tileLayer);
+      this.tileLayer = next;
+      this.pendingLayer = null;
+      this.currentTemplate = template;
+    };
+    next.once('load', swap);
+    // Safety net: swap anyway if some tiles error out and 'load' stalls.
+    setTimeout(() => { if (this.pendingLayer === next) swap(); }, 2000);
   }
 
   /** Latest radar frame (kept for compatibility with the live default). */
@@ -101,6 +130,8 @@ export class RadarLayer {
   }
 
   hideLive() {
+    this.frameSeq++;
+    if (this.pendingLayer) { this.map.removeLayer(this.pendingLayer); this.pendingLayer = null; }
     if (this.tileLayer) { this.map.removeLayer(this.tileLayer); this.tileLayer = null; this.currentTemplate = null; }
   }
 
