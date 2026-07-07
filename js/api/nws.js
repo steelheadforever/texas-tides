@@ -3,6 +3,7 @@
 // Now proxied through Raspberry Pi backend for caching and analytics
 
 import { API_BASE_URL, REQUEST_TIMEOUT } from './config.js';
+import { dayKey, tzMidnight } from '../format.js';
 
 const NWS_API_URL = `${API_BASE_URL}/nws`;
 
@@ -92,8 +93,10 @@ export async function fetchNWSTemperature(lat, lon) {
 /**
  * Fetch 7-day weather forecast (starting from midnight today)
  * Returns array of daily forecast objects with weather, temp, wind, precip
+ * `tz` (optional IANA zone) anchors the days to the STATION's calendar —
+ * without it a station west of the viewer gets yesterday as its first card.
  */
-export async function fetchWeatherForecast7Day(lat, lon) {
+export async function fetchWeatherForecast7Day(lat, lon, tz) {
   const points = await fetchNWSPoints(lat, lon);
 
   if (!points || !points.forecast) {
@@ -109,17 +112,18 @@ export async function fetchWeatherForecast7Day(lat, lon) {
 
   const periods = data.properties.periods;
 
-  // Get midnight today to determine which day each period belongs to
+  // Everything below buckets by *station-local* calendar day (viewer-local
+  // when tz is omitted): NWS period start times carry the station's own UTC
+  // offset, so the day a period belongs to is its start in the station zone.
   const now = new Date();
-  const midnightToday = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
+  const [ty, tm, td] = now.toLocaleDateString('en-CA', tz ? { timeZone: tz } : {}).split('-').map(Number);
 
   // Create a map of date -> {day: dayPeriod, night: nightPeriod}
   const periodsByDate = {};
 
   for (const period of periods) {
     const periodStart = new Date(period.startTime);
-    const periodDate = new Date(periodStart.getFullYear(), periodStart.getMonth(), periodStart.getDate(), 0, 0, 0, 0);
-    const dateKey = periodDate.toISOString().split('T')[0]; // YYYY-MM-DD
+    const dateKey = dayKey(periodStart, tz); // YYYY-MM-DD in the station zone
 
     if (!periodsByDate[dateKey]) {
       periodsByDate[dateKey] = {};
@@ -132,13 +136,14 @@ export async function fetchWeatherForecast7Day(lat, lon) {
     }
   }
 
-  // Build 7 days of forecasts starting from today
+  // Build 7 days of forecasts starting from the station's today
   const dailyForecasts = [];
 
   for (let dayOffset = 0; dayOffset < 7; dayOffset++) {
-    const targetDate = new Date(midnightToday);
-    targetDate.setDate(midnightToday.getDate() + dayOffset);
-    const dateKey = targetDate.toISOString().split('T')[0];
+    const targetDate = tz
+      ? tzMidnight(ty, tm - 1, td + dayOffset, tz)
+      : new Date(ty, tm - 1, td + dayOffset, 0, 0, 0, 0);
+    const dateKey = dayKey(targetDate, tz);
 
     const dayPeriod = periodsByDate[dateKey]?.day;
     const nightPeriod = periodsByDate[dateKey]?.night;
@@ -162,7 +167,7 @@ export async function fetchWeatherForecast7Day(lat, lon) {
 
     dailyForecasts.push({
       date: new Date(targetDate),
-      dayOfWeek: targetDate.toLocaleDateString('en-US', { weekday: 'short' }),
+      dayOfWeek: targetDate.toLocaleDateString('en-US', tz ? { weekday: 'short', timeZone: tz } : { weekday: 'short' }),
       icon: primaryPeriod?.icon || '',
       shortForecast: primaryPeriod?.shortForecast || 'N/A',
       detailedForecast: primaryPeriod?.detailedForecast || '',

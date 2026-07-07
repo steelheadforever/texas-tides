@@ -57,10 +57,16 @@ export async function openStation(station) {
 
   const reqId = station.id;
   try {
+    // Stations without a predictions product (Great Lakes gauges) skip the
+    // tide requests entirely — they'd all fail upstream. The curve endpoint
+    // still runs for its observed water-level fallback.
+    const hasPred = !station.products || station.products.includes('predictions');
+    const hiloOnly = station.predType === 'S';
     const [tideNow, nextTide, curve, waterTemp, waterTempHistory, airTemp, wind, windForecast, pressure, sunMoon] =
       await Promise.all([
-        fetchTideNow(station.id, station.tz), fetchNextTide(station.id, station.tz),
-        fetch24HourCurve(station.id, { hiloOnly: station.predType === 'S', tz: station.tz }),
+        hasPred ? fetchTideNow(station.id, station.tz, { hiloOnly }) : null,
+        hasPred ? fetchNextTide(station.id, station.tz) : null,
+        fetch24HourCurve(station.id, { hiloOnly, skipPredictions: !hasPred, tz: station.tz }),
         fetchWaterTemp(station.id), fetchWaterTempHistory(station.id, 24, station.tz),
         fetchAirTemp(station.id, station.lat, station.lon), fetchStationWind(station.id),
         fetchForecast12h(station.lat, station.lon), fetchPressure(station.lat, station.lon),
@@ -150,12 +156,17 @@ function nextTidesCard(events) {
 // the readout (in addition to the first-run notice and the Terms).
 function tideNote(curve) {
   if (!curve || curve.noPredictions) return '';
-  return `<div class="sp-tide-note"><i class="ph ph-info"></i><span>Tide values are predictions — verify before relying on them for safety.</span></div>`;
+  const msg = curve.synthetic
+    ? 'Curve estimated from NOAA high/low predictions — verify before relying on it for safety.'
+    : 'Tide values are predictions — verify before relying on them for safety.';
+  return `<div class="sp-tide-note"><i class="ph ph-info"></i><span>${msg}</span></div>`;
 }
 
 function curveCard(curve) {
   if (!curve) return '';
-  const label = curve.noPredictions ? 'Water Level (24h observed)' : '24-Hour Tide Curve';
+  const label = curve.noPredictions ? 'Water Level (24h observed)'
+    : curve.synthetic ? '24-Hour Tide Curve (estimated)'
+    : '24-Hour Tide Curve';
   const legend = curve.observed && curve.predicted
     ? `<div class="chart-legend"><span><span class="dot" style="background:var(--tide)"></span>Predicted</span><span><span class="dot" style="background:var(--observed)"></span>Observed</span></div>`
     : '';
@@ -201,15 +212,18 @@ function sunMoonCard(sm) {
   if (!sm) return '';
   const sun = sm.sun || {};
   const moon = sm.moon || {};
+  // USNO reports 'N/A' when an event doesn't occur that day (e.g. no
+  // moonrise) — render a dash instead of the raw sentinel.
+  const t = (s) => (!s || s === 'N/A') ? '—' : s;
   return card('Sun & Moon', 'ph-fill ph-sun-horizon', `
     <div class="sunmoon-row">
       <div class="sunmoon-col">
-        <span class="line"><i class="ph-fill ph-sun-horizon icon-sunrise"></i> ${escapeHtml(sun.rise || '—')}</span>
-        <span class="line"><i class="ph-fill ph-sun-horizon icon-sunset"></i> ${escapeHtml(sun.set || '—')}</span>
+        <span class="line"><i class="ph-fill ph-sun-horizon icon-sunrise"></i> ${escapeHtml(t(sun.rise))}</span>
+        <span class="line"><i class="ph-fill ph-sun-horizon icon-sunset"></i> ${escapeHtml(t(sun.set))}</span>
       </div>
       <div class="sunmoon-col">
-        <span class="line"><i class="${moonIcon(sm.moonPhase)}"></i> ${escapeHtml(sm.moonPhase || '—')}</span>
-        <span class="line" style="color:var(--text-secondary)">↑ ${escapeHtml(moon.rise || '—')}&nbsp;&nbsp;↓ ${escapeHtml(moon.set || '—')}</span>
+        <span class="line"><i class="${moonIcon(sm.moonPhase)}"></i> ${escapeHtml(t(sm.moonPhase))}</span>
+        <span class="line" style="color:var(--text-secondary)">↑ ${escapeHtml(t(moon.rise))}&nbsp;&nbsp;↓ ${escapeHtml(t(moon.set))}</span>
       </div>
     </div>`);
 }

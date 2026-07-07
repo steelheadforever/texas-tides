@@ -1,13 +1,16 @@
 // 7-day forecast panel — day cards stacked vertically (matching the other
 // panels), each with a tide sparkline + real NOAA high/low events.
 
-import { fetchTidePredictions7Day, fetchTideHilo7Day } from '../api/noaa.js';
+import { fetchTidePredictions7Day, fetchTideHilo7Day, synthesizeCurveFromHilo } from '../api/noaa.js';
 import { fetchWeatherForecast7Day } from '../api/nws.js';
 import { fetchSunMoon7Day } from '../api/usno.js';
 import { renderSparkline } from './charts.js';
 import { openPanel } from '../panels.js';
 import { getSettings } from '../settings.js';
 import { fmtDay, fmtTime, fmtFeet, fmtWind, dayKey, tzMidnight, conditionIcon, moonIcon, escapeHtml } from '../format.js';
+
+// USNO reports 'N/A' when an event doesn't occur that day — show a dash.
+const dash = (s) => (!s || s === 'N/A') ? '—' : s;
 
 export async function openForecast(station) {
   // Bucket everything into the station's local calendar days.
@@ -18,12 +21,18 @@ export async function openForecast(station) {
   openPanel('forecast-panel');
 
   try {
-    const [predictions, hilo, weather, sunMoon] = await Promise.all([
-      fetchTidePredictions7Day(station.id, station.tz),
-      fetchTideHilo7Day(station.id, station.tz),
-      fetchWeatherForecast7Day(station.lat, station.lon),
+    // Subordinate stations have no 6-minute curve — synthesize one from
+    // high/low events instead (padded ±12h so the first and last day cards
+    // have bracketing extremes to interpolate from).
+    const hiloOnly = station.predType === 'S';
+    const hasPred = !station.products || station.products.includes('predictions');
+    const [rawPredictions, hilo, weather, sunMoon] = await Promise.all([
+      (hiloOnly || !hasPred) ? null : fetchTidePredictions7Day(station.id, station.tz),
+      hasPred ? fetchTideHilo7Day(station.id, station.tz, hiloOnly ? 12 : 0) : [],
+      fetchWeatherForecast7Day(station.lat, station.lon, station.tz),
       fetchSunMoon7Day(station.lat, station.lon, station.tz),
     ]);
+    const predictions = rawPredictions?.length ? rawPredictions : synthesizeCurveFromHilo(hilo || []);
 
     const allWeatherMissing = !weather || weather.every((d) => !d.shortForecast || d.shortForecast === 'N/A');
     if (allWeatherMissing && (!predictions || !predictions.length)) {
@@ -85,9 +94,9 @@ export async function openForecast(station) {
         </div>
         ${sm ? `<div class="divider"></div>
           <div class="day-meta">
-            <span><i class="ph-fill ph-sun-horizon icon-sunrise"></i> ${escapeHtml(sm.sunrise)}</span>
-            <span><i class="ph-fill ph-sun-horizon icon-sunset"></i> ${escapeHtml(sm.sunset)}</span>
-            <span><i class="${moonIcon(sm.moonPhase)}"></i> ${escapeHtml(sm.moonPhase)}</span>
+            <span><i class="ph-fill ph-sun-horizon icon-sunrise"></i> ${escapeHtml(dash(sm.sunrise))}</span>
+            <span><i class="ph-fill ph-sun-horizon icon-sunset"></i> ${escapeHtml(dash(sm.sunset))}</span>
+            <span><i class="${moonIcon(sm.moonPhase)}"></i> ${escapeHtml(dash(sm.moonPhase))}</span>
           </div>` : ''}
       </div>`;
     }).join('');

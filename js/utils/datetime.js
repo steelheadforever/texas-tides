@@ -111,9 +111,11 @@ export function getDateRange(hoursFromNowStart = 0, hoursFromNowEnd = 24, tz) {
  * "Midnight today" is the station's midnight when tz is given.
  * @param {number} numDays - Number of days to include (e.g., 7 for 7-day forecast)
  * @param {string} [tz] - station IANA zone
+ * @param {number} [padHours] - widen the window this many hours on each side
+ *   (bracketing events for curve synthesis) without moving its day anchor
  * @returns {object} Object with begin, end, beginDate, endDate
  */
-export function getDateRangeFromMidnightToday(numDays = 7, tz) {
+export function getDateRangeFromMidnightToday(numDays = 7, tz, padHours = 0) {
   const now = new Date();
 
   let midnightToday;
@@ -124,12 +126,13 @@ export function getDateRangeFromMidnightToday(numDays = 7, tz) {
     midnightToday = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
   }
 
-  const endDate = new Date(midnightToday.getTime() + numDays * 24 * 60 * 60 * 1000);
+  const beginDate = new Date(midnightToday.getTime() - padHours * 60 * 60 * 1000);
+  const endDate = new Date(midnightToday.getTime() + (numDays * 24 + padHours) * 60 * 60 * 1000);
 
   return {
-    begin: formatNOAADate(midnightToday, tz),
+    begin: formatNOAADate(beginDate, tz),
     end: formatNOAADate(endDate, tz),
-    beginDate: midnightToday,
+    beginDate: beginDate,
     endDate: endDate
   };
 }

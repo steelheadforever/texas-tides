@@ -229,8 +229,66 @@ async function fetchObservedWaterLevelsWithFallback(stationId, hoursBack = 6, tz
     return result;
   }
 
+  // Great Lakes gauges only speak the lake datums (IGLD / Low Water Datum).
+  for (const datum of ['IGLD', 'LWD']) {
+    result = await fetchObservedWaterLevels(stationId, hoursBack, datum, tz);
+    if (result && result.length > 0) {
+      return result;
+    }
+  }
+
   console.warn(`All datums failed for station ${stationId}`);
   return [];
+}
+
+/**
+ * Cosine-interpolate a dense curve from consecutive high/low events. NOAA
+ * subordinate stations publish only the extremes, and a real tide between two
+ * extremes closely follows a half-cosine, so this gives them an organic curve
+ * consistent with the harmonic stations' sparklines.
+ * Returns [{time, ft}] at `stepMinutes` resolution.
+ */
+export function synthesizeCurveFromHilo(events, stepMinutes = 12) {
+  const evts = (events || []).filter((e) => e.time instanceof Date && e.ft != null);
+  if (evts.length < 2) return [];
+  const pts = [];
+  for (let i = 0; i < evts.length - 1; i++) {
+    const a = evts[i], b = evts[i + 1];
+    const span = b.time - a.time;
+    if (span <= 0) continue;
+    for (let t = a.time.getTime(); t < b.time.getTime(); t += stepMinutes * 60000) {
+      const frac = (t - a.time.getTime()) / span;
+      pts.push({ time: new Date(t), ft: a.ft + (b.ft - a.ft) * (1 - Math.cos(Math.PI * frac)) / 2 });
+    }
+  }
+  const last = evts[evts.length - 1];
+  pts.push({ time: last.time, ft: last.ft });
+  return pts;
+}
+
+/**
+ * Dense synthetic predictions for a subordinate station: fetch high/low
+ * events well past both ends of the render window (extremes come ~every 6h,
+ * so ±24h of margin always brackets it) and cosine-interpolate. The caller
+ * clips to its window, same as real 6-minute predictions.
+ */
+async function synthesizedPredictions(stationId, tz) {
+  const range = getDateRange(-30, 48, tz);
+  const params = {
+    station: stationId,
+    product: 'predictions',
+    datum: 'MLLW',
+    begin_date: range.begin,
+    end_date: range.end,
+    interval: 'hilo'
+  };
+  const data = await noaaGet(params);
+  if (!data || !data.predictions || !data.predictions.length) return [];
+  const events = data.predictions.map(pred => ({
+    time: parseNOAALocalTime(pred.t, tz),
+    ft: safeFloat(pred.v)
+  }));
+  return synthesizeCurveFromHilo(events);
 }
 
 /**
@@ -239,7 +297,7 @@ async function fetchObservedWaterLevelsWithFallback(stationId, hoursBack = 6, tz
  * Predicted: next 24 hours of predictions
  * If predictions unavailable: past 24 hours of water level observations
  */
-export async function fetch24HourCurve(stationId, { hiloOnly = false, tz } = {}) {
+export async function fetch24HourCurve(stationId, { hiloOnly = false, skipPredictions = false, tz } = {}) {
   // Fetch predictions from 6 hours ago to 24 hours ahead
   // This ensures the predicted curve covers the same timeframe as observed data (past 6 hours)
   // plus the next 24 hours, allowing comparison of predicted vs actual for the past period
@@ -247,9 +305,12 @@ export async function fetch24HourCurve(stationId, { hiloOnly = false, tz } = {})
 
   // Fetch both observed and predicted data in parallel. Subordinate stations
   // (catalog predType 'S') publish only high/low events — NOAA errors on the
-  // 6-minute interval — so skip that request instead of letting it fail.
+  // 6-minute interval — so synthesize a cosine curve from the extremes instead.
   const [predictionsRaw, observed] = await Promise.all([
-    hiloOnly ? Promise.resolve(null) : fetchPredictions(
+    // skipPredictions: station carries no predictions product at all (Great
+    // Lakes gauges) — go straight to the observed water-level fallback.
+    skipPredictions ? Promise.resolve([])
+      : hiloOnly ? synthesizedPredictions(stationId, tz) : fetchPredictions(
       stationId,
       range.begin,
       range.end,
@@ -326,7 +387,8 @@ export async function fetch24HourCurve(stationId, { hiloOnly = false, tz } = {})
       heights: observed.map(o => o.ft)
     } : null,
     nowIndex: nowIndex,
-    noPredictions: false
+    noPredictions: false,
+    synthetic: hiloOnly // curve interpolated from high/low extremes
   };
 }
 
@@ -426,14 +488,17 @@ function computePhaseFromHilo(events, now = new Date()) {
  * Fetch current tide status (observed vs predicted)
  * Based on fishing_bot4.py:371-409
  */
-export async function fetchTideNow(stationId, tz) {
+export async function fetchTideNow(stationId, tz, { hiloOnly = false } = {}) {
   // Fetch observed water level
   const observed = await fetchWaterLevel(stationId);
 
-  // Fetch current prediction
+  // Fetch current prediction (synthesized from extremes for subordinate
+  // stations — the day-aligned backend cache makes the wider fetch cheap).
   const now = new Date();
   const range = getDateRange(0, 1, tz);
-  const predictions = await fetchPredictions(stationId, range.begin, range.end, '6', tz);
+  const predictions = hiloOnly
+    ? await synthesizedPredictions(stationId, tz)
+    : await fetchPredictions(stationId, range.begin, range.end, '6', tz);
 
   let predicted = null;
   if (predictions && predictions.length > 0) {
@@ -538,8 +603,8 @@ export async function fetchTidePredictions7Day(stationId, tz) {
  * than scanning the dense curve for local extrema.
  * Returns array of {time, ft, kind: 'High'|'Low'}.
  */
-export async function fetchTideHilo7Day(stationId, tz) {
-  const range = getDateRangeFromMidnightToday(7, tz);
+export async function fetchTideHilo7Day(stationId, tz, padHours = 0) {
+  const range = getDateRangeFromMidnightToday(7, tz, padHours);
 
   const params = {
     station: stationId,
