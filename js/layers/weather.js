@@ -77,6 +77,18 @@ let inflight = null;
 let inflightKey = null;
 let seq = 0;
 
+// Open-Meteo rate-limits by *location count*, and it throttles bursts hard:
+// a few back-to-back ~300-point grid requests (a user thumb-panning across
+// the country) earns 429s, after which the wind layer would be stuck on the
+// last region that fetched successfully. So: at most one grid fetch per
+// MIN_INTERVAL_MS — extra callers coalesce onto a single trailing fetch for
+// the most recent viewport — and a 429 waits RATE_LIMIT_WAIT_MS to retry.
+const MIN_INTERVAL_MS = 8000;
+const RATE_LIMIT_WAIT_MS = 15000;
+let lastFetchStart = 0;
+let queued = null;
+let queuedView = null;
+
 const covers = (b, v) => v.minLat >= b.minLat - 1e-6 && v.maxLat <= b.maxLat + 1e-6
   && v.minLon >= b.minLon - 1e-6 && v.maxLon <= b.maxLon + 1e-6;
 
@@ -95,13 +107,33 @@ export async function fetchTimeline(view) {
   }
   if (inflight && inflightKey === key) return inflight;
 
+  // Throttle: too soon after the last fetch → queue one trailing fetch for
+  // the latest requested viewport and hand every waiter that same promise.
+  const wait = lastFetchStart + MIN_INTERVAL_MS - Date.now();
+  if (wait > 0) {
+    queuedView = v;
+    if (!queued) {
+      queued = (async () => {
+        await new Promise((r) => setTimeout(r, wait));
+        const qv = queuedView;
+        queued = null; queuedView = null;
+        return fetchTimeline(qv);
+      })();
+    }
+    return queued;
+  }
+  lastFetchStart = Date.now();
+
   const mySeq = ++seq;
   inflightKey = key;
   inflight = (async () => {
     let lastErr;
     for (let attempt = 0; attempt < 2; attempt++) {
       try { return await buildTimeline(lats, lons); }
-      catch (e) { lastErr = e; await new Promise((r) => setTimeout(r, 800)); }
+      catch (e) {
+        lastErr = e;
+        if (attempt === 0) await new Promise((r) => setTimeout(r, e.rateLimited ? RATE_LIMIT_WAIT_MS : 800));
+      }
     }
     throw lastErr;
   })();
@@ -135,8 +167,12 @@ async function buildTimeline(lats, lons) {
   url.searchParams.set('timezone', 'UTC');
 
   const res = await fetch(url);
-  const data = await res.json();
-  if (!Array.isArray(data) || data.length !== points.length) throw new Error('Wind grid size mismatch');
+  const data = await res.json().catch(() => null);
+  if (!Array.isArray(data) || data.length !== points.length) {
+    const err = new Error(data?.reason || `Wind grid fetch failed (HTTP ${res.status})`);
+    if (res.status === 429 || /limit/i.test(data?.reason || '')) err.rateLimited = true;
+    throw err;
+  }
 
   const n = points.length;
   const comp = (speed, dir) => { const r = (dir || 0) * Math.PI / 180; return [-speed * Math.sin(r), -speed * Math.cos(r)]; };

@@ -37,8 +37,17 @@ const weather = {
   async ensureTimeline() {
     // fetchTimeline caches per region + step, so this is a no-op while the
     // viewport stays inside the fetched lattice and the cache is fresh.
-    try { this.timeline = await fetchTimeline(this.viewRegion()); }
-    catch (e) { console.warn('Wind/precip timeline failed', e); }
+    try {
+      this.timeline = await fetchTimeline(this.viewRegion());
+      clearTimeout(this.retryTimer);
+    } catch (e) {
+      console.warn('Wind/precip timeline failed', e);
+      // Rate-limited into total failure (e.g. rapid cross-country panning):
+      // retry once things have cooled down so the layer heals without the
+      // user having to nudge the map. Cleared on the next success.
+      clearTimeout(this.retryTimer);
+      this.retryTimer = setTimeout(() => this.onViewChanged(), 20_000);
+    }
     return this.timeline;
   },
 
