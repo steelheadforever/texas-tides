@@ -83,7 +83,7 @@ texas-tides/
 │   │   ├── nws.js          # NWS API (proxied through the Worker)
 │   │   └── usno.js         # USNO API (proxied through the Worker)
 │   ├── data/
-│   │   └── stations.js     # Texas station definitions
+│   │   └── stations.js     # bundled Texas fallback (offline first-run)
 │   ├── ui/
 │   │   ├── popup.js         # Current conditions popup
 │   │   ├── forecastPopup.js # 7-day forecast popup
@@ -158,7 +158,7 @@ Runs on the Cloudflare Workers Free plan as configured; aggressively warming liv
 
 - Some stations don't report all data types (wind, water temp, etc.)
 - The NWS API can occasionally be slow or unavailable
-- The cron warmer covers the Texas warm list; other stations are cached lazily on first request
+- The cron warmer covers ~280 flagship stations (live gauge + predictions, plus all of Texas); the rest cache lazily on first request
 
 ## Future Enhancements
 

@@ -2,7 +2,7 @@
 
 Cloudflare Worker that replaces the Raspberry Pi backend. It's a KV-cached proxy
 in front of NOAA CO-OPS, NWS, and USNO, plus a cron warmer that pre-fetches tide
-predictions for all Texas stations. **The app only ever talks to this Worker —
+predictions for the ~280 most-used stations nationally. **The app only ever talks to this Worker —
 never the upstream APIs directly.**
 
 ```
@@ -41,20 +41,22 @@ Base URL: `https://api.slackwater.app/api`
   all clients within a clock-hour onto one cached entry and lets the warmer hit
   the same keys the app requests.
 - **Cron warmer (`scheduled` in `src/index.js`):** every 15 minutes it warms the
-  tide curve (`interval=6`) and hi/lo (`interval=hilo`) for the 38 prediction
-  stations, but only for entries that are missing or within 25% of expiry. It's
-  capped at `WARM_FETCH_BUDGET` upstream fetches per tick so it stays under the
-  free-tier subrequest limit; unreached stations are picked up next tick.
+  tide curve (`interval=6`) and hi/lo (`interval=hilo`) for the ~280-station
+  warm list, but only for entries that are missing or within 25% of expiry.
+  It's capped at `WARM_FETCH_BUDGET` upstream fetches per tick; unreached
+  stations are picked up next tick.
 
 ## Plan & cost
 
-Works on the **Workers Free** plan as built: predictions are warmed with
-write-on-near-expiry (~a few hundred KV writes/day), and live data is lazy
-(written only on real demand). If you later want to aggressively warm **live**
-data (water level / wind / temp) for all 44 stations every few minutes, the KV
-free write cap (1,000/day) is too low — move to **Workers Paid ($5/mo)**, which
-raises KV writes to 1M/day and subrequests to 1,000/invocation. Then add live
-products to the warmer and raise `WARM_FETCH_BUDGET`.
+Runs on **Workers Paid ($5/mo)**. The warm list derives from the catalog —
+every station with both a live gauge and predictions (~270) plus all Texas
+prediction stations, ~278 total / 556 day-aligned prediction keys ≈ 40k KV
+writes/month against the 1M/month included. `WARM_FETCH_BUDGET` (150) stays
+well inside the paid 1,000-subrequests-per-invocation ceiling; the 15-minute
+cron sweeps the full list in a few ticks. The other ~3,300 stations cache
+lazily on first request. NOTE: after a Cloudflare plan change, run
+`npx wrangler triggers deploy` — cron registration can wedge across plan
+transitions (it did on the free→paid upgrade).
 
 ## Develop & deploy
 
@@ -77,7 +79,6 @@ src/
   cache.js      KV cache, key normalization, TTL policy
   upstream.js   NOAA / NWS / USNO fetch clients
   nws.js        derived NWS endpoints (forecast-12h, pressure, temperature)
-  stations.js   44 Texas stations — the cron warmer's warm list
   catalog.json  national station catalog served at /api/stations
                 (regenerate: `npm run generate:stations` at the repo root)
 ```

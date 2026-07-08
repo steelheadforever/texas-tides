@@ -53,7 +53,7 @@ function render() {
       </a>
     </div>
     <p style="font-size:0.72rem;color:var(--text-secondary);padding:0 0.3rem;">
-      Tides &amp; conditions from NOAA CO-OPS. Weather from the National Weather Service. Sun &amp; moon from the U.S. Naval Observatory. Radar via RainViewer. Forecast grids from Open-Meteo.
+      Covers the full NOAA CO-OPS station network — every US coastal state and territory, plus the international stations NOAA publishes. Tides &amp; conditions from NOAA CO-OPS. Weather from the National Weather Service. Sun &amp; moon from the U.S. Naval Observatory. Radar via RainViewer. Forecast grids from Open-Meteo.
     </p>
     <p style="font-size:0.72rem;color:var(--text-secondary);padding:0 0.3rem;">
       Slackwater is a <a href="https://workingmodel.cc/" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:none;">Working Model</a> project.
