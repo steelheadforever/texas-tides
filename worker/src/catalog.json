@@ -1,8 +1,8 @@
 {
- "version": "61898d8c6926",
- "generatedAt": "2026-07-02T01:05:10.510Z",
+ "version": "dce2b9246d9a",
+ "generatedAt": "2026-07-08T04:55:55.085Z",
  "source": "NOAA CO-OPS MDAPI",
- "count": 3572,
+ "count": 3620,
  "stations": [
   {
    "id": "1610367",
@@ -12994,8 +12994,8 @@
    "id": "8654467",
    "name": "Hatteras (ocean)",
    "state": "NC",
-   "lat": 35.20861,
-   "lon": -75.70419,
+   "lat": 35.2086,
+   "lon": -75.7042,
    "tz": "America/New_York",
    "products": [
     "predictions",
@@ -23118,6 +23118,19 @@
    "refId": null
   },
   {
+   "id": "8726045",
+   "name": "Hayden Roberts Bay",
+   "state": "FL",
+   "lat": 27.2917,
+   "lon": -82.5417,
+   "tz": "America/New_York",
+   "products": [
+    "predictions"
+   ],
+   "predType": "S",
+   "refId": "8726520"
+  },
+  {
    "id": "8726083",
    "name": "Sarasota, Sarasota Bay",
    "state": "FL",
@@ -23131,11 +23144,63 @@
    "refId": "8726520"
   },
   {
+   "id": "8726089",
+   "name": "Longboats Key, Sarasota Bay",
+   "state": "FL",
+   "lat": 27.34,
+   "lon": -82.59,
+   "tz": "America/New_York",
+   "products": [
+    "predictions"
+   ],
+   "predType": "S",
+   "refId": "8726520"
+  },
+  {
+   "id": "8726159",
+   "name": "Whitfield Estates, Sarasota Bay",
+   "state": "FL",
+   "lat": 27.4083,
+   "lon": -82.58,
+   "tz": "America/New_York",
+   "products": [
+    "predictions"
+   ],
+   "predType": "S",
+   "refId": "8726520"
+  },
+  {
    "id": "8726217",
    "name": "Cortez, Sarasota Bay",
    "state": "FL",
    "lat": 27.4667,
    "lon": -82.6867,
+   "tz": "America/New_York",
+   "products": [
+    "predictions"
+   ],
+   "predType": "S",
+   "refId": "8726520"
+  },
+  {
+   "id": "8726232",
+   "name": "Perico Island",
+   "state": "FL",
+   "lat": 27.4867,
+   "lon": -82.6867,
+   "tz": "America/New_York",
+   "products": [
+    "predictions"
+   ],
+   "predType": "S",
+   "refId": "8726520"
+  },
+  {
+   "id": "8726233",
+   "name": "Palma Sola Bay (South)",
+   "state": "FL",
+   "lat": 27.485,
+   "lon": -82.645,
    "tz": "America/New_York",
    "products": [
     "predictions"
@@ -23170,6 +23235,32 @@
    "refId": "8726520"
   },
   {
+   "id": "8726249",
+   "name": "Palma Sola Bay (North)",
+   "state": "FL",
+   "lat": 27.5033,
+   "lon": -82.6483,
+   "tz": "America/New_York",
+   "products": [
+    "predictions"
+   ],
+   "predType": "S",
+   "refId": "8726520"
+  },
+  {
+   "id": "8726254",
+   "name": "Perico Bayou",
+   "state": "FL",
+   "lat": 27.4983,
+   "lon": -82.6683,
+   "tz": "America/New_York",
+   "products": [
+    "predictions"
+   ],
+   "predType": "S",
+   "refId": "8726520"
+  },
+  {
    "id": "8726265",
    "name": "Ellenton, Manatee River",
    "state": "FL",
@@ -23181,6 +23272,19 @@
    ],
    "predType": "R",
    "refId": null
+  },
+  {
+   "id": "8726273",
+   "name": "Desoto Point",
+   "state": "FL",
+   "lat": 27.5233,
+   "lon": -82.65,
+   "tz": "America/New_York",
+   "products": [
+    "predictions"
+   ],
+   "predType": "S",
+   "refId": "8726520"
   },
   {
    "id": "8726278",
@@ -23268,6 +23372,32 @@
    "refId": null
   },
   {
+   "id": "8726425",
+   "name": "Cockroach Bay",
+   "state": "FL",
+   "lat": 27.6783,
+   "lon": -82.5033,
+   "tz": "America/New_York",
+   "products": [
+    "predictions"
+   ],
+   "predType": "S",
+   "refId": "8726520"
+  },
+  {
+   "id": "8726428",
+   "name": "Tierra Verde",
+   "state": "FL",
+   "lat": 27.6883,
+   "lon": -82.7183,
+   "tz": "America/New_York",
+   "products": [
+    "predictions"
+   ],
+   "predType": "R",
+   "refId": null
+  },
+  {
    "id": "8726436",
    "name": "Little Manatee River, US 41 Bridge",
    "state": "FL",
@@ -23312,6 +23442,19 @@
    "state": "FL",
    "lat": 27.7367,
    "lon": -82.7067,
+   "tz": "America/New_York",
+   "products": [
+    "predictions"
+   ],
+   "predType": "S",
+   "refId": "8726520"
+  },
+  {
+   "id": "8726492",
+   "name": "Mangrove Point (inside)",
+   "state": "FL",
+   "lat": 27.7417,
+   "lon": -82.4667,
    "tz": "America/New_York",
    "products": [
     "predictions"
@@ -23405,6 +23548,32 @@
    "refId": null
   },
   {
+   "id": "8726572",
+   "name": "The Kitchen",
+   "state": "FL",
+   "lat": 27.82,
+   "lon": -82.3867,
+   "tz": "America/New_York",
+   "products": [
+    "predictions"
+   ],
+   "predType": "S",
+   "refId": "8726520"
+  },
+  {
+   "id": "8726573",
+   "name": "Gadsden Point",
+   "state": "FL",
+   "lat": 27.8217,
+   "lon": -82.485,
+   "tz": "America/New_York",
+   "products": [
+    "predictions"
+   ],
+   "predType": "S",
+   "refId": "8726607"
+  },
+  {
    "id": "8726574",
    "name": "Madeira Beach Causeway",
    "state": "FL",
@@ -23416,6 +23585,32 @@
    ],
    "predType": "S",
    "refId": "8726520"
+  },
+  {
+   "id": "8726601",
+   "name": "Indian Rocks Beach (Coastal)",
+   "state": "FL",
+   "lat": 27.8733,
+   "lon": -82.8517,
+   "tz": "America/New_York",
+   "products": [
+    "predictions"
+   ],
+   "predType": "S",
+   "refId": "8726724"
+  },
+  {
+   "id": "8726604",
+   "name": "Long Shoal, MacDill AFB",
+   "state": "FL",
+   "lat": 27.855,
+   "lon": -82.48,
+   "tz": "America/New_York",
+   "products": [
+    "predictions"
+   ],
+   "predType": "S",
+   "refId": "8726674"
   },
   {
    "id": "8726607",
@@ -23436,6 +23631,19 @@
    "refId": null
   },
   {
+   "id": "8726614",
+   "name": "Alafia River North",
+   "state": "FL",
+   "lat": 27.87,
+   "lon": -82.3283,
+   "tz": "America/New_York",
+   "products": [
+    "predictions"
+   ],
+   "predType": "S",
+   "refId": "8726520"
+  },
+  {
    "id": "8726625",
    "name": "Indian Rocks Beach (inside)",
    "state": "FL",
@@ -23446,7 +23654,7 @@
     "predictions"
    ],
    "predType": "S",
-   "refId": "8727520"
+   "refId": "8726724"
   },
   {
    "id": "8726639",
@@ -23514,6 +23722,19 @@
    "refId": null
   },
   {
+   "id": "8726668",
+   "name": "Tampa, Hooker Point, Hillsborough Bay",
+   "state": "FL",
+   "lat": 27.9183,
+   "lon": -82.445,
+   "tz": "America/New_York",
+   "products": [
+    "predictions"
+   ],
+   "predType": "S",
+   "refId": "8726674"
+  },
+  {
    "id": "8726671",
    "name": "Sparkman Channel Entrance",
    "state": "FL",
@@ -23563,6 +23784,19 @@
    "refId": null
   },
   {
+   "id": "8726685",
+   "name": "Twenty-Second Street Causeway",
+   "state": "FL",
+   "lat": 27.9383,
+   "lon": -82.4317,
+   "tz": "America/New_York",
+   "products": [
+    "predictions"
+   ],
+   "predType": "S",
+   "refId": "8726674"
+  },
+  {
    "id": "8726689",
    "name": "Bay Aristocrat Village, Old Tampa Bay",
    "state": "FL",
@@ -23574,6 +23808,19 @@
    ],
    "predType": "S",
    "refId": "8726520"
+  },
+  {
+   "id": "8726693",
+   "name": "Hillsborough River Entrance, Tampa",
+   "state": "FL",
+   "lat": 27.9467,
+   "lon": -82.4617,
+   "tz": "America/New_York",
+   "products": [
+    "predictions"
+   ],
+   "predType": "S",
+   "refId": "8726674"
   },
   {
    "id": "8726694",
@@ -23591,6 +23838,19 @@
    "refId": null
   },
   {
+   "id": "8726696",
+   "name": "Palm River Entrance",
+   "state": "FL",
+   "lat": 27.9467,
+   "lon": -82.4017,
+   "tz": "America/New_York",
+   "products": [
+    "predictions"
+   ],
+   "predType": "S",
+   "refId": "8726674"
+  },
+  {
    "id": "8726706",
    "name": "Clearwater",
    "state": "FL",
@@ -23601,14 +23861,27 @@
     "predictions"
    ],
    "predType": "S",
-   "refId": "8727520"
+   "refId": "8726724"
+  },
+  {
+   "id": "8726711",
+   "name": "West Tampa, Hillsborough River",
+   "state": "FL",
+   "lat": 27.96,
+   "lon": -82.4683,
+   "tz": "America/New_York",
+   "products": [
+    "predictions"
+   ],
+   "predType": "S",
+   "refId": "8726674"
   },
   {
    "id": "8726724",
    "name": "Clearwater Beach",
    "state": "FL",
-   "lat": 27.97833,
-   "lon": -82.83167,
+   "lat": 27.9783,
+   "lon": -82.8317,
    "tz": "America/New_York",
    "products": [
     "predictions",
@@ -23645,7 +23918,7 @@
     "predictions"
    ],
    "predType": "S",
-   "refId": "8727520"
+   "refId": "8726724"
   },
   {
    "id": "8726769",
@@ -23661,6 +23934,84 @@
    "refId": "8726520"
   },
   {
+   "id": "8726809",
+   "name": "Honeymoon Island",
+   "state": "FL",
+   "lat": 28.0617,
+   "lon": -82.8133,
+   "tz": "America/New_York",
+   "products": [
+    "predictions"
+   ],
+   "predType": "S",
+   "refId": "8726724"
+  },
+  {
+   "id": "8726819",
+   "name": "Ozona",
+   "state": "FL",
+   "lat": 28.07,
+   "lon": -82.7817,
+   "tz": "America/New_York",
+   "products": [
+    "predictions"
+   ],
+   "predType": "S",
+   "refId": "8726724"
+  },
+  {
+   "id": "8726853",
+   "name": "Indian Bluff Island",
+   "state": "FL",
+   "lat": 28.1033,
+   "lon": -82.7783,
+   "tz": "America/New_York",
+   "products": [
+    "predictions"
+   ],
+   "predType": "S",
+   "refId": "8726724"
+  },
+  {
+   "id": "8726892",
+   "name": "Spring Bayou, Tarpon Springs",
+   "state": "FL",
+   "lat": 28.1467,
+   "lon": -82.7583,
+   "tz": "America/New_York",
+   "products": [
+    "predictions"
+   ],
+   "predType": "S",
+   "refId": "8726724"
+  },
+  {
+   "id": "8726899",
+   "name": "Kreamer Bayou",
+   "state": "FL",
+   "lat": 28.15,
+   "lon": -82.7717,
+   "tz": "America/New_York",
+   "products": [
+    "predictions"
+   ],
+   "predType": "S",
+   "refId": "8726724"
+  },
+  {
+   "id": "8726904",
+   "name": "Howard Park Causeway",
+   "state": "FL",
+   "lat": 28.1533,
+   "lon": -82.8017,
+   "tz": "America/New_York",
+   "products": [
+    "predictions"
+   ],
+   "predType": "S",
+   "refId": "8726724"
+  },
+  {
    "id": "8726905",
    "name": "Tarpon Springs, Anclote River",
    "state": "FL",
@@ -23671,7 +24022,33 @@
     "predictions"
    ],
    "predType": "S",
-   "refId": "8727520"
+   "refId": "8726724"
+  },
+  {
+   "id": "8726906",
+   "name": "River Village, Anclote River",
+   "state": "FL",
+   "lat": 28.1567,
+   "lon": -82.7467,
+   "tz": "America/New_York",
+   "products": [
+    "predictions"
+   ],
+   "predType": "S",
+   "refId": "8726724"
+  },
+  {
+   "id": "8726908",
+   "name": "North Fork, Anclote River",
+   "state": "FL",
+   "lat": 28.1583,
+   "lon": -82.7567,
+   "tz": "America/New_York",
+   "products": [
+    "predictions"
+   ],
+   "predType": "S",
+   "refId": "8726724"
   },
   {
    "id": "8726917",
@@ -23697,7 +24074,7 @@
     "predictions"
    ],
    "predType": "S",
-   "refId": "8727520"
+   "refId": "8726724"
   },
   {
    "id": "8726942",
@@ -23710,7 +24087,33 @@
     "predictions"
    ],
    "predType": "S",
-   "refId": "8727520"
+   "refId": "8726724"
+  },
+  {
+   "id": "8726978",
+   "name": "Bailey's Bluff, Gulfside",
+   "state": "FL",
+   "lat": 28.205,
+   "lon": -82.7833,
+   "tz": "America/New_York",
+   "products": [
+    "predictions"
+   ],
+   "predType": "S",
+   "refId": "8726724"
+  },
+  {
+   "id": "8726988",
+   "name": "Fillman's Creek, New Port Richey",
+   "state": "FL",
+   "lat": 28.23,
+   "lon": -82.7533,
+   "tz": "America/New_York",
+   "products": [
+    "predictions"
+   ],
+   "predType": "S",
+   "refId": "8726724"
   },
   {
    "id": "8726995",
@@ -23723,7 +24126,20 @@
     "predictions"
    ],
    "predType": "S",
-   "refId": "8727520"
+   "refId": "8726724"
+  },
+  {
+   "id": "8726996",
+   "name": "Cross Bayou, New Port Richey",
+   "state": "FL",
+   "lat": 28.2467,
+   "lon": -82.735,
+   "tz": "America/New_York",
+   "products": [
+    "predictions"
+   ],
+   "predType": "S",
+   "refId": "8726724"
   },
   {
    "id": "8727001",
@@ -23736,7 +24152,7 @@
     "predictions"
    ],
    "predType": "S",
-   "refId": "8727520"
+   "refId": "8726724"
   },
   {
    "id": "8727012",
@@ -23749,7 +24165,7 @@
     "predictions"
    ],
    "predType": "S",
-   "refId": "8727520"
+   "refId": "8726724"
   },
   {
    "id": "8727061",
@@ -23757,6 +24173,19 @@
    "state": "FL",
    "lat": 28.3617,
    "lon": -82.71,
+   "tz": "America/New_York",
+   "products": [
+    "predictions"
+   ],
+   "predType": "S",
+   "refId": "8727520"
+  },
+  {
+   "id": "8727086",
+   "name": "Fillmans Bayou",
+   "state": "FL",
+   "lat": 28.4133,
+   "lon": -82.6767,
    "tz": "America/New_York",
    "products": [
     "predictions"
@@ -26318,8 +26747,8 @@
    "id": "8761724",
    "name": "EAST POINT, GRAND ISLE",
    "state": "LA",
-   "lat": 29.26333,
-   "lon": -89.95667,
+   "lat": 29.2633,
+   "lon": -89.9567,
    "tz": "America/Chicago",
    "products": [
     "predictions",
@@ -27511,7 +27940,7 @@
    "name": "GALVESTON, Galveston Channel",
    "state": "TX",
    "lat": 29.31,
-   "lon": -94.79331,
+   "lon": -94.7933,
    "tz": "America/Chicago",
    "products": [
     "predictions",
@@ -30969,8 +31398,8 @@
    "products": [
     "predictions"
    ],
-   "predType": "S",
-   "refId": "9414290"
+   "predType": "R",
+   "refId": null
   },
   {
    "id": "9415053",
@@ -31054,8 +31483,8 @@
    "id": "9415102",
    "name": "Martinez-Amorco Pier",
    "state": "CA",
-   "lat": 38.03464,
-   "lon": -122.12519,
+   "lat": 38.0346,
+   "lon": -122.1252,
    "tz": "America/Los_Angeles",
    "products": [
     "predictions",
@@ -32509,6 +32938,19 @@
    "refId": null
   },
   {
+   "id": "9438125",
+   "name": "Multnomah Channel",
+   "state": "OR",
+   "lat": 45.8117,
+   "lon": -122.827,
+   "tz": "America/Los_Angeles",
+   "products": [
+    "predictions"
+   ],
+   "predType": "R",
+   "refId": null
+  },
+  {
    "id": "9438772",
    "name": "Cathcart Landing, Youngs River",
    "state": "OR",
@@ -32809,8 +33251,8 @@
    "products": [
     "predictions"
    ],
-   "predType": "S",
-   "refId": "9439040"
+   "predType": "R",
+   "refId": null
   },
   {
    "id": "9440573",
@@ -33451,8 +33893,8 @@
    "products": [
     "predictions"
    ],
-   "predType": "S",
-   "refId": "9447130"
+   "predType": "R",
+   "refId": null
   },
   {
    "id": "9445293",
@@ -34356,7 +34798,7 @@
   },
   {
    "id": "9447995",
-   "name": "Cornet Bay, Deception Pass",
+   "name": "Cornet Bay, Whidbey Island, Deception Pass",
    "state": "WA",
    "lat": 48.4017,
    "lon": -122.623,
@@ -34993,6 +35435,19 @@
    "refId": "9451600"
   },
   {
+   "id": "9450192",
+   "name": "Hidden Inter Entrance, Pearse Inlet",
+   "state": "AK",
+   "lat": 54.9437,
+   "lon": -130.3358,
+   "tz": "America/Vancouver",
+   "products": [
+    "predictions"
+   ],
+   "predType": "R",
+   "refId": null
+  },
+  {
    "id": "9450212",
    "name": "Ingraham Bay, Prince of Wales Island",
    "state": "AK",
@@ -35423,8 +35878,8 @@
    "products": [
     "predictions"
    ],
-   "predType": "S",
-   "refId": "9450460"
+   "predType": "R",
+   "refId": null
   },
   {
    "id": "9450511",
@@ -35462,8 +35917,8 @@
    "products": [
     "predictions"
    ],
-   "predType": "S",
-   "refId": "9450460"
+   "predType": "R",
+   "refId": null
   },
   {
    "id": "9450551",
@@ -35501,8 +35956,8 @@
    "products": [
     "predictions"
    ],
-   "predType": "S",
-   "refId": "9450460"
+   "predType": "R",
+   "refId": null
   },
   {
    "id": "9450584",
@@ -35516,6 +35971,19 @@
    ],
    "predType": "S",
    "refId": "9451600"
+  },
+  {
+   "id": "9450618",
+   "name": "Shinaku Inlet",
+   "state": "AK",
+   "lat": 55.5929,
+   "lon": -133.15199,
+   "tz": "America/Sitka",
+   "products": [
+    "predictions"
+   ],
+   "predType": "R",
+   "refId": null
   },
   {
    "id": "9450623",
@@ -35581,6 +36049,19 @@
    ],
    "predType": "S",
    "refId": "9451600"
+  },
+  {
+   "id": "9450695",
+   "name": "Hut Point, Behm Canal",
+   "state": "AK",
+   "lat": 55.7127,
+   "lon": -130.9041,
+   "tz": "America/Vancouver",
+   "products": [
+    "predictions"
+   ],
+   "predType": "R",
+   "refId": null
   },
   {
    "id": "9450711",
@@ -35963,8 +36444,8 @@
    "id": "9451012",
    "name": "Bradfield Canal, Ernest Sound",
    "state": "AK",
-   "lat": 56.19553,
-   "lon": -131.55742,
+   "lat": 56.1833,
+   "lon": -131.57201,
    "tz": "America/Sitka",
    "products": [
     "predictions"
@@ -36286,8 +36767,8 @@
    "products": [
     "predictions"
    ],
-   "predType": "S",
-   "refId": "9451600"
+   "predType": "R",
+   "refId": null
   },
   {
    "id": "9451421",
@@ -36753,14 +37234,27 @@
    "id": "9452005",
    "name": "Upper Endicott Arm, North Shore",
    "state": "AK",
-   "lat": 57.52169,
+   "lat": 57.5217,
    "lon": -133.05499,
    "tz": "America/Vancouver",
    "products": [
     "predictions"
    ],
-   "predType": "S",
-   "refId": "9452210"
+   "predType": "R",
+   "refId": null
+  },
+  {
+   "id": "9452017",
+   "name": "Ford's Terror, Stephens Pass",
+   "state": "AK",
+   "lat": 57.6876,
+   "lon": -133.1425,
+   "tz": "America/Sitka",
+   "products": [
+    "predictions"
+   ],
+   "predType": "R",
+   "refId": null
   },
   {
    "id": "9452022",
@@ -36798,8 +37292,8 @@
    "products": [
     "predictions"
    ],
-   "predType": "S",
-   "refId": "9452210"
+   "predType": "R",
+   "refId": null
   },
   {
    "id": "9452081",
@@ -36915,13 +37409,13 @@
    "name": "Young Bay",
    "state": "AK",
    "lat": 58.1833,
-   "lon": -134.587,
+   "lon": -134.58701,
    "tz": "America/Juneau",
    "products": [
     "predictions"
    ],
-   "predType": "S",
-   "refId": "9452210"
+   "predType": "R",
+   "refId": null
   },
   {
    "id": "9452263",
@@ -36954,13 +37448,13 @@
    "name": "Barlow Cove, Mansfield Peninsula",
    "state": "AK",
    "lat": 58.3217,
-   "lon": -134.878,
+   "lon": -134.87801,
    "tz": "America/Juneau",
    "products": [
     "predictions"
    ],
-   "predType": "S",
-   "refId": "9452210"
+   "predType": "R",
+   "refId": null
   },
   {
    "id": "9452321",
@@ -37011,8 +37505,8 @@
    "products": [
     "predictions"
    ],
-   "predType": "S",
-   "refId": "9452210"
+   "predType": "R",
+   "refId": null
   },
   {
    "id": "9452368",
@@ -37089,13 +37583,13 @@
    "name": "Taiyasanka Harbor, Taiya Inlet",
    "state": "AK",
    "lat": 59.3017,
-   "lon": -135.428,
+   "lon": -135.42799,
    "tz": "America/Juneau",
    "products": [
     "predictions"
    ],
-   "predType": "S",
-   "refId": "9452210"
+   "predType": "R",
+   "refId": null
   },
   {
    "id": "9452435",
@@ -37115,13 +37609,13 @@
    "name": "Excursion Inlet Entrance",
    "state": "AK",
    "lat": 58.4167,
-   "lon": -135.447,
+   "lon": -135.44701,
    "tz": "America/Juneau",
    "products": [
     "predictions"
    ],
-   "predType": "S",
-   "refId": "9452634"
+   "predType": "R",
+   "refId": null
   },
   {
    "id": "9452438",
@@ -37415,6 +37909,19 @@
    "refId": "9452634"
   },
   {
+   "id": "9453178",
+   "name": "Russell Fiord",
+   "state": "AK",
+   "lat": 59.9369,
+   "lon": -139.4001,
+   "tz": "America/Yakutat",
+   "products": [
+    "predictions"
+   ],
+   "predType": "R",
+   "refId": null
+  },
+  {
    "id": "9453208",
    "name": "Redfield Cove, Yakutat Bay",
    "state": "AK",
@@ -37690,6 +38197,19 @@
    "refId": "9454240"
   },
   {
+   "id": "9454460",
+   "name": "Columbia Glacier",
+   "state": "AK",
+   "lat": 61.0233,
+   "lon": -147.08501,
+   "tz": "America/Anchorage",
+   "products": [
+    "predictions"
+   ],
+   "predType": "R",
+   "refId": null
+  },
+  {
    "id": "9454507",
    "name": "Jackson Cove, Glacier Island",
    "state": "AK",
@@ -37707,13 +38227,13 @@
    "name": "Port Chalmers",
    "state": "AK",
    "lat": 60.2418,
-   "lon": -147.249,
+   "lon": -147.24899,
    "tz": "America/Anchorage",
    "products": [
     "predictions"
    ],
-   "predType": "S",
-   "refId": "9454050"
+   "predType": "R",
+   "refId": null
   },
   {
    "id": "9454561",
@@ -37816,8 +38336,8 @@
    "products": [
     "predictions"
    ],
-   "predType": "S",
-   "refId": "9454050"
+   "predType": "R",
+   "refId": null
   },
   {
    "id": "9454652",
@@ -37855,8 +38375,8 @@
    "products": [
     "predictions"
    ],
-   "predType": "S",
-   "refId": "9454050"
+   "predType": "R",
+   "refId": null
   },
   {
    "id": "9454672",
@@ -37876,13 +38396,13 @@
    "name": "Port Audrey",
    "state": "AK",
    "lat": 60.3433,
-   "lon": -147.768,
+   "lon": -147.76801,
    "tz": "America/Anchorage",
    "products": [
     "predictions"
    ],
-   "predType": "S",
-   "refId": "9454050"
+   "predType": "R",
+   "refId": null
   },
   {
    "id": "9454674",
@@ -37920,8 +38440,8 @@
    "products": [
     "predictions"
    ],
-   "predType": "S",
-   "refId": "9454050"
+   "predType": "R",
+   "refId": null
   },
   {
    "id": "9454721",
@@ -38006,13 +38526,13 @@
    "name": "Chenega Island, southwest end",
    "state": "AK",
    "lat": 60.2833,
-   "lon": -148.113,
+   "lon": -148.11301,
    "tz": "America/Anchorage",
    "products": [
     "predictions"
    ],
-   "predType": "S",
-   "refId": "9454050"
+   "predType": "R",
+   "refId": null
   },
   {
    "id": "9454787",
@@ -38032,13 +38552,13 @@
    "name": "Applegate Island",
    "state": "AK",
    "lat": 60.6233,
-   "lon": -148.165,
+   "lon": -148.16499,
    "tz": "America/Anchorage",
    "products": [
     "predictions"
    ],
-   "predType": "S",
-   "refId": "9454050"
+   "predType": "R",
+   "refId": null
   },
   {
    "id": "9454798",
@@ -38080,6 +38600,19 @@
    "refId": null
   },
   {
+   "id": "9454818",
+   "name": "Blue Fjord, Port Nellie Juan",
+   "state": "AK",
+   "lat": 60.4917,
+   "lon": -148.242,
+   "tz": "America/Anchorage",
+   "products": [
+    "predictions"
+   ],
+   "predType": "R",
+   "refId": null
+  },
+  {
    "id": "9454825",
    "name": "Long Bay Entrance, Culross Passage",
    "state": "AK",
@@ -38091,6 +38624,19 @@
    ],
    "predType": "S",
    "refId": "9454050"
+  },
+  {
+   "id": "9454851",
+   "name": "Cochrane Bay",
+   "state": "AK",
+   "lat": 60.6633,
+   "lon": -148.35699,
+   "tz": "America/Anchorage",
+   "products": [
+    "predictions"
+   ],
+   "predType": "R",
+   "refId": null
   },
   {
    "id": "9454887",
@@ -38106,11 +38652,37 @@
    "refId": "9454050"
   },
   {
+   "id": "9454907",
+   "name": "Blackstone Bay",
+   "state": "AK",
+   "lat": 60.765,
+   "lon": -148.52299,
+   "tz": "America/Anchorage",
+   "products": [
+    "predictions"
+   ],
+   "predType": "R",
+   "refId": null
+  },
+  {
    "id": "9454949",
    "name": "Whittier, Passage Canal",
    "state": "AK",
    "lat": 60.7783,
    "lon": -148.665,
+   "tz": "America/Anchorage",
+   "products": [
+    "predictions"
+   ],
+   "predType": "R",
+   "refId": null
+  },
+  {
+   "id": "9454951",
+   "name": "Kings Bay (inside)",
+   "state": "AK",
+   "lat": 60.4567,
+   "lon": -148.66499,
    "tz": "America/Anchorage",
    "products": [
     "predictions"
@@ -38163,13 +38735,13 @@
    "name": "Bear Cove, Aialik Peninsula",
    "state": "AK",
    "lat": 59.8017,
-   "lon": -149.615,
+   "lon": -149.61501,
    "tz": "America/Anchorage",
    "products": [
     "predictions"
    ],
-   "predType": "S",
-   "refId": "9455090"
+   "predType": "R",
+   "refId": null
   },
   {
    "id": "9455145",
@@ -39234,6 +39806,19 @@
    "refId": null
   },
   {
+   "id": "9458716",
+   "name": "Aniakchak Bay",
+   "state": "AK",
+   "lat": 56.7561,
+   "lon": -157.493,
+   "tz": "America/Anchorage",
+   "products": [
+    "predictions"
+   ],
+   "predType": "R",
+   "refId": null
+  },
+  {
    "id": "9458762",
    "name": "Unavikshak Island",
    "state": "AK",
@@ -39256,8 +39841,8 @@
    "products": [
     "predictions"
    ],
-   "predType": "S",
-   "refId": "9457292"
+   "predType": "R",
+   "refId": null
   },
   {
    "id": "9458819",
@@ -39269,21 +39854,21 @@
    "products": [
     "predictions"
    ],
-   "predType": "S",
-   "refId": "9457292"
+   "predType": "R",
+   "refId": null
   },
   {
    "id": "9458849",
    "name": "Chankliut Island",
    "state": "AK",
    "lat": 56.1467,
-   "lon": -158.107,
+   "lon": -158.10699,
    "tz": "America/Anchorage",
    "products": [
     "predictions"
    ],
-   "predType": "S",
-   "refId": "9457292"
+   "predType": "R",
+   "refId": null
   },
   {
    "id": "9458907",
@@ -39303,13 +39888,13 @@
    "name": "Chignik, Anchorage Bay",
    "state": "AK",
    "lat": 56.2967,
-   "lon": -158.4,
+   "lon": -158.39999,
    "tz": "America/Anchorage",
    "products": [
     "predictions"
    ],
-   "predType": "S",
-   "refId": "9457292"
+   "predType": "R",
+   "refId": null
   },
   {
    "id": "9458964",
@@ -41219,8 +41804,8 @@
    "products": [
     "predictions"
    ],
-   "predType": "S",
-   "refId": "9468333"
+   "predType": "R",
+   "refId": null
   },
   {
    "id": "9468151",
@@ -41615,6 +42200,32 @@
    "refId": "9457292"
   },
   {
+   "id": "9495832",
+   "name": "Drew Point, Smith Bay",
+   "state": "AK",
+   "lat": 70.8663,
+   "lon": -153.94,
+   "tz": "America/Anchorage",
+   "products": [
+    "predictions"
+   ],
+   "predType": "R",
+   "refId": null
+  },
+  {
+   "id": "9496345",
+   "name": "Cape Halkett",
+   "state": "AK",
+   "lat": 70.7551,
+   "lon": -152.3378,
+   "tz": "America/Anchorage",
+   "products": [
+    "predictions"
+   ],
+   "predType": "R",
+   "refId": null
+  },
+  {
    "id": "9497645",
    "name": "PRUDHOE BAY",
    "state": "AK",
@@ -41633,11 +42244,24 @@
    "refId": null
   },
   {
+   "id": "9498306",
+   "name": "Point Thomson, Beaufort Sea",
+   "state": "AK",
+   "lat": 70.1691,
+   "lon": -146.2494,
+   "tz": "America/Anchorage",
+   "products": [
+    "predictions"
+   ],
+   "predType": "R",
+   "refId": null
+  },
+  {
    "id": "9499176",
    "name": "Barter Island",
    "state": "AK",
-   "lat": 70.12856,
-   "lon": -143.61103,
+   "lat": 70.1286,
+   "lon": -143.61099,
    "tz": "America/Anchorage",
    "products": [
     "predictions"

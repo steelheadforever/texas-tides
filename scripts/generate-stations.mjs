@@ -120,17 +120,18 @@ async function main() {
 
   // ---- Sanity checks -------------------------------------------------------
 
-  // Every station in the current hand-maintained Texas list must be present,
-  // with a matching predictions flag.
-  const { STATIONS: TX } = await import(join(ROOT, 'worker', 'src', 'stations.js'));
+  // Every station in the bundled Texas fallback list (the web app's offline
+  // fallback) must be present, with a matching predictions flag.
+  const { TEXAS_STATIONS: TX } = await import(join(ROOT, 'js', 'data', 'stations.js'));
   let txMissing = 0;
   for (const tx of TX) {
     const hit = byId.get(tx.id);
+    const legacyPred = tx.products.includes('predictions');
     if (!hit) {
       console.warn(`! TX station missing from catalog: ${tx.id} ${tx.name}`);
       txMissing++;
-    } else if (hit.products.includes('predictions') !== tx.hasPredictions) {
-      console.warn(`! TX predictions mismatch for ${tx.id} ${tx.name}: catalog=${hit.products.includes('predictions')} legacy=${tx.hasPredictions}`);
+    } else if (hit.products.includes('predictions') !== legacyPred) {
+      console.warn(`! TX predictions mismatch for ${tx.id} ${tx.name}: catalog=${hit.products.includes('predictions')} legacy=${legacyPred}`);
     }
   }
 

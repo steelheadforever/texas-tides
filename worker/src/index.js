@@ -1,13 +1,21 @@
 // Slackwater API Worker
 // Replaces the Raspberry Pi backend: a KV-cached proxy in front of NOAA, NWS
 // and USNO, plus a cron warmer that pre-fetches deterministic tide predictions
-// for all Texas stations. The app only ever talks to this Worker.
+// for the most-used stations. The app only ever talks to this Worker.
 
 import { cacheKey, canonicalizeNoaa, noaaTtl, TTL, getCached, setCached } from './cache.js';
 import { noaaGet, fetchSunMoon, parseSunMoon, fetchPoints } from './upstream.js';
 import { forecast12h, pressure, temperature } from './nws.js';
-import { STATIONS } from './stations.js';
 import catalog from './catalog.json';
+
+// Warm list: the flagship stations users open most — every station with BOTH
+// a live gauge and predictions (~270 nationally), plus all Texas prediction
+// stations (the founding audience). The other ~3,100 stations cache lazily on
+// first request; day-aligned keys make that cheap. On Workers Paid this is
+// roughly 600 prediction keys ≈ 1.5k KV writes/day against 1M/month included.
+const WARM_STATIONS = catalog.stations.filter((s) =>
+  s.products.includes('predictions')
+  && (s.products.includes('water_level') || s.state === 'TX'));
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',
@@ -59,7 +67,7 @@ async function handleRequest(request, env) {
     return json({
       status: 'ok',
       service: 'slackwater-api',
-      stations: STATIONS.length,
+      warmStations: WARM_STATIONS.length,
       catalog: { count: catalog.count, version: catalog.version },
       time: new Date().toISOString(),
     });
@@ -202,8 +210,7 @@ async function warmPredictions(env) {
   // (application/format are stripped from the key, so they don't matter.)
   const base = { units: 'english', time_zone: 'lst_ldt', datum: 'MLLW' };
 
-  for (const s of STATIONS) {
-    if (!s.hasPredictions) continue;
+  for (const s of WARM_STATIONS) {
     if (fetches >= FETCH_BUDGET) break;
 
     const curveParams = { ...base, station: s.id, product: 'predictions', begin_date: curve.begin, end_date: curve.end, interval: '6' };

@@ -12,12 +12,13 @@ routes = [
 
 # Cron warmer: refresh tide predictions every 15 minutes. Each tick warms only
 # stations whose cached predictions are missing or near expiry, capped by
-# WARM_FETCH_BUDGET to stay under the free-tier subrequest limit.
+# WARM_FETCH_BUDGET per invocation (Workers Paid allows 1,000 subrequests;
+# 150 sweeps the ~300-station national warm list in a few ticks).
 [triggers]
 crons = ["*/15 * * * *"]
 
 [vars]
-WARM_FETCH_BUDGET = "40"
+WARM_FETCH_BUDGET = "150"
 
 # KV namespace for the response cache. Created with:
 #   wrangler kv namespace create CACHE
