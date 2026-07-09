@@ -1,6 +1,8 @@
 // Station search + "near me" — the discovery layer for the national catalog.
-// A floating search field over the map: type-ahead by station name or state,
-// or hit the crosshair to list the nearest stations by GPS.
+// Lives behind the control cluster's search button (mirroring the iOS app's
+// rail): the button reveals a floating field beside the cluster with
+// type-ahead by station name or state, or the crosshair lists the nearest
+// stations by GPS.
 
 import { getStations } from '../data/stationStore.js';
 import { escapeHtml } from '../format.js';
@@ -85,10 +87,30 @@ async function runNearMe() {
   }, { timeout: 8000, maximumAge: 300000 });
 }
 
+function setSearchOpen(open) {
+  const bar = document.getElementById('station-search');
+  const btn = document.getElementById('search-btn');
+  const input = document.getElementById('station-search-input');
+  bar.classList.toggle('open', open);
+  btn.classList.toggle('active', open);
+  if (open) {
+    input.focus();
+  } else {
+    input.value = '';
+    input.blur();
+    closeResults();
+  }
+}
+
 export function initSearch({ onSelect } = {}) {
   onPick = onSelect;
+  const bar = document.getElementById('station-search');
   const input = document.getElementById('station-search-input');
   const box = document.getElementById('search-results');
+
+  document.getElementById('search-btn').addEventListener('click', () => {
+    setSearchOpen(!bar.classList.contains('open'));
+  });
 
   let debounce = null;
   input.addEventListener('input', () => {
@@ -96,7 +118,7 @@ export function initSearch({ onSelect } = {}) {
     debounce = setTimeout(() => runQuery(input.value), 120);
   });
   input.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') { input.blur(); closeResults(); }
+    if (e.key === 'Escape') { setSearchOpen(false); }
     if (e.key === 'Enter') {
       const first = box.querySelector('.search-result');
       if (first) first.click();
@@ -114,15 +136,16 @@ export function initSearch({ onSelect } = {}) {
     const stations = await getStations();
     const station = stations.find((s) => s.id === btn.dataset.id);
     if (station && onPick) {
-      closeResults();
-      input.value = '';
-      input.blur();
+      setSearchOpen(false);
       onPick(station);
     }
   });
 
-  // Click-away closes the dropdown.
+  // Click-away closes the field (the search button's own clicks toggle it).
   document.addEventListener('pointerdown', (e) => {
-    if (!e.target.closest('.station-search')) closeResults();
+    if (!e.target.closest('.station-search') && !e.target.closest('#search-btn')
+        && bar.classList.contains('open')) {
+      setSearchOpen(false);
+    }
   });
 }

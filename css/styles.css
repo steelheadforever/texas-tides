@@ -652,10 +652,9 @@ main {
 .station-search {
   position: absolute;
   top: 1rem;
-  left: 50%;
-  transform: translateX(-50%);
+  right: 4.75rem; /* beside the control cluster, reads as expanding from its search button */
   z-index: 650;
-  display: flex;
+  display: none;
   align-items: center;
   gap: 0.4rem;
   width: min(340px, calc(100vw - 7.5rem));
@@ -667,6 +666,7 @@ main {
   border-radius: var(--radius-control);
   box-shadow: var(--shadow-card);
 }
+.station-search.open { display: flex; }
 .station-search .search-icon { color: var(--text-secondary); flex: none; }
 .station-search input {
   flex: 1;
@@ -756,7 +756,37 @@ main {
 }
 
 @media (max-width: 640px) {
-  .station-search { top: 0.75rem; width: min(300px, calc(100vw - 6.5rem)); }
+  .station-search { top: 0.75rem; right: 4.25rem; width: min(300px, calc(100vw - 6rem)); }
+}
+
+/* ---- App Store badge ------------------------------------------------------ */
+
+.app-store-badge {
+  position: absolute;
+  right: 1rem;
+  bottom: 1rem;
+  z-index: 540;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.4rem 0.8rem 0.4rem 0.65rem;
+  background: #000;
+  color: #fff;
+  text-decoration: none;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 9px;
+  box-shadow: var(--shadow-card);
+  transition: transform 0.15s ease;
+}
+.app-store-badge:hover { transform: scale(1.04); }
+.app-store-badge i { font-size: 1.45rem; }
+.app-store-badge .badge-text { display: flex; flex-direction: column; line-height: 1.15; }
+.app-store-badge .badge-text small { font-size: 0.55rem; font-weight: 400; }
+.app-store-badge .badge-text strong { font-size: 0.92rem; font-weight: 600; letter-spacing: 0.01em; }
+
+@media (max-width: 640px) {
+  /* Keep the corner clear when the layer timeline is up. */
+  .timeline-bar.active ~ .app-store-badge { display: none; }
 }
 
 /* ---- Timeline past/future segments ---------------------------------------- */

@@ -36,7 +36,7 @@
   <main>
     <div id="map"></div>
 
-    <!-- Station search -->
+    <!-- Station search (revealed by the control-cluster search button) -->
     <div class="station-search" id="station-search">
       <i class="ph ph-magnifying-glass search-icon"></i>
       <input id="station-search-input" type="search" placeholder="Search stations…" autocomplete="off" spellcheck="false">
@@ -46,6 +46,7 @@
 
     <!-- Control cluster -->
     <div class="control-cluster">
+      <button class="control-btn" id="search-btn" aria-label="Search stations" title="Search stations"><i class="ph ph-magnifying-glass"></i></button>
       <button class="control-btn" id="wind-btn" aria-label="Wind layer" title="Wind"><i class="ph ph-wind"></i></button>
       <button class="control-btn" id="radar-btn" aria-label="Radar layer" title="Radar"><i class="ph ph-cloud-rain"></i></button>
       <button class="control-btn" id="favorites-btn" aria-label="Favorites" title="Favorites"><i class="ph ph-star"></i></button>
@@ -76,6 +77,13 @@
     <div id="status-bar">
       <span class="status-bar-credit">Data from NOAA CO-OPS &amp; National Weather Service</span>
     </div>
+
+    <!-- App Store badge (id-based link survives the v1.1 listing rename) -->
+    <a class="app-store-badge" href="https://apps.apple.com/us/app/id6785986784" target="_blank" rel="noopener"
+       aria-label="Find Slackwater on the App Store">
+      <i class="ph-fill ph-apple-logo"></i>
+      <span class="badge-text"><small>Find it on the</small><strong>App Store</strong></span>
+    </a>
   </main>
 
   <!-- Panels -->
