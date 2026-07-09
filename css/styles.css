@@ -761,28 +761,21 @@ main {
 
 /* ---- App Store badge ------------------------------------------------------ */
 
+/* Apple's official artwork (self-hosted, unmodified per the badge
+   guidelines); the anchor only positions it. */
 .app-store-badge {
   position: absolute;
   right: 1rem;
   bottom: 1rem;
   z-index: 540;
-  display: flex;
-  align-items: center;
-  gap: 0.45rem;
-  padding: 0.4rem 0.8rem 0.4rem 0.65rem;
-  background: #000;
-  color: #fff;
-  text-decoration: none;
-  border: 1px solid rgba(255, 255, 255, 0.25);
-  border-radius: 9px;
+  display: block;
+  line-height: 0;
+  border-radius: 7px;
   box-shadow: var(--shadow-card);
   transition: transform 0.15s ease;
 }
 .app-store-badge:hover { transform: scale(1.04); }
-.app-store-badge i { font-size: 1.45rem; }
-.app-store-badge .badge-text { display: flex; flex-direction: column; line-height: 1.15; }
-.app-store-badge .badge-text small { font-size: 0.55rem; font-weight: 400; }
-.app-store-badge .badge-text strong { font-size: 0.92rem; font-weight: 600; letter-spacing: 0.01em; }
+.app-store-badge img { display: block; }
 
 @media (max-width: 640px) {
   /* Keep the corner clear when the layer timeline is up. */
