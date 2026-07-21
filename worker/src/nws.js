@@ -7,6 +7,9 @@ import {
   fetchObservationStations,
   fetchLatestObservation,
   fetchObservations,
+  fetchAlertsForPoint,
+  fetchCoastalZones,
+  fetchAlertsForZone,
 } from './upstream.js';
 
 // 12-hour wind summary: { avgSpeed, maxSpeed, direction, condition }
@@ -43,6 +46,82 @@ export async function forecast12h(lat, lon) {
     : 'N/A';
 
   return { status: 200, body: { avgSpeed, maxSpeed, direction, condition } };
+}
+
+// Active NWS alerts for a station: everything covering the point (land zones,
+// plus marine zones when the coordinates sit in the water) merged with the
+// coastal marine zone's alerts — a pier-side station whose point falls just
+// landward of the marine-zone polygon still gets its Small Craft Advisory.
+// Reduced to the fields the apps render; severity-ranked, warnings first.
+//
+// { alerts: [...] } with an empty array is the normal no-alerts case and is
+// cached like any other success.
+
+const SEVERITY_RANK = { Extreme: 0, Severe: 1, Moderate: 2, Minor: 3, Unknown: 4 };
+
+// "Warning" outranks "Watch" outranks everything else. The NWS severity field
+// alone can't order products (every SCA is "Minor"), so rank by suffix first,
+// then severity within a tier.
+function tierRank(event) {
+  if (/Warning$/.test(event)) return 0;
+  if (/Watch$/.test(event)) return 1;
+  return 2;
+}
+
+function zoneIdFromUrl(url) {
+  // affectedZones entries are URLs like ".../zones/forecast/TXZ213".
+  const m = /\/zones\/\w+\/([A-Z0-9]+)$/.exec(url || '');
+  return m ? m[1] : null;
+}
+
+export function reduceAlerts(featureLists) {
+  const byId = new Map();
+  for (const list of featureLists) {
+    if (!list || list.error) continue;
+    for (const f of list.features || []) {
+      const p = f.properties;
+      if (!p?.id || !p.event) continue;
+      if (p.status !== 'Actual') continue;
+      if (p.messageType === 'Cancel') continue;
+      byId.set(p.id, {
+        id: p.id,
+        event: p.event,
+        severity: p.severity || 'Unknown',
+        urgency: p.urgency || null,
+        headline: p.headline || null,
+        description: p.description || null,
+        instruction: p.instruction || null,
+        onset: p.onset || null,
+        ends: p.ends || null,
+        expires: p.expires || null,
+        areaDesc: p.areaDesc || null,
+        zones: (p.affectedZones || []).map(zoneIdFromUrl).filter(Boolean),
+      });
+    }
+  }
+  return [...byId.values()].sort((a, b) =>
+    tierRank(a.event) - tierRank(b.event)
+    || (SEVERITY_RANK[a.severity] ?? 4) - (SEVERITY_RANK[b.severity] ?? 4)
+    || a.event.localeCompare(b.event));
+}
+
+export async function alerts(lat, lon) {
+  const [point, zones] = await Promise.all([
+    fetchAlertsForPoint(lat, lon),
+    fetchCoastalZones(lat, lon),
+  ]);
+  const zoneIds = (zones.features || [])
+    .map((f) => f.properties?.id)
+    .filter(Boolean)
+    .slice(0, 2);
+  const zoneAlerts = await Promise.all(zoneIds.map((id) => fetchAlertsForZone(id)));
+
+  const lists = [point, ...zoneAlerts];
+  // Every upstream failed → don't cache an empty list that's really an outage.
+  if (lists.every((l) => l.error)) {
+    return { status: 502, body: { error: 'Alerts unavailable' } };
+  }
+  return { status: 200, body: { alerts: reduceAlerts(lists) } };
 }
 
 // Resolve the nearest NWS observation station id for a location.

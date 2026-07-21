@@ -25,3 +25,15 @@ WARM_FETCH_BUDGET = "150"
 [[kv_namespaces]]
 binding = "CACHE"
 id = "ec118fbff21d4bdaaa19dd596107eccc"
+
+# Staging: `wrangler deploy --env staging` → slackwater-api-staging.<account>.workers.dev.
+# routes and triggers ARE inherited by environments (unlike vars/kv_namespaces),
+# so both must be explicitly emptied here or staging steals api.slackwater.app
+# and runs the cron. No KV either — the cache layer is best-effort, so staging
+# runs uncached and always hits upstream.
+[env.staging]
+workers_dev = true
+routes = []
+
+[env.staging.triggers]
+crons = []

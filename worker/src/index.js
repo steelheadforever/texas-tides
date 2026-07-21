@@ -3,9 +3,9 @@
 // and USNO, plus a cron warmer that pre-fetches deterministic tide predictions
 // for the most-used stations. The app only ever talks to this Worker.
 
-import { cacheKey, canonicalizeNoaa, noaaTtl, TTL, getCached, setCached } from './cache.js';
+import { cacheKey, canonicalizeNoaa, noaaTtl, TTL, getCached, setCached, isErrorEnvelope } from './cache.js';
 import { noaaGet, fetchSunMoon, parseSunMoon, fetchPoints } from './upstream.js';
-import { forecast12h, pressure, temperature } from './nws.js';
+import { forecast12h, pressure, temperature, alerts } from './nws.js';
 import catalog from './catalog.json';
 
 // Warm list: the flagship stations users open most — every station with BOTH
@@ -32,14 +32,21 @@ function json(body, { status = 200, cacheControl } = {}) {
 // Cached JSON producer. Checks KV, and on a miss runs `produce()` (which returns
 // { error } on upstream failure). Successful results are cached; on upstream
 // error we serve a stale cached entry if one exists.
+//
+// The envelope guard is applied on read as well as write. Writes can't poison
+// the cache any more, but entries written before that guard existed are still
+// out there with up to a day left on their TTL — treating them as a miss lets
+// them heal on the next request instead of stranding a station until they age
+// out. It's also the correct standing behaviour for any junk that gets in.
 async function cached(env, key, ttlSeconds, produce) {
-  const hit = await getCached(env, key);
+  const raw = await getCached(env, key);
+  const hit = raw && !isErrorEnvelope(raw.body) ? raw : null;
   if (hit && hit.expiresAt > Date.now()) {
     return json(hit.body, { cacheControl: `public, max-age=${Math.floor((hit.expiresAt - Date.now()) / 1000)}` });
   }
 
   const fresh = await produce();
-  if (fresh && !fresh.error) {
+  if (fresh && !fresh.error && !isErrorEnvelope(fresh)) {
     await setCached(env, key, fresh, ttlSeconds);
     return json(fresh, { cacheControl: `public, max-age=${ttlSeconds}` });
   }
@@ -109,6 +116,7 @@ async function handleRequest(request, env) {
     if (sub === 'forecast-12h') return wrapDerived(env, key, TTL.nws, () => forecast12h(loc.lat, loc.lon));
     if (sub === 'pressure') return wrapDerived(env, key, TTL.nws, () => pressure(loc.lat, loc.lon));
     if (sub === 'temperature') return wrapDerived(env, key, TTL.nws, () => temperature(loc.lat, loc.lon));
+    if (sub === 'alerts') return wrapDerived(env, key, TTL.alerts, () => alerts(loc.lat, loc.lon));
     return json({ error: 'Unknown NWS endpoint' }, { status: 404 });
   }
 
@@ -187,11 +195,15 @@ async function warmOne(env, params) {
   const key = cacheKey('noaa:query', cp);
   const hit = await getCached(env, key);
   const ttl = TTL.predictions;
-  const fresh = hit && hit.expiresAt - Date.now() > ttl * 0.25 * 1000;
+  // An error envelope must never count as fresh, or the warmer would skip the
+  // station and leave it broken for the rest of that entry's TTL.
+  const fresh = hit
+    && !isErrorEnvelope(hit.body)
+    && hit.expiresAt - Date.now() > ttl * 0.25 * 1000;
   if (fresh) return false;
 
   const data = await noaaGet(cp);
-  if (!data.error) await setCached(env, key, data, ttl);
+  if (!data.error && !isErrorEnvelope(data)) await setCached(env, key, data, ttl);
   return true;
 }
 

@@ -11,6 +11,20 @@
 
 const KEY_IGNORE = new Set(['application', 'format']);
 
+// A bare {"message": "..."} object with nothing alongside it is an upstream
+// failure envelope, never a payload — NOAA returns one (HTTP 200, no error key)
+// when it throttles. Nothing shaped like this may be written to or served from
+// the cache: with day-aligned prediction keys and a 24h TTL, caching one blanks
+// a station's tide curve for every client until it ages out. Matching on the
+// shape rather than the specific text keeps this working whatever wording NOAA
+// uses next, and covers every upstream the cache fronts.
+export function isErrorEnvelope(body) {
+  return !!body
+    && typeof body === 'object'
+    && typeof body.message === 'string'
+    && Object.keys(body).length === 1;
+}
+
 // Snap a NOAA date string "YYYYMMDD HH:MM" down to "YYYYMMDD HH:00".
 function snapHour(value) {
   const m = /^(\d{8})\s+(\d{2}):\d{2}$/.exec(value);
@@ -71,6 +85,7 @@ export const TTL = {
   live: 6 * 60,             // latest water level / wind / temp
   observed: 10 * 60,        // recent observed water-level / temp history
   nws: 15 * 60,             // weather forecast / pressure / air temp
+  alerts: 5 * 60,           // active NWS alerts — safety info, keep short
   usno: 12 * 60 * 60,       // sun/moon for a given day
 };
 

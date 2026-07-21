@@ -31,12 +31,40 @@ export async function noaaGet(params) {
 
   try {
     const res = await fetch(url, { signal: timeout() });
-    const data = await res.json();
+    // Parse the body even on a non-2xx — NOAA puts the actual reason in there
+    // ("Wrong Datum: Datum cannot be null or empty"), which is far more useful
+    // in a log than the bare status line. Fall back to the status if it's
+    // unparseable.
+    const data = await res.json().catch(() => null);
+    if (!res.ok) {
+      const message = data?.error?.message || data?.message || `NOAA ${res.status} ${res.statusText}`;
+      return { error: { message } };
+    }
+    if (!data) return { error: { message: 'Malformed NOAA response' } };
     if (data.error) return { error: data.error };
+    // NOAA reports failures in two shapes. "No data was found at this station"
+    // arrives as {"error":{...}} (caught above), but throttling arrives as a
+    // bare {"message":"Forbidden"} with HTTP 200 — no error key, no payload.
+    // Letting that through means caching a transient refusal as if it were
+    // real data: with day-aligned prediction keys and a 24h TTL, one blip
+    // blanks a station's tide curve for every client until the next day.
+    if (!hasPayload(data)) {
+      return { error: { message: data.message || 'Malformed NOAA response' } };
+    }
     return data;
   } catch (err) {
     return { error: { message: err.name === 'TimeoutError' ? 'Request timeout' : err.message } };
   }
+}
+
+// A real CO-OPS response carries rows: `predictions` for tide predictions,
+// `data` for observations (water level, temps, wind, pressure). An empty array
+// is treated as no payload too — NOAA signals a genuinely dataless station via
+// the {"error":...} shape, so an empty set is anomalous and must not be cached
+// for a day. Returning an error instead just makes the next request retry.
+function hasPayload(data) {
+  return (Array.isArray(data?.predictions) && data.predictions.length > 0)
+    || (Array.isArray(data?.data) && data.data.length > 0);
 }
 
 // ---- NWS -----------------------------------------------------------------
@@ -68,6 +96,20 @@ export function fetchLatestObservation(stationId) {
 }
 export function fetchObservations(stationId, limit = 6) {
   return nwsGet(`${NWS_BASE_URL}/stations/${stationId}/observations?limit=${limit}`);
+}
+// Active alerts whose polygon/zone contains the point (land zones, and marine
+// zones when the station's coordinates sit in the water).
+export function fetchAlertsForPoint(lat, lon) {
+  return nwsGet(`${NWS_BASE_URL}/alerts/active?status=actual&point=${lat.toFixed(4)},${lon.toFixed(4)}`);
+}
+// Coastal marine zone(s) containing the point. Same polygon test as above, so
+// this only adds coverage when the point is in the water — kept separate
+// because alert queries by zone id are what the phase-2 map layer will share.
+export function fetchCoastalZones(lat, lon) {
+  return nwsGet(`${NWS_BASE_URL}/zones?type=coastal&point=${lat.toFixed(4)},${lon.toFixed(4)}&include_geometry=false`);
+}
+export function fetchAlertsForZone(zoneId) {
+  return nwsGet(`${NWS_BASE_URL}/alerts/active/zone/${encodeURIComponent(zoneId)}`);
 }
 
 // ---- USNO ----------------------------------------------------------------
