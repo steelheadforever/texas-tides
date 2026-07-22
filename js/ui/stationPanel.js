@@ -80,7 +80,7 @@ export async function openStation(station) {
     const events = [nextTide?.first, nextTide?.second].filter(Boolean);
     // Warnings first (worker-sorted). Not part of anyData — no alerts is the
     // normal, happy state, never "offline".
-    const alertsHtml = (alerts || []).map((a) => alertBanner(a, station.tz)).join('');
+    const alertsHtml = alertStack(alerts || [], station.tz);
     const anyData = tideNow || curve || waterTemp != null || airTemp != null || wind || windForecast || pressure || sunMoon;
     // Even when every data fetch failed, surface any alerts that did arrive —
     // a NOAA outage during a gale is exactly when the banner matters.
@@ -145,6 +145,23 @@ function alertParagraphs(text) {
     .filter(Boolean)
     .map((p) => `<p>${escapeHtml(p)}</p>`)
     .join('');
+}
+
+// One alert renders as its own banner; two or more collapse into a single
+// summary banner (tinted by the worst alert) that expands to the full stack —
+// eight stacked advisories must never bury the tide data.
+function alertStack(alerts, tz) {
+  if (!alerts.length) return '';
+  if (alerts.length === 1) return alertBanner(alerts[0], tz);
+  const worst = alertLevel(alerts[0].event); // worker sorts worst-first
+  return `<details class="alert-banner alert-${worst}">
+    <summary>
+      <i class="ph-fill ph-warning"></i>
+      <span class="alert-title">${alerts.length} Active Alerts<small>${escapeHtml(alerts[0].event)} + ${alerts.length - 1} more</small></span>
+      <i class="ph-bold ph-caret-down alert-chevron"></i>
+    </summary>
+    <div class="alert-stack">${alerts.map((a) => alertBanner(a, tz)).join('')}</div>
+  </details>`;
 }
 
 function alertBanner(alert, tz) {

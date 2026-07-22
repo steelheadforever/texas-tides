@@ -111,6 +111,15 @@ export function fetchCoastalZones(lat, lon) {
 export function fetchAlertsForZone(zoneId) {
   return nwsGet(`${NWS_BASE_URL}/alerts/active/zone/${encodeURIComponent(zoneId)}`);
 }
+// Every active marine alert nationwide — one call feeds the whole map layer.
+export function fetchActiveMarine() {
+  return nwsGet(`${NWS_BASE_URL}/alerts/active?status=actual&region_type=marine`);
+}
+// Zone metadata + geometry. Marine zones live under coastal/offshore; the
+// forecast type covers everything else.
+export function fetchZone(type, id) {
+  return nwsGet(`${NWS_BASE_URL}/zones/${encodeURIComponent(type)}/${encodeURIComponent(id)}`);
+}
 
 // ---- USNO ----------------------------------------------------------------
 

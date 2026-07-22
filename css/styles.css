@@ -352,6 +352,22 @@ body.dark-mode .alert-advisory { --alert-tint: #ffd60a; }
 .alert-body { padding: 0 0.8rem 0.75rem; }
 .alert-body p { margin: 0 0 0.55rem; }
 .alert-source { font-size: 0.7rem; color: var(--text-secondary); }
+/* Expanded multi-alert stack: nested banners keep their own tier tint, on a
+   card surface so they read as items inside the summary banner. */
+.alert-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0 0.55rem 0.55rem;
+}
+.alert-stack .alert-banner { background: var(--card); }
+
+/* Map alert-zone popup */
+.alert-zone-event { font-weight: 600; font-size: 0.85rem; }
+.alert-zone-warning { color: var(--danger); }
+.alert-zone-watch { color: #ff9500; }
+.alert-zone-advisory { color: #b08e00; }
+.alert-zone-hint { font-size: 0.72rem; color: var(--text-secondary); margin-top: 0.3rem; }
 .card-label {
   display: flex;
   align-items: center;

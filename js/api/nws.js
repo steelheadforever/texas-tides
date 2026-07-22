@@ -66,6 +66,24 @@ export async function fetchAlerts(lat, lon) {
 }
 
 /**
+ * National map-layer feed: marine zones with active alerts (id, tier, events).
+ * One worker-cached call covers the whole country.
+ */
+export async function fetchMarineZoneAlerts() {
+  const data = await nwsGet(`${NWS_API_URL}/marine-alerts`);
+  return data?.zones || [];
+}
+
+/**
+ * Simplified GeoJSON geometry for one NWS zone. Effectively static — the
+ * worker caches it for a month and the browser honors the long max-age.
+ */
+export async function fetchZoneGeometry(id) {
+  const data = await nwsGet(`${NWS_API_URL}/zone-geometry?id=${encodeURIComponent(id)}`);
+  return data?.geometry || null;
+}
+
+/**
  * Fetch 12-hour wind forecast from NWS
  * Now proxied through Pi backend
  */

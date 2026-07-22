@@ -10,7 +10,10 @@ import {
   fetchAlertsForPoint,
   fetchCoastalZones,
   fetchAlertsForZone,
+  fetchActiveMarine,
+  fetchZone,
 } from './upstream.js';
+import { simplifyGeometry } from './geometry.js';
 
 // 12-hour wind summary: { avgSpeed, maxSpeed, direction, condition }
 export async function forecast12h(lat, lon) {
@@ -122,6 +125,48 @@ export async function alerts(lat, lon) {
     return { status: 502, body: { error: 'Alerts unavailable' } };
   }
   return { status: 200, body: { alerts: reduceAlerts(lists) } };
+}
+
+// National marine-alert summary for the map layer: which marine zones have
+// active alerts, at what banner tier, with the event names for the popup.
+// One upstream call, cached, shared by every viewer.
+
+const TIER_NAME = ['warning', 'watch', 'advisory'];
+
+export function reduceMarineZones(data) {
+  const zones = new Map();
+  for (const f of data.features || []) {
+    const p = f.properties;
+    if (!p?.event || p.status !== 'Actual' || p.messageType === 'Cancel') continue;
+    const tier = tierRank(p.event);
+    for (const url of p.affectedZones || []) {
+      const id = zoneIdFromUrl(url);
+      if (!id) continue;
+      const z = zones.get(id) || { id, tier: 2, events: [] };
+      z.tier = Math.min(z.tier, tier);
+      if (!z.events.includes(p.event)) z.events.push(p.event);
+      zones.set(id, z);
+    }
+  }
+  return [...zones.values()].map((z) => ({ id: z.id, tier: TIER_NAME[z.tier], events: z.events }));
+}
+
+export async function marineAlerts() {
+  const data = await fetchActiveMarine();
+  if (data.error) return { error: data.error };
+  return { zones: reduceMarineZones(data) };
+}
+
+// Simplified GeoJSON geometry for one zone. Zone shapes are effectively
+// static, so the route caches this for a month.
+export async function zoneGeometry(id) {
+  for (const type of ['coastal', 'offshore', 'forecast']) {
+    const data = await fetchZone(type, id);
+    if (!data.error && data.geometry) {
+      return { id, geometry: simplifyGeometry(data.geometry) };
+    }
+  }
+  return { error: { message: `No geometry for zone ${id}` } };
 }
 
 // Resolve the nearest NWS observation station id for a location.

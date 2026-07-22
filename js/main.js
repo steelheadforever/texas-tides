@@ -13,6 +13,7 @@ import { refreshChartsTheme } from './ui/charts.js';
 import { fetchTimeline, windColor, precipColor } from './layers/weather.js';
 import { WindLayer } from './layers/wind.js';
 import { RadarLayer, getRadarFrames } from './layers/radar.js';
+import { AlertZonesLayer } from './layers/alertZones.js';
 import { fmtHour, fmtTime } from './format.js';
 
 function waitForLibraries() {
@@ -280,6 +281,13 @@ async function init() {
   // Control cluster
   document.getElementById('wind-btn').addEventListener('click', () => weather.setWind(!weather.windOn));
   document.getElementById('radar-btn').addEventListener('click', () => weather.setRadar(!weather.radarOn));
+  const alertZones = new AlertZonesLayer(map);
+  const alertsBtn = document.getElementById('alerts-btn');
+  alertsBtn.classList.toggle('active', alertZones.on);
+  alertsBtn.addEventListener('click', () => {
+    alertZones.setOn(!alertZones.on);
+    alertsBtn.classList.toggle('active', alertZones.on);
+  });
   document.getElementById('favorites-btn').addEventListener('click', openFavorites);
   document.getElementById('settings-btn').addEventListener('click', openSettings);
 

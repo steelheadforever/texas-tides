@@ -5,7 +5,7 @@
 
 import { cacheKey, canonicalizeNoaa, noaaTtl, TTL, getCached, setCached, isErrorEnvelope } from './cache.js';
 import { noaaGet, fetchSunMoon, parseSunMoon, fetchPoints } from './upstream.js';
-import { forecast12h, pressure, temperature, alerts } from './nws.js';
+import { forecast12h, pressure, temperature, alerts, marineAlerts, zoneGeometry } from './nws.js';
 import catalog from './catalog.json';
 
 // Warm list: the flagship stations users open most — every station with BOTH
@@ -107,9 +107,20 @@ async function handleRequest(request, env) {
 
   // NWS derived endpoints
   if (path.startsWith('/api/nws/')) {
+    const sub = path.slice('/api/nws/'.length);
+
+    // Location-free endpoints (map alert layer) come before the lat/lon guard.
+    if (sub === 'marine-alerts') {
+      return cached(env, 'nws:marine-alerts', TTL.alerts, () => marineAlerts());
+    }
+    if (sub === 'zone-geometry') {
+      const id = (url.searchParams.get('id') || '').toUpperCase();
+      if (!/^[A-Z]{2}Z\d{3}$/.test(id)) return json({ error: 'Valid zone id required (e.g. PZZ650)' }, { status: 400 });
+      return cached(env, `nws:zone-geometry:${id}`, TTL.geometry, () => zoneGeometry(id));
+    }
+
     const loc = parseLatLon(url);
     if (!loc) return json({ error: 'lat and lon are required' }, { status: 400 });
-    const sub = path.slice('/api/nws/'.length);
     const key = cacheKey(`nws:${sub}`, { lat: loc.lat.toFixed(4), lon: loc.lon.toFixed(4) });
 
     if (sub === 'points') return cached(env, key, TTL.nws, () => fetchPoints(loc.lat, loc.lon));
