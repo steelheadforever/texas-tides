@@ -56,6 +56,16 @@ async function fetchNWSPoints(lat, lon) {
 }
 
 /**
+ * Active NWS alerts for a station — the point plus its coastal marine zone,
+ * merged/deduped and ranked warnings → watches → advisories by the worker.
+ * Returns [] on failure; no alerts is the normal state.
+ */
+export async function fetchAlerts(lat, lon) {
+  const data = await nwsGet(`${NWS_API_URL}/alerts?lat=${lat}&lon=${lon}`);
+  return data?.alerts || [];
+}
+
+/**
  * Fetch 12-hour wind forecast from NWS
  * Now proxied through Pi backend
  */

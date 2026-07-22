@@ -323,6 +323,35 @@ main {
   padding: 0.8rem 0.9rem;
   box-shadow: var(--shadow-card);
 }
+
+/* ---- NWS alert banners (mirrors the iOS station-sheet treatment) --------- */
+.alert-banner {
+  border-radius: var(--radius-card);
+  border: 1px solid var(--alert-tint-border);
+  background: var(--alert-tint-bg);
+  font-size: 0.85rem;
+}
+.alert-warning  { --alert-tint: var(--danger); --alert-tint-bg: rgba(226, 64, 58, 0.12); --alert-tint-border: rgba(226, 64, 58, 0.45); }
+.alert-watch    { --alert-tint: #ff9500; --alert-tint-bg: rgba(255, 149, 0, 0.12); --alert-tint-border: rgba(255, 149, 0, 0.45); }
+.alert-advisory { --alert-tint: #c9a100; --alert-tint-bg: rgba(255, 204, 0, 0.15); --alert-tint-border: rgba(201, 161, 0, 0.45); }
+body.dark-mode .alert-advisory { --alert-tint: #ffd60a; }
+.alert-banner summary {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.7rem 0.8rem;
+  cursor: pointer;
+  list-style: none;
+}
+.alert-banner summary::-webkit-details-marker { display: none; }
+.alert-banner summary > i:first-child { color: var(--alert-tint); font-size: 1.05rem; }
+.alert-title { flex: 1; font-weight: 600; display: flex; flex-direction: column; line-height: 1.3; }
+.alert-title small { font-weight: 400; font-size: 0.75rem; color: var(--text-secondary); }
+.alert-chevron { color: var(--text-tertiary); transition: transform 0.2s ease; }
+.alert-banner[open] .alert-chevron { transform: rotate(180deg); }
+.alert-body { padding: 0 0.8rem 0.75rem; }
+.alert-body p { margin: 0 0 0.55rem; }
+.alert-source { font-size: 0.7rem; color: var(--text-secondary); }
 .card-label {
   display: flex;
   align-items: center;

@@ -2,14 +2,14 @@
 // Opens without moving the map. Reuses the existing API layer.
 
 import { fetchTideNow, fetchNextTide, fetch24HourCurve, fetchWaterTemp, fetchWaterTempHistory, fetchAirTemp, fetchStationWind } from '../api/noaa.js';
-import { fetchForecast12h, fetchPressure } from '../api/nws.js';
+import { fetchForecast12h, fetchPressure, fetchAlerts } from '../api/nws.js';
 import { fetchSunMoonData } from '../api/usno.js';
 import { renderTideCurve, renderWaterTemp } from './charts.js';
 import { openPanel } from '../panels.js';
 import { getSettings } from '../settings.js';
 import { isFavorite, toggleFavorite } from '../favorites.js';
 import {
-  fmtTime, fmtFeet, fmtDegrees, fmtWind, knotsToMph, setDisplayTz,
+  fmtTime, fmtDay, dayKey, fmtFeet, fmtDegrees, fmtWind, knotsToMph, setDisplayTz,
   conditionIcon, trendIcon, pressureTrendIcon, moonIcon, escapeHtml,
 } from '../format.js';
 
@@ -62,7 +62,7 @@ export async function openStation(station) {
     // still runs for its observed water-level fallback.
     const hasPred = !station.products || station.products.includes('predictions');
     const hiloOnly = station.predType === 'S';
-    const [tideNow, nextTide, curve, waterTemp, waterTempHistory, airTemp, wind, windForecast, pressure, sunMoon] =
+    const [tideNow, nextTide, curve, waterTemp, waterTempHistory, airTemp, wind, windForecast, pressure, sunMoon, alerts] =
       await Promise.all([
         hasPred ? fetchTideNow(station.id, station.tz, { hiloOnly }) : null,
         hasPred ? fetchNextTide(station.id, station.tz) : null,
@@ -71,6 +71,7 @@ export async function openStation(station) {
         fetchAirTemp(station.id, station.lat, station.lon), fetchStationWind(station.id),
         fetchForecast12h(station.lat, station.lon), fetchPressure(station.lat, station.lon),
         fetchSunMoonData(station.lat, station.lon, new Date(), station.tz),
+        fetchAlerts(station.lat, station.lon),
       ]);
 
     // Station changed while loading — drop stale render.
@@ -81,6 +82,9 @@ export async function openStation(station) {
     if (!anyData) { body.innerHTML = offlineCard(); wireRetry(station); return; }
 
     body.innerHTML = [
+      // Warnings first (worker-sorted). Not part of anyData — no alerts is
+      // the normal, happy state, never "offline".
+      (alerts || []).map((a) => alertBanner(a, station.tz)).join(''),
       tideStatusCard(tideNow),
       nextTidesCard(events),
       curveCard(curve),
@@ -106,6 +110,56 @@ export async function openStation(station) {
 function wireRetry(station) {
   const btn = document.getElementById('sp-retry');
   if (btn) btn.addEventListener('click', () => openStation(station));
+}
+
+// ---- NWS alert banners -----------------------------------------------------
+
+// Banner tier from the event name — the NWS severity field can't rank
+// products (every Small Craft Advisory is "Minor"). Mirrors iOS
+// MarineAlert.Level.
+function alertLevel(event) {
+  if (/Warning$/.test(event)) return 'warning';
+  if (/Watch$/.test(event)) return 'watch';
+  return 'advisory';
+}
+
+// "until 9:00 PM" (station-local), adding the day when the end crosses a
+// station-local midnight — "until 8:00 PM" at 10:53 PM must not mean tomorrow.
+function alertUntil(alert, tz) {
+  const end = new Date(alert.ends || alert.expires || NaN);
+  if (isNaN(end)) return '';
+  const time = fmtTime(end, tz);
+  return dayKey(end, tz) === dayKey(new Date(), tz)
+    ? `until ${time}`
+    : `until ${fmtDay(end, tz)}, ${time}`;
+}
+
+// NWS body text arrives hard-wrapped (single newlines mid-paragraph, blank
+// lines between paragraphs). Unwrap the lines, keep the paragraphs as <p>s.
+function alertParagraphs(text) {
+  return text.split('\n\n')
+    .map((p) => p.replace(/\n/g, ' ').trim())
+    .filter(Boolean)
+    .map((p) => `<p>${escapeHtml(p)}</p>`)
+    .join('');
+}
+
+function alertBanner(alert, tz) {
+  const level = alertLevel(alert.event);
+  const until = alertUntil(alert, tz);
+  const icon = level === 'advisory' ? 'ph-fill ph-warning-circle' : 'ph-fill ph-warning';
+  const body = [alert.description, alert.instruction].filter(Boolean).map(alertParagraphs).join('');
+  return `<details class="alert-banner alert-${level}">
+    <summary>
+      <i class="${icon}"></i>
+      <span class="alert-title">${escapeHtml(alert.event)}${until ? `<small>${escapeHtml(until)}</small>` : ''}</span>
+      <i class="ph-bold ph-caret-down alert-chevron"></i>
+    </summary>
+    <div class="alert-body">
+      ${body}
+      <div class="alert-source">Source: National Weather Service — not a substitute for official marine broadcasts.</div>
+    </div>
+  </details>`;
 }
 
 // ---- Cards ----------------------------------------------------------------
