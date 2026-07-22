@@ -34,6 +34,10 @@ export class AlertZonesLayer {
     try { localStorage.setItem(STORAGE_KEY, on ? '1' : '0'); } catch {}
     if (on) {
       this.group.addTo(this.map);
+      // A manual toggle always refreshes — toggling off mid-load leaves the
+      // group partially filled, and the throttle would pin that partial set
+      // until the next timer tick.
+      this.lastFetch = 0;
       this.refresh();
     } else {
       this.gen++;
