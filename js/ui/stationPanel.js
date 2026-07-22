@@ -78,13 +78,16 @@ export async function openStation(station) {
     if (currentStation?.id !== reqId) return;
 
     const events = [nextTide?.first, nextTide?.second].filter(Boolean);
+    // Warnings first (worker-sorted). Not part of anyData — no alerts is the
+    // normal, happy state, never "offline".
+    const alertsHtml = (alerts || []).map((a) => alertBanner(a, station.tz)).join('');
     const anyData = tideNow || curve || waterTemp != null || airTemp != null || wind || windForecast || pressure || sunMoon;
-    if (!anyData) { body.innerHTML = offlineCard(); wireRetry(station); return; }
+    // Even when every data fetch failed, surface any alerts that did arrive —
+    // a NOAA outage during a gale is exactly when the banner matters.
+    if (!anyData) { body.innerHTML = alertsHtml + offlineCard(); wireRetry(station); return; }
 
     body.innerHTML = [
-      // Warnings first (worker-sorted). Not part of anyData — no alerts is
-      // the normal, happy state, never "offline".
-      (alerts || []).map((a) => alertBanner(a, station.tz)).join(''),
+      alertsHtml,
       tideStatusCard(tideNow),
       nextTidesCard(events),
       curveCard(curve),
