@@ -102,15 +102,6 @@ export function fetchObservations(stationId, limit = 6) {
 export function fetchAlertsForPoint(lat, lon) {
   return nwsGet(`${NWS_BASE_URL}/alerts/active?status=actual&point=${lat.toFixed(4)},${lon.toFixed(4)}`);
 }
-// Coastal marine zone(s) containing the point. Same polygon test as above, so
-// this only adds coverage when the point is in the water — kept separate
-// because alert queries by zone id are what the phase-2 map layer will share.
-export function fetchCoastalZones(lat, lon) {
-  return nwsGet(`${NWS_BASE_URL}/zones?type=coastal&point=${lat.toFixed(4)},${lon.toFixed(4)}&include_geometry=false`);
-}
-export function fetchAlertsForZone(zoneId) {
-  return nwsGet(`${NWS_BASE_URL}/alerts/active/zone/${encodeURIComponent(zoneId)}`);
-}
 // Every active marine alert nationwide — one call feeds the whole map layer.
 export function fetchActiveMarine() {
   return nwsGet(`${NWS_BASE_URL}/alerts/active?status=actual&region_type=marine`);

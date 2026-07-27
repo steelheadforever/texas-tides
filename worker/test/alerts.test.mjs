@@ -87,20 +87,34 @@ async function withFetchRoutes(routes, fn) {
   }
 }
 
-test('alerts(): merges point alerts with the coastal zone lookup', async () => {
+function withZones(f, zones) {
+  f.properties.affectedZones = zones.map((z) => `https://api.weather.gov/zones/x/${z}`);
+  return f;
+}
+
+test('alerts(): offshore probes add marine alerts a landward point misses, land products from probes are dropped', async () => {
+  // Exact point (30, -90) sees only a land alert; the north probe (30.09, -90)
+  // lands "in the water" and sees an SCA plus a heat advisory. The SCA must
+  // merge in; the probe's heat advisory must not.
   const res = await withFetchRoutes({
-    'alerts/active?': { features: [feature('urn:flood', 'Coastal Flood Advisory')] },
-    'zones?type=coastal': { features: [{ properties: { id: 'PZZ545' } }] },
-    'alerts/active/zone/PZZ545': { features: [feature('urn:sca', 'Small Craft Advisory')] },
-  }, () => alerts(47.6, -122.3));
+    'point=30.0900,-90.0000': {
+      features: [
+        withZones(feature('urn:sca', 'Small Craft Advisory'), ['GMZ335']),
+        withZones(feature('urn:heat', 'Heat Advisory'), ['LAZ040']),
+      ],
+    },
+    'point=30.0000,-90.0000': {
+      features: [withZones(feature('urn:flood', 'Coastal Flood Advisory'), ['LAZ040'])],
+    },
+    'alerts/active': { features: [] }, // remaining probes
+  }, () => alerts(30, -90));
   assert.equal(res.status, 200);
   assert.deepEqual(res.body.alerts.map((a) => a.id).sort(), ['urn:flood', 'urn:sca']);
 });
 
 test('alerts(): no active alerts is a cacheable empty list, not an error', async () => {
   const res = await withFetchRoutes({
-    'alerts/active?': { features: [] },
-    'zones?type=coastal': { features: [] },
+    'alerts/active': { features: [] },
   }, () => alerts(47.6, -122.3));
   assert.equal(res.status, 200);
   assert.deepEqual(res.body.alerts, []);

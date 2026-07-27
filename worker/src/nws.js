@@ -8,8 +8,6 @@ import {
   fetchLatestObservation,
   fetchObservations,
   fetchAlertsForPoint,
-  fetchCoastalZones,
-  fetchAlertsForZone,
   fetchActiveMarine,
   fetchZone,
 } from './upstream.js';
@@ -108,23 +106,45 @@ export function reduceAlerts(featureLists) {
     || a.event.localeCompare(b.event));
 }
 
-export async function alerts(lat, lon) {
-  const [point, zones] = await Promise.all([
-    fetchAlertsForPoint(lat, lon),
-    fetchCoastalZones(lat, lon),
-  ]);
-  const zoneIds = (zones.features || [])
-    .map((f) => f.properties?.id)
-    .filter(Boolean)
-    .slice(0, 2);
-  const zoneAlerts = await Promise.all(zoneIds.map((id) => fetchAlertsForZone(id)));
+// Marine-zone UGC prefixes — probe results keep only marine alerts, so an
+// inland probe can't drag in a neighboring county's land products.
+const MARINE_PREFIXES = new Set(['AM', 'AN', 'GM', 'LC', 'LE', 'LH', 'LM', 'LO', 'LS', 'PH', 'PK', 'PM', 'PS', 'PZ', 'SL']);
 
-  const lists = [point, ...zoneAlerts];
+export function marineOnly(list) {
+  if (!list || list.error) return list;
+  return {
+    features: (list.features || []).filter((f) =>
+      (f.properties?.affectedZones || []).some((url) => {
+        const id = zoneIdFromUrl(url);
+        return id && MARINE_PREFIXES.has(id.slice(0, 2));
+      })),
+  };
+}
+
+// Marine zone polygons stop at the shoreline, and tide stations sit on piers,
+// inlets, and Coast Guard docks a few hundred meters landward — a bare point
+// query misses the Small Craft Advisory covering the water the station fronts
+// (verified: Hatteras and Marquette C.G. both return nothing at their exact
+// coordinates while an SCA sits just offshore). Probe ~10 km in each compass
+// direction and merge the marine alerts those points land in.
+const PROBE_DEG = 0.09;
+
+export async function alerts(lat, lon) {
+  const lonStep = PROBE_DEG / Math.max(0.2, Math.cos((lat * Math.PI) / 180));
+  const probes = [
+    [lat + PROBE_DEG, lon], [lat - PROBE_DEG, lon],
+    [lat, lon + lonStep], [lat, lon - lonStep],
+  ];
+  const [point, ...probed] = await Promise.all([
+    fetchAlertsForPoint(lat, lon),
+    ...probes.map(([la, lo]) => fetchAlertsForPoint(la, lo)),
+  ]);
+
   // Every upstream failed → don't cache an empty list that's really an outage.
-  if (lists.every((l) => l.error)) {
+  if ([point, ...probed].every((l) => l.error)) {
     return { status: 502, body: { error: 'Alerts unavailable' } };
   }
-  return { status: 200, body: { alerts: reduceAlerts(lists) } };
+  return { status: 200, body: { alerts: reduceAlerts([point, ...probed.map(marineOnly)]) } };
 }
 
 // National marine-alert summary for the map layer: which marine zones have
