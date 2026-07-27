@@ -165,8 +165,10 @@ async function wrapDerived(env, key, ttlSeconds, produce) {
 
   const res = await produce();
   if (res.status === 200) {
-    await setCached(env, key, res.body, ttlSeconds);
-    return json(res.body, { cacheControl: `public, max-age=${ttlSeconds}` });
+    // noCache: a partial result (some upstream calls failed) is served but
+    // never cached — the next request re-tries for the complete answer.
+    if (!res.noCache) await setCached(env, key, res.body, ttlSeconds);
+    return json(res.body, { cacheControl: `public, max-age=${res.noCache ? 30 : ttlSeconds}` });
   }
   if (hit) return json(hit.body, { cacheControl: 'public, max-age=30' });
   return json(res.body, { status: res.status });

@@ -144,7 +144,17 @@ export async function alerts(lat, lon) {
   if ([point, ...probed].every((l) => l.error)) {
     return { status: 502, body: { error: 'Alerts unavailable' } };
   }
-  return { status: 200, body: { alerts: reduceAlerts([point, ...probed.map(marineOnly)]) } };
+  // Some probes failed → the result may be missing the one probe that sees
+  // the alert. Serve it, but noCache keeps it out of KV so a degraded colo
+  // can't overwrite a healthy colo's complete result (NWS's CDN answers
+  // point queries inconsistently across egress locations).
+  const failed = [point, ...probed].filter((l) => l.error).length;
+  if (failed > 0) console.log(`[alerts] partial: ${failed}/5 upstream calls failed`);
+  return {
+    status: 200,
+    noCache: failed > 0,
+    body: { alerts: reduceAlerts([point, ...probed.map(marineOnly)]) },
+  };
 }
 
 // National marine-alert summary for the map layer: which marine zones have
