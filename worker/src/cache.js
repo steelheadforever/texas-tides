@@ -85,6 +85,7 @@ export const TTL = {
   live: 6 * 60,             // latest water level / wind / temp
   observed: 10 * 60,        // recent observed water-level / temp history
   nws: 15 * 60,             // weather forecast / pressure / air temp
+  weather: 15 * 60,         // Open-Meteo wind/precip/wave grids — matches the app's client cache
   alerts: 5 * 60,           // active NWS alerts — safety info, keep short
   geometry: 30 * 24 * 60 * 60, // NWS zone polygons — effectively static shapes
   usno: 12 * 60 * 60,       // sun/moon for a given day

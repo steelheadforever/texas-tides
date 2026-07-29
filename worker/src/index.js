@@ -6,6 +6,7 @@
 import { cacheKey, canonicalizeNoaa, noaaTtl, TTL, getCached, setCached, isErrorEnvelope } from './cache.js';
 import { noaaGet, fetchSunMoon, parseSunMoon, fetchPoints } from './upstream.js';
 import { forecast12h, pressure, temperature, alerts, marineAlerts, zoneGeometry } from './nws.js';
+import { weatherGrid, marinePoint } from './weather.js';
 import catalog from './catalog.json';
 
 // Warm list: the flagship stations users open most — every station with BOTH
@@ -129,6 +130,44 @@ async function handleRequest(request, env) {
     if (sub === 'temperature') return wrapDerived(env, key, TTL.nws, () => temperature(loc.lat, loc.lon));
     if (sub === 'alerts') return wrapDerived(env, key, TTL.alerts, () => alerts(loc.lat, loc.lon));
     return json({ error: 'Unknown NWS endpoint' }, { status: 404 });
+  }
+
+  // Open-Meteo weather grid — /api/weather/grid?minLat=&maxLat=&minLon=&maxLon=&rows=&cols=&waves=0|1
+  // The app sends its viewport lattice (snapped bounds + point counts); the
+  // worker regenerates the identical even grid, fetches wind/precip (+ waves
+  // when requested), and caches the merged result per region so every client
+  // panning the same coast shares one upstream call.
+  if (path === '/api/weather/grid') {
+    const q = url.searchParams;
+    const minLat = parseFloat(q.get('minLat'));
+    const maxLat = parseFloat(q.get('maxLat'));
+    const minLon = parseFloat(q.get('minLon'));
+    const maxLon = parseFloat(q.get('maxLon'));
+    const rows = parseInt(q.get('rows'), 10);
+    const cols = parseInt(q.get('cols'), 10);
+    const wantsWaves = q.get('waves') === '1';
+    if ([minLat, maxLat, minLon, maxLon].some(Number.isNaN) || !(rows >= 2) || !(cols >= 2)) {
+      return json({ error: 'minLat, maxLat, minLon, maxLon, rows>=2, cols>=2 are required' }, { status: 400 });
+    }
+    if (rows * cols > 600) return json({ error: 'grid too large (max 600 points)' }, { status: 400 });
+    // Low-cardinality key: 2-decimal bounds (the app already snaps to step
+    // multiples) + grid size + waves flag. TTL owns freshness, so no timestamp
+    // in the key — writes stay bounded to distinct regions, not traffic.
+    const f2 = (v) => v.toFixed(2);
+    const key = cacheKey('weather:grid', {
+      b: `${f2(minLat)},${f2(maxLat)},${f2(minLon)},${f2(maxLon)}`,
+      g: `${rows}x${cols}`,
+      w: wantsWaves ? '1' : '0',
+    });
+    return wrapDerived(env, key, TTL.weather, () => weatherGrid({ minLat, maxLat, minLon, maxLon, rows, cols, wantsWaves }));
+  }
+
+  // Single-point sea state for the station card — /api/weather/marine-point?lat=&lon=
+  if (path === '/api/weather/marine-point') {
+    const loc = parseLatLon(url);
+    if (!loc) return json({ error: 'lat and lon are required' }, { status: 400 });
+    const key = cacheKey('weather:marine-point', { lat: loc.lat.toFixed(3), lon: loc.lon.toFixed(3) });
+    return cached(env, key, TTL.weather, () => marinePoint(loc.lat, loc.lon));
   }
 
   // USNO sun/moon — /api/usno/sun-moon?lat=&lon=&date=YYYY-MM-DD&tz=IANA
