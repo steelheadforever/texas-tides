@@ -7,6 +7,7 @@ import { cacheKey, canonicalizeNoaa, noaaTtl, TTL, getCached, setCached, isError
 import { noaaGet, fetchSunMoon, parseSunMoon, fetchPoints } from './upstream.js';
 import { forecast12h, pressure, temperature, alerts, marineAlerts, zoneGeometry } from './nws.js';
 import { weatherGrid, marinePoint } from './weather.js';
+import { latestHRRRRun, hrrrTile, HRRR_LAYER_RE } from './hrrr.js';
 import catalog from './catalog.json';
 
 // Warm list: the flagship stations users open most — every station with BOTH
@@ -160,6 +161,30 @@ async function handleRequest(request, env) {
       w: wantsWaves ? '1' : '0',
     });
     return wrapDerived(env, key, TTL.weather, () => weatherGrid({ minLat, maxLat, minLon, maxLon, rows, cols, wantsWaves }));
+  }
+
+  // HRRR forecast radar (IEM) — run discovery + tile proxy.
+  //   /api/hrrr/run                              → latest processed run
+  //   /api/hrrr/tile/<layer>/<z>/<x>/<y>.png     → edge-cached tile passthrough
+  if (path.startsWith('/api/hrrr/')) {
+    const sub = path.slice('/api/hrrr/'.length);
+    if (sub === 'run') {
+      // Short TTL: a new run lands every hour; 4 min keeps discovery near-live
+      // while collapsing all clients onto ~15 probe walks per hour.
+      return wrapDerived(env, 'hrrr:run', 240, () => latestHRRRRun());
+    }
+    const m = sub.match(/^tile\/([^/]+)\/(\d{1,2})\/(\d+)\/(\d+)\.png$/);
+    if (m) {
+      // Some URL builders percent-encode the layer's "::" — accept both.
+      const layer = decodeURIComponent(m[1]);
+      const [, , z, x, y] = m;
+      if (!HRRR_LAYER_RE.test(layer)) {
+        return json({ error: 'Invalid HRRR layer' }, { status: 400 });
+      }
+      if (parseInt(z, 10) > 14) return json({ error: 'Zoom too deep' }, { status: 400 });
+      return hrrrTile(layer, z, x, y, CORS);
+    }
+    return json({ error: 'Unknown HRRR endpoint' }, { status: 404 });
   }
 
   // Single-point sea state for the station card — /api/weather/marine-point?lat=&lon=
