@@ -114,7 +114,16 @@ export async function getCached(env, key) {
   }
 }
 
+// How long an entry physically stays in KV beyond its logical freshness:
+// the serve-stale-on-upstream-failure paths in cached()/wrapDerived() can
+// only serve what still exists. Deleting at the logical TTL (the old
+// behavior) meant a rate-limited upstream on a cache miss had nothing to
+// fall back on and the client got a 502; day-old wind beats a blank layer.
+const STALE_RETENTION_SECONDS = 24 * 60 * 60;
+
 // Store a value with a TTL. KV enforces a 60s minimum expiration_ttl.
+// `expiresAt` carries the logical freshness; the physical KV expiry is
+// extended so a stale copy survives for the failure paths.
 // Best-effort: caching is an optimization — a failed write (e.g. the KV
 // daily write cap) must never fail a request that has data in hand.
 export async function setCached(env, key, body, ttlSeconds) {
@@ -126,7 +135,7 @@ export async function setCached(env, key, body, ttlSeconds) {
   };
   try {
     await env.CACHE.put(key, JSON.stringify(entry), {
-      expirationTtl: Math.max(60, ttlSeconds),
+      expirationTtl: Math.max(STALE_RETENTION_SECONDS, ttlSeconds),
     });
   } catch (err) {
     console.warn(`[cache] write failed for ${key}: ${err.message}`);
