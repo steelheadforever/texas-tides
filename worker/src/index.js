@@ -40,7 +40,7 @@ function json(body, { status = 200, cacheControl } = {}) {
 // out there with up to a day left on their TTL — treating them as a miss lets
 // them heal on the next request instead of stranding a station until they age
 // out. It's also the correct standing behaviour for any junk that gets in.
-async function cached(env, key, ttlSeconds, produce) {
+async function cached(env, key, ttlSeconds, produce, cacheOpts) {
   const raw = await getCached(env, key);
   const hit = raw && !isErrorEnvelope(raw.body) ? raw : null;
   if (hit && hit.expiresAt > Date.now()) {
@@ -49,7 +49,7 @@ async function cached(env, key, ttlSeconds, produce) {
 
   const fresh = await produce();
   if (fresh && !fresh.error && !isErrorEnvelope(fresh)) {
-    await setCached(env, key, fresh, ttlSeconds);
+    await setCached(env, key, fresh, ttlSeconds, cacheOpts);
     return json(fresh, { cacheControl: `public, max-age=${ttlSeconds}` });
   }
 
@@ -113,7 +113,8 @@ async function handleRequest(request, env) {
 
     // Location-free endpoints (map alert layer) come before the lat/lon guard.
     if (sub === 'marine-alerts') {
-      return cached(env, 'nws:marine-alerts', TTL.alerts, () => marineAlerts());
+      // Safety data: never retained past expiry (see setCached).
+      return cached(env, 'nws:marine-alerts', TTL.alerts, () => marineAlerts(), { retainStale: false });
     }
     if (sub === 'zone-geometry') {
       const id = (url.searchParams.get('id') || '').toUpperCase();
@@ -129,7 +130,8 @@ async function handleRequest(request, env) {
     if (sub === 'forecast-12h') return wrapDerived(env, key, TTL.nws, () => forecast12h(loc.lat, loc.lon));
     if (sub === 'pressure') return wrapDerived(env, key, TTL.nws, () => pressure(loc.lat, loc.lon));
     if (sub === 'temperature') return wrapDerived(env, key, TTL.nws, () => temperature(loc.lat, loc.lon));
-    if (sub === 'alerts') return wrapDerived(env, key, TTL.alerts, () => alerts(loc.lat, loc.lon));
+    // Safety data: never retained past expiry (see setCached).
+    if (sub === 'alerts') return wrapDerived(env, key, TTL.alerts, () => alerts(loc.lat, loc.lon), { retainStale: false });
     return json({ error: 'Unknown NWS endpoint' }, { status: 404 });
   }
 
@@ -223,7 +225,7 @@ async function handleRequest(request, env) {
 
 // Derived NWS handlers return { status, body }. Cache only 200s; serve stale on
 // non-200 if we have it.
-async function wrapDerived(env, key, ttlSeconds, produce) {
+async function wrapDerived(env, key, ttlSeconds, produce, cacheOpts) {
   const hit = await getCached(env, key);
   if (hit && hit.expiresAt > Date.now()) return json(hit.body, { cacheControl: `public, max-age=${ttlSeconds}` });
 
@@ -231,7 +233,7 @@ async function wrapDerived(env, key, ttlSeconds, produce) {
   if (res.status === 200) {
     // noCache: a partial result (some upstream calls failed) is served but
     // never cached — the next request re-tries for the complete answer.
-    if (!res.noCache) await setCached(env, key, res.body, ttlSeconds);
+    if (!res.noCache) await setCached(env, key, res.body, ttlSeconds, cacheOpts);
     return json(res.body, { cacheControl: `public, max-age=${res.noCache ? 30 : ttlSeconds}` });
   }
   if (hit) return json(hit.body, { cacheControl: 'public, max-age=30' });
