@@ -21,6 +21,19 @@ const TIMEOUT_MS = 10000;
 // hour, which would poison an immutable edge cache.
 export const HRRR_LAYER_RE = /^hrrr::REF[DP]-F\d{4}-\d{12}$/;
 
+/**
+ * Percent-decode a layer path segment (URL builders may encode the "::").
+ * Returns null on malformed percent sequences — decodeURIComponent throws a
+ * URIError on those, and that's the caller's bad input, not a 500.
+ */
+export function decodeLayer(raw) {
+  try {
+    return decodeURIComponent(raw);
+  } catch {
+    return null;
+  }
+}
+
 /** UTC init-time stamp for a run hour: YYYYMMDDHH00. */
 export function hrrrRunStamp(date) {
   const p = (n, w = 2) => String(n).padStart(w, '0');

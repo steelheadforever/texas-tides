@@ -5,7 +5,7 @@
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { hrrrRunStamp, latestHRRRRun, hrrrTile, HRRR_LAYER_RE } from '../src/hrrr.js';
+import { hrrrRunStamp, latestHRRRRun, hrrrTile, HRRR_LAYER_RE, decodeLayer } from '../src/hrrr.js';
 
 /** Stub fetch: answers per probed stamp; anything unlisted 503s. */
 async function withIEM(responder, fn) {
@@ -60,6 +60,12 @@ test('layer regex: explicit runs only', () => {
   assert.ok(!HRRR_LAYER_RE.test('hrrr::REFD-F0060'), 'missing run stamp');
   assert.ok(!HRRR_LAYER_RE.test('goes::vis-F0000-202608092200'), 'other products');
   assert.ok(!HRRR_LAYER_RE.test('hrrr::REFD-F60-202608092200'), 'minute must be 4 digits');
+});
+
+test('decodeLayer: passthrough, percent-decode, and malformed → null (400 not 500)', () => {
+  assert.equal(decodeLayer('hrrr::REFD-F0060-202608092200'), 'hrrr::REFD-F0060-202608092200');
+  assert.equal(decodeLayer('hrrr%3A%3AREFD-F0060-202608092200'), 'hrrr::REFD-F0060-202608092200');
+  assert.equal(decodeLayer('hrrr%zz'), null, 'URIError must become a 400, never a 500');
 });
 
 test('tile: 200 passes through as immutable PNG', async () => {

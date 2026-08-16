@@ -7,7 +7,7 @@ import { cacheKey, canonicalizeNoaa, noaaTtl, TTL, getCached, setCached, isError
 import { noaaGet, fetchSunMoon, parseSunMoon, fetchPoints } from './upstream.js';
 import { forecast12h, pressure, temperature, alerts, marineAlerts, zoneGeometry } from './nws.js';
 import { weatherGrid, marinePoint } from './weather.js';
-import { latestHRRRRun, hrrrTile, HRRR_LAYER_RE } from './hrrr.js';
+import { latestHRRRRun, hrrrTile, HRRR_LAYER_RE, decodeLayer } from './hrrr.js';
 import catalog from './catalog.json';
 
 // Warm list: the flagship stations users open most — every station with BOTH
@@ -178,7 +178,10 @@ async function handleRequest(request, env) {
     const m = sub.match(/^tile\/([^/]+)\/(\d{1,2})\/(\d+)\/(\d+)\.png$/);
     if (m) {
       // Some URL builders percent-encode the layer's "::" — accept both.
-      const layer = decodeURIComponent(m[1]);
+      const layer = decodeLayer(m[1]);
+      if (layer === null) {
+        return json({ error: 'Malformed HRRR layer encoding' }, { status: 400 });
+      }
       const [, , z, x, y] = m;
       if (!HRRR_LAYER_RE.test(layer)) {
         return json({ error: 'Invalid HRRR layer' }, { status: 400 });
