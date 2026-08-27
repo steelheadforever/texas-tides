@@ -15,11 +15,18 @@ let currentTileLayer = null;
 const markers = new Map();
 let onSelect = null;
 
+// CARTO closed their free unauthenticated basemaps: cartocdn tiles still
+// return 200, but every one is now an "API KEY REQUIRED" watermark. Esri's
+// gray canvas needs no key and is the nearest match to the old Positron /
+// Dark Matter pair. Note the {z}/{y}/{x} order — MapServer, not XYZ.
 const TILE_LAYERS = {
-  light: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
-  dark: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+  light: 'https://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}',
+  dark: 'https://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}',
 };
-const ATTRIBUTION = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>';
+const ATTRIBUTION = 'Esri, HERE, Garmin, &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
+// Gray canvas is only cached through z16 — beyond that Esri serves a "Map
+// data not yet available" placeholder, so let Leaflet upscale z16 instead.
+const TILE_OPTS = { attribution: ATTRIBUTION, maxNativeZoom: 16, maxZoom: 19, minZoom: 3 };
 
 function stationIcon() {
   return L.divIcon({
@@ -74,9 +81,7 @@ export function initMap(onStationSelect) {
   map = L.map('map', { center: [27.9, -95.6], zoom: 7, zoomControl: true, attributionControl: true });
   L.control.zoom({ position: 'topleft' });
 
-  currentTileLayer = L.tileLayer(isDark() ? TILE_LAYERS.dark : TILE_LAYERS.light, {
-    attribution: ATTRIBUTION, maxZoom: 19, minZoom: 3,
-  }).addTo(map);
+  currentTileLayer = L.tileLayer(isDark() ? TILE_LAYERS.dark : TILE_LAYERS.light, TILE_OPTS).addTo(map);
 
   // Default view stays the Texas coast for now (national default lands with
   // the geolocation work). Markers arrive async from the catalog.
@@ -110,7 +115,5 @@ export function panToStation(station) {
 export function switchMapTiles(dark) {
   if (!map || !currentTileLayer) return;
   map.removeLayer(currentTileLayer);
-  currentTileLayer = L.tileLayer(dark ? TILE_LAYERS.dark : TILE_LAYERS.light, {
-    attribution: ATTRIBUTION, maxZoom: 19, minZoom: 3,
-  }).addTo(map);
+  currentTileLayer = L.tileLayer(dark ? TILE_LAYERS.dark : TILE_LAYERS.light, TILE_OPTS).addTo(map);
 }
