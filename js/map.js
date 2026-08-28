@@ -79,6 +79,10 @@ function addStationMarkers(stations) {
 export function initMap(onStationSelect) {
   onSelect = onStationSelect;
   map = L.map('map', { center: [27.9, -95.6], zoom: 7, zoomControl: true, attributionControl: true });
+  // Data attribution is required (Esri's terms, and OSM's ODbL); Leaflet's own
+  // "Leaflet" prefix is courtesy only, so drop it and keep the credits that matter.
+  // Note the map option only takes a boolean — the prefix has to be unset here.
+  map.attributionControl.setPrefix(false);
   L.control.zoom({ position: 'topleft' });
 
   currentTileLayer = L.tileLayer(isDark() ? TILE_LAYERS.dark : TILE_LAYERS.light, TILE_OPTS).addTo(map);

@@ -181,6 +181,14 @@ main {
   z-index: 0;
 }
 
+/* Leaflet lays tiles at fractional pixel offsets (y = ...375), so the browser
+   antialiases every tile edge against whatever sits behind it. That backdrop is
+   Leaflet's own default #ddd, which against the dark basemap blends into a
+   bright hairline grid at native zooms. Matching the backdrop to each basemap's
+   fill makes the seam invisible — and stops the pre-load flash of grey. */
+.leaflet-container { background: #d0cfd4; }
+body.dark-mode .leaflet-container { background: #232227; }
+
 /* Clean Leaflet zoom control to match the control cluster */
 .leaflet-control-zoom {
   border: none !important;
