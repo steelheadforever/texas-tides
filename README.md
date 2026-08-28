@@ -125,10 +125,12 @@ list remains as the offline fallback.
 ## Deployment
 
 ### Frontend (Cloudflare Pages)
-- **Live site**: [slackwater.app](https://slackwater.app)
-- Auto-deploys on every push to `main`
+- **Live site**: [slackwater.app](https://slackwater.app) — Pages project `texas-tides` (custom domain since 2026-08-27; GitHub Pages is legacy and unused)
+- Auto-deploys on every push to `main` by running `npm run build` and publishing `dist/` — the static map app is copied as-is and the Dispatch journal (`dispatch/`, Astro) is built under `/dispatch/`
+- A failing build leaves the previous deploy live; check the project's deployments list if a push doesn't show up
 - SSL/HTTPS and global CDN managed by Cloudflare
 - Every branch gets a preview URL, commented on its Pull Request
+- Full pipeline notes, including how to work on the map app and author Dispatch issues: [`DEPLOY.md`](DEPLOY.md)
 
 ### Backend (Cloudflare Worker)
 ```bash
