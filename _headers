@@ -12,3 +12,10 @@
 
 /css/*
   Cache-Control: no-cache
+
+# Dispatch (Astro build under /dispatch): HTML revalidates, hashed assets are immutable.
+/dispatch/*
+  Cache-Control: no-cache
+
+/dispatch/_astro/*
+  Cache-Control: public, max-age=31536000, immutable

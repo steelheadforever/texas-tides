@@ -15,6 +15,7 @@ import { WindLayer } from './layers/wind.js';
 import { RadarLayer, getRadarFrames } from './layers/radar.js';
 import { AlertZonesLayer } from './layers/alertZones.js';
 import { fmtHour, fmtTime } from './format.js';
+import { getStations, stationById } from './data/stationStore.js';
 
 function waitForLibraries() {
   return new Promise((resolve) => {
@@ -265,6 +266,16 @@ async function init() {
   initSolunarPanel();
   initFavoritesPanel({ onSelect: (station) => { panToStation(station); openStation(station); } });
   initSearch({ onSelect: (station) => { panToStation(station); openStation(station); } });
+
+  // Deep link (used by Dispatch): /?station=8771450 pans to and opens that
+  // station once the catalog is in.
+  const wanted = new URLSearchParams(location.search).get('station');
+  if (wanted) {
+    getStations().then(() => {
+      const station = stationById(wanted) || stationById(Number(wanted));
+      if (station) { panToStation(station); openStation(station); }
+    }).catch(() => {});
+  }
 
   // Warm the wind/precip grid a couple seconds after load so the wind layer
   // appears instantly on first click instead of waiting on a cold fetch.
