@@ -1,0 +1,55 @@
+# Pages CMS (https://pagescms.org) — browser editor for Dispatch issues.
+# Sign in at app.pagescms.org with GitHub, open this repo, and this file
+# defines what you can edit. Saves are commits; Cloudflare Pages rebuilds.
+
+media:
+  input: dispatch/public/img
+  output: /dispatch/img
+
+content:
+  - name: issues
+    label: Dispatch issues
+    type: collection
+    path: dispatch/src/content/issues
+    filename: "{fields.date}.md"
+    view:
+      fields: [number, title, date, draft]
+      sort: [date]
+      default:
+        sort: date
+        order: desc
+    fields:
+      - name: number
+        label: Issue number
+        type: number
+        required: true
+      - name: date
+        label: Publish date
+        type: date
+        required: true
+      - name: title
+        label: Headline (archive, RSS, browser tab)
+        type: string
+        required: true
+      - name: summary
+        label: One-sentence summary
+        type: string
+      - name: stations
+        label: Stations for the live conditions strip
+        type: object
+        list: true
+        fields:
+          - { name: id, label: NOAA station id, type: string }
+          - { name: name, label: Display name, type: string }
+      - name: draft
+        label: Draft (hidden from the live site)
+        type: boolean
+        default: false
+      - name: body
+        label: Issue
+        type: rich-text
+        description: >
+          Start with the intro. Then one "## category · Headline" per item,
+          where category is one of: catch, report, conditions, bite, tactics,
+          gear, conservation, news, events. Shortcodes on their own line:
+          {youtube: VIDEO_ID}  {station: 8771450 Galveston Pier 21}  {partner: Name}

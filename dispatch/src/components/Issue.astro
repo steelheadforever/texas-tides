@@ -1,0 +1,39 @@
+---
+// One full issue: issue bar, live ticker, the rendered markdown (lead +
+// standfirst + entries, shaped by remark-dispatch), subscribe block.
+import { render, type CollectionEntry } from 'astro:content';
+import Ticker from './Ticker.astro';
+import Subscribe from './Subscribe.astro';
+
+interface Props {
+  issue: CollectionEntry<'issues'>;
+}
+const { issue } = Astro.props;
+const { Content } = await render(issue);
+const base = import.meta.env.BASE_URL;
+
+const dateLabel = issue.data.date.toLocaleDateString('en-US', {
+  weekday: 'short', month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC',
+});
+const isoDate = issue.data.date.toISOString().slice(0, 10);
+---
+<article class="issue">
+  <div class="issue-bar">
+    <a class="mark" href={base}>Dispatch</a>
+    <div class="meta">
+      Issue <b>{issue.data.number}</b>
+      <span class="sep">&middot;</span>
+      <time datetime={isoDate}>{dateLabel}</time>
+      <span class="sep">&middot;</span>
+      Texas inshore
+    </div>
+  </div>
+
+  <Ticker stations={issue.data.stations} />
+
+  <div class="content">
+    <Content />
+  </div>
+
+  <Subscribe />
+</article>

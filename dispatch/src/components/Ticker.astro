@@ -1,0 +1,59 @@
+---
+// Live conditions strip: next high/low for each station in the issue's
+// frontmatter, from the same worker the map app uses. Renders nothing if the
+// issue lists no stations; degrades to a quiet dash if a fetch fails.
+interface Props {
+  stations: { id: string; name: string }[];
+}
+const { stations } = Astro.props;
+---
+{stations.length > 0 && (
+  <div class="ticker" data-stations={JSON.stringify(stations)} aria-live="polite">
+    <span class="lbl">Now</span>
+    {stations.map((s) => (
+      <span class="st" data-id={s.id}>
+        <a href={`/?station=${s.id}`}>{s.name}</a> <b>&hellip;</b>
+      </span>
+    ))}
+  </div>
+)}
+
+<script>
+  const API = 'https://api.slackwater.app/api/noaa/query';
+
+  function ymd(d: Date) {
+    return `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}`;
+  }
+  function clock(t: string) {
+    // NOAA local time "2026-08-26 09:14" → "9:14a"
+    const [, hm] = t.split(' ');
+    const [h, m] = hm.split(':').map(Number);
+    return `${((h + 11) % 12) + 1}:${String(m).padStart(2, '0')}${h < 12 ? 'a' : 'p'}`;
+  }
+
+  async function fill(el: HTMLElement) {
+    const id = el.dataset.id!;
+    const out = el.querySelector('b')!;
+    try {
+      const q = new URLSearchParams({
+        station: id, product: 'predictions', datum: 'MLLW', interval: 'hilo',
+        begin_date: ymd(new Date()), range: '48', units: 'english', time_zone: 'lst_ldt',
+        format: 'json', application: 'slackwater_dispatch',
+      });
+      const res = await fetch(`${API}?${q}`);
+      const data = await res.json();
+      const preds: { t: string; v: string; type: string }[] = data.predictions || [];
+      // Station-local time compared as if browser-local: right for readers on
+      // the Texas coast, which is who this is for.
+      const now = new Date();
+      const next = preds.find((p) => new Date(p.t.replace(' ', 'T')) > now);
+      if (!next) throw new Error('no upcoming tide');
+      const ft = Number(next.v);
+      out.textContent = `${next.type === 'H' ? 'High' : 'Low'} ${clock(next.t)} · ${ft >= 0 ? '+' : ''}${ft.toFixed(1)} ft`;
+    } catch {
+      out.textContent = '—';
+    }
+  }
+
+  document.querySelectorAll<HTMLElement>('.ticker .st').forEach(fill);
+</script>

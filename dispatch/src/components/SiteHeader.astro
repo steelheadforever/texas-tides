@@ -1,0 +1,15 @@
+---
+// Same header as the map app (index.html) with Dispatch as the active item.
+// The camo PNGs are served from the root site's /images so there is one copy.
+const base = import.meta.env.BASE_URL;
+---
+<header class="site-header">
+  <div class="header-content">
+    <a class="header-brand" href="/" aria-label="Slackwater home"><span class="wordmark">Slackwater</span></a>
+    <nav class="header-nav" aria-label="Site">
+      <a href="/">Map</a>
+      <a href={base} class="on" aria-current="page">Dispatch</a>
+      <a class="app" href="https://apps.apple.com/us/app/id6785986784" target="_blank" rel="noopener">Get the app</a>
+    </nav>
+  </div>
+</header>

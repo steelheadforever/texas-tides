@@ -1,0 +1,41 @@
+---
+// Email capture. Posts to the worker; until that route ships, a non-2xx
+// response shows a plain "not live yet" line instead of a broken form.
+---
+<section class="subscribe" id="subscribe">
+  <div class="text">
+    <span class="mark">Dispatch</span>
+    <p>Twice a week, Texas inshore only. Reports, conditions, tactics, and the occasional good product. No noise.</p>
+  </div>
+  <form class="form" action="https://api.slackwater.app/dispatch/subscribe" method="post" novalidate>
+    <label class="sr-only" for="sub-email">Email address</label>
+    <input id="sub-email" name="email" type="email" placeholder="you@example.com" autocomplete="email" inputmode="email" required />
+    <button type="submit">Subscribe</button>
+    <p class="msg" role="status" aria-live="polite"></p>
+  </form>
+</section>
+
+<script>
+  const form = document.querySelector<HTMLFormElement>('.subscribe form');
+  if (form) {
+    const msg = form.querySelector<HTMLElement>('.msg')!;
+    const input = form.querySelector<HTMLInputElement>('input')!;
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (!input.checkValidity()) { msg.textContent = 'That email doesn’t look right.'; return; }
+      msg.textContent = 'Sending…';
+      try {
+        const res = await fetch(form.action, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: input.value.trim(), source: location.pathname }),
+        });
+        if (!res.ok) throw new Error(String(res.status));
+        msg.textContent = 'Subscribed. First issue lands with the next tide.';
+        input.value = '';
+      } catch {
+        msg.textContent = 'Email sign-up isn’t live yet — check back soon, or grab the RSS feed below.';
+      }
+    });
+  }
+</script>

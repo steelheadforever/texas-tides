@@ -1,0 +1,16 @@
+{
+  "name": "slackwater-dispatch",
+  "private": true,
+  "type": "module",
+  "description": "Slackwater Dispatch — Texas inshore journal, built with Astro and served at slackwater.app/dispatch",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "check": "astro check"
+  },
+  "dependencies": {
+    "@astrojs/rss": "^4.0.11",
+    "astro": "^5.12.0"
+  }
+}

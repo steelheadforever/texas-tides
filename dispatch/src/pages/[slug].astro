@@ -1,0 +1,19 @@
+---
+// /dispatch/2026-08-26/ — permalink for one issue.
+import { getCollection } from 'astro:content';
+import Base from '../layouts/Base.astro';
+import Issue from '../components/Issue.astro';
+
+export async function getStaticPaths() {
+  const issues = await getCollection('issues', ({ data }) => import.meta.env.DEV || !data.draft);
+  return issues.map((issue) => ({ params: { slug: issue.id }, props: { issue } }));
+}
+const { issue } = Astro.props;
+const base = import.meta.env.BASE_URL;
+---
+<Base title={`Dispatch No. ${issue.data.number} — ${issue.data.title}`} description={issue.data.summary}>
+  <main class="wrap">
+    <Issue issue={issue} />
+    <p class="back"><a href={base}>&larr; Latest issue</a></p>
+  </main>
+</Base>
