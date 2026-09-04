@@ -8,7 +8,7 @@ export async function GET(context) {
     .sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
   return rss({
     title: 'Slackwater Dispatch',
-    description: 'Texas inshore fishing, twice a week: catch reports, conditions, tactics, and conservation.',
+    description: 'Texas inshore fishing, once a week: catch reports, conditions, tactics, and conservation.',
     site: context.site,
     items: issues.map((i) => ({
       title: `Dispatch No. ${i.data.number} — ${i.data.title}`,

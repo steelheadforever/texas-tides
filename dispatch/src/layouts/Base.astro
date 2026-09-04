@@ -10,7 +10,7 @@ interface Props {
   description?: string;
   image?: string;
 }
-const { title, description = 'Texas inshore fishing, twice a week: catch reports, conditions, tactics, and conservation.', image } = Astro.props;
+const { title, description = 'Texas inshore fishing, once a week: catch reports, conditions, tactics, and conservation.', image } = Astro.props;
 const canonical = new URL(Astro.url.pathname, Astro.site);
 const base = import.meta.env.BASE_URL;
 ---
