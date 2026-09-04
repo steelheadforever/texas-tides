@@ -326,6 +326,7 @@ img { max-width: 100%; height: auto; display: block; }
 .back a { text-decoration: none; color: var(--teal); }
 .empty { padding: 64px 0; text-align: center; color: var(--ink-3); }
 .empty .mark { display: block; color: var(--ink); margin-bottom: 8px; }
+.empty .lede { max-width: 34em; margin: 0 auto 10px; color: var(--ink-2); font-size: 17px; line-height: 1.5; }
 
 .site-footer { border-top: 1px solid var(--line); background: var(--paper-2); font-size: 13px; color: var(--ink-3); }
 .site-footer .wrap { padding: 20px; display: flex; flex-wrap: wrap; gap: 8px 20px; align-items: center; }
